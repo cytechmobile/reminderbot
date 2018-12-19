@@ -19,9 +19,9 @@ steps:
       containerName: 'db'
       ports: 5432
       environmentVariables:
-        POSTGRES_USER: 'wa'
-        POSTGRES_PASSWORD: 'wa'
-        POSTGRES_DB: 'wa'
+        POSTGRES_USER='wa'
+        POSTGRES_PASSWORD='wa'
+        POSTGRES_DB='wa'
   - task: Maven@3
     inputs:
       mavenPomFile: 'pom.xml'
