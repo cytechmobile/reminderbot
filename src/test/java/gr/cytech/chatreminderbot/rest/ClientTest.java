@@ -81,5 +81,4 @@ public class ClientTest {
         client.sendAsyncResponse(reminder);
         // client.getListOfMembersInRoom("AAAADvB8eGY");
     }
-
 }

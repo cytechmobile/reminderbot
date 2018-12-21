@@ -59,6 +59,30 @@ public class BotResource {
         String thread_id = req.getMessage().getThread().getName().split("/")[3];
         logger.debug("Text:{}", req.getMessage().getText());
 
+        String help = "----- Instructions using the reminder bot -----  \n "+
+                "  *If you are in a DM with the bot there is no need to mention it with @ \n" +
+                "Else in room mention the bot first such as below :\n "+
+                "1) Set a reminder (You can't set reminder for others out side of a room) \n "+
+                "  @"+BOT_NAME+" reminder (@who or me) 'what' at 16/3/2018 16:00 :\n"+
+                "2) Set a reminder in another room(needs to be invite first) and notify all\n "+
+                "  @"+BOT_NAME+" reminder #roomName 'what' at 16/3/2018 16:00";
+
+        /// ---- Added to Space - ------
+        if(req.getType().equals("ADDED_TO_SPACE")){
+            return responseBuild(help,space_id);
+        }
+
+        //---- Retrieve e message
+        String[] splitedMsg = req.getMessage().getText().split("\\s+");
+
+
+        //----- Response with instructions
+        if( splitedMsg[0].equals("help") ||
+                (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("help"))){
+            return responseBuild(help,space_id);
+        }
+
+
         ///
         ///
         ///
@@ -67,13 +91,6 @@ public class BotResource {
         ///
         ///
 
-
-        if (req.getMessage().getText().length() < 10) {
-            String responseDefault = "bot use:reminder who 'what' at 16/3/2018 16:00 ";
-            return responseBuild(responseDefault, space_id);
-        }
-
-        String[] splitedMsg = req.getMessage().getText().split("\\s+");
         //Checks if message is long enough and if starts with reminder
         if (req.getMessage().getText().length() > 10 &&
                 splitedMsg[0].equals("reminder") ||
@@ -137,9 +154,9 @@ public class BotResource {
             ///
             ///
             ///
-            if (req.getMessage().getText().length() > 11 &&
-                    req.getMessage().getText().substring(0, 12).equals("reminderlist") ||
-                    req.getMessage().getText().substring(0, 29).equals("@" + BOT_NAME + " reminderlist ")) {
+            if (req.getMessage().getText().length() > 10 &&
+                    splitedMsg[0].equals("reminderlist") ||
+                    (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("reminderlist"))) {
                 logger.info("List of reminders: ");
                 //Retrieve my reminders
 
@@ -157,7 +174,7 @@ public class BotResource {
             ///
             {
                 logger.info("Default ");
-                String responseDefault = "bot use:reminder who 'what' at 16/3/2018 16:00 ";
+                String responseDefault = "I didnt understand you, maybe i should provide some help \n"+help;
                 return responseBuild(responseDefault, space_id);
             }
     }
@@ -170,7 +187,6 @@ public class BotResource {
             return false;
         }
     }
-
 
     private String responseBuild(String message, String space_id) {
         return "{ \"text\": \"" + message + "\" ,  \"thread\": { \"name\": \"spaces/" + space_id + "\" }}";
@@ -280,28 +296,45 @@ public class BotResource {
         return what;
     }
 
+
+    //Cases checks who to notify:
+    // 1) me
+    // 2)#RoomName
+    // 3) @Firstname Lastname
     String extractWho(Request request) {
         String[] splited = request.getMessage().getText().split("\\s+");
         String who="";
         String displayName = "";
         String spaceId=request.getMessage().getThread().getName().split("/")[1];
         if (splited[0].equals("reminder")) {
+            // 1) me
             if (splited[1].equals("me")) {
                 //  ---- takes the ID of the sender ---
                 who = request.getMessage().getSender().getName();
             } else {
-                //TODO Checks how many spaces have the Displayname -
-                displayName = splited[1].substring(1) + " " + splited[2];
+                if(splited[1].startsWith("#")){
+                    // 2)#RoomName
+                    displayName = splited[1];
+                }else{
+                    // 3) @Firstname Lastname
+                    displayName = splited[1].substring(1) + " " + splited[2];
+                }
                 who = findIdUserName(displayName,spaceId);
             }
         } else {
             if (splited[0].equals("@" + BOT_NAME)) {
+                // 1) me
                 if (splited[2].equals("me")) {
                     //  ---- takes the ID of the sender ---
                     who = request.getMessage().getSender().getName();
                 } else {
-                    //TODO Checks how many spaces have the Displayname -
-                    displayName = splited[2].substring(1) + " " + splited[3];
+                    if(splited[2].startsWith("#")){
+                        // 2)#RoomName
+                        displayName = splited[2];
+                    }else{
+                        // 3) @Firstname Lastname
+                        displayName = splited[2].substring(1) + " " + splited[3];
+                    }
                     who = findIdUserName(displayName,spaceId);
                 }
             }
