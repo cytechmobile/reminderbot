@@ -16,7 +16,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Locale;
 
 
@@ -44,7 +44,6 @@ public class BotResource {
     @Inject
     TimerSessionBean timerSessionBean;
 
-
     //------------Check request from google chat -------------------
 
     @POST
@@ -68,38 +67,29 @@ public class BotResource {
         ///
         ///
         ///
+
+
         if (req.getMessage().getText().length() < 10) {
             String responseDefault = "bot use:reminder who 'what' at 16/3/2018 16:00 ";
             return responseBuild(responseDefault, space_id);
         }
+
+        String[] splitedMsg = req.getMessage().getText().split("\\s+");
         //Checks if message is long enough and if starts with reminder
         if (req.getMessage().getText().length() > 10 &&
-                req.getMessage().getText().substring(0, 9).equals("reminder ") ||
-                req.getMessage().getText().substring(0, 25).equals("@" + BOT_NAME + " reminder ")) {
-
-            String msg = "";
-            //Get message after reminder
-            if (req.getMessage().getText().substring(0, 9).equals("reminder ")) {
-                msg = req.getMessage().getText().substring(9);
-            } else if (req.getMessage().getText().substring(0, 25).equals("@" + BOT_NAME + " reminder ")) {
-                msg = req.getMessage().getText().substring(25);
-
-            }
-            logger.debug("Message: {}", msg);
+                splitedMsg[0].equals("reminder") ||
+                (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("reminder"))) {
 
             //Get what to remind
-            String what = msg.split("'")[1];
+            String what = extractWhat(req);
             logger.debug("what: {}", what);
 
             //Gets who
-            String[] splited = msg.split("\\s+");
-            String who;
-            if (splited[0].equals("me")) {
-                //  ---- takes the ID of the sender ---
-                who = req.getMessage().getSender().getName();
-            } else {
-                who = splited[0];
-            }
+            String who = extractWho(req);
+
+                //find this DisplayName ID
+                //Give who that id
+
             logger.debug("WHO : {}", who);
 
             //Gets when to remind
@@ -282,8 +272,50 @@ public class BotResource {
                 when += " " + message[i + 2];
             }
         }
-
-
         return when;
+    }
+
+    String extractWhat(Request request) {
+        String what = request.getMessage().getText().split("'")[1];
+        logger.debug("what: {}", what);
+        return what;
+    }
+
+    String extractWho(Request request) {
+        String[] splited = request.getMessage().getText().split("\\s+");
+        String who="";
+        String displayName = "";
+        String spaceId=request.getMessage().getThread().getName().split("/")[1];
+        if (splited[0].equals("reminder")) {
+            if (splited[1].equals("me")) {
+                //  ---- takes the ID of the sender ---
+                who = request.getMessage().getSender().getName();
+            } else {
+                //TODO Checks how many spaces have the Displayname -
+                displayName = splited[1].substring(1) + " " + splited[2];
+                who = findIdUserName(displayName,spaceId);
+            }
+        } else {
+            if (splited[0].equals("@" + BOT_NAME)) {
+                if (splited[2].equals("me")) {
+                    //  ---- takes the ID of the sender ---
+                    who = request.getMessage().getSender().getName();
+                } else {
+                    //TODO Checks how many spaces have the Displayname -
+                    displayName = splited[2].substring(1) + " " + splited[3];
+                    who = findIdUserName(displayName,spaceId);
+                }
+            }
+        }
+
+        return who;
+    }
+
+    //Gets usersID by his displayName in order to notify him properly
+    String findIdUserName(String displayName,String spaceId){
+        Client client = new Client();
+      HashMap<String,String > users =  client.getListOfMembersInRoom(spaceId);
+      //if displayName not found then just save the name as it is
+        return users.getOrDefault(displayName,displayName);
     }
 }

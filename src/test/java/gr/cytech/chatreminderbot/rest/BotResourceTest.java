@@ -147,6 +147,62 @@ public class BotResourceTest {
 
     }
 
+
+    @Test
+    public void extractWhatFromRequest() throws Exception {
+        Request req = new Request();
+        Message mes = new Message();
+
+
+        Sender sender = new Sender();
+
+        sender.setName("MyName");
+        mes.setSender(sender);
+        String what = "something to do";
+        final String expectedDate = "12/12/2018 12:00";
+        mes.setText("reminder me '" + what + "' at " + expectedDate);
+        req.setMessage(mes);
+
+        assertThat(botResource.extractWhat(req)).as("Unexpected extracted reminder date").isEqualTo(what);
+
+    }
+
+    @Test
+    public void extractWhoFromRequest() throws Exception {
+        Request req = new Request();
+        Message mes = new Message();
+        ThreadM thread = new ThreadM();
+        //SpaceId from testBot room
+        thread.setName("spaces/AAAADvB8eGY/thread/wk-fzcPcktM");
+
+
+        Sender sender = new Sender();
+
+        sender.setName("MyName");
+        mes.setSender(sender);
+        mes.setThread(thread);
+        String what = "something to do";
+        String who = "@Ntina trol";
+        final String expectedDate = "12/12/2018 12:00";
+        mes.setText("reminder " + who + " '" + what + "' at " + expectedDate);
+        req.setMessage(mes);
+
+        assertThat(botResource.extractWho(req)).as("Unexpected extracted reminder date").isEqualTo(who.substring(1));
+
+    }
+
+    @Test
+    public void findIdUserNameTest() {
+
+
+        String displayName = "Theodosis Tarlas";
+        String idUserName = "users/109120405665303776985";
+        //Space id is from room testBot
+        botResource.findIdUserName(displayName,"AAAADvB8eGY");
+
+          assertThat( botResource.findIdUserName(displayName,"AAAADvB8eGY")).as("Wrong Id user Name").isEqualTo(idUserName);
+    }
+
     @Test
     public void isValidDateTest() {
         String when = "16/12/2018 21:40";
