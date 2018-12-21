@@ -4,6 +4,7 @@ import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
 import gr.cytech.chatreminderbot.rest.message.ThreadM;
+import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,9 +14,7 @@ import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,17 +28,15 @@ public class BotResourceTest {
 
     BotResource botResource;
 
+    @Mocked
     Client client;
 
     Reminder reminder;
 
     @BeforeEach
     public final void beforeEach() throws Exception {
-
         botResource = new BotResource();
 
-
-        client = new Client();
         timerSessionBean = new TimerSessionBean();
 
         reminder = new Reminder("'what'", LocalDateTime.now().plusMinutes(10),
@@ -146,6 +143,62 @@ public class BotResourceTest {
 
 
     }
+
+
+    @Test
+    public void extractWhatFromRequest() throws Exception {
+        Request req = new Request();
+        Message mes = new Message();
+
+
+        Sender sender = new Sender();
+
+        sender.setName("MyName");
+        mes.setSender(sender);
+        String what = "something to do";
+        final String expectedDate = "12/12/2018 12:00";
+        mes.setText("reminder me '" + what + "' at " + expectedDate);
+        req.setMessage(mes);
+
+        assertThat(botResource.extractWhat(req)).as("Unexpected extracted reminder date").isEqualTo(what);
+
+    }
+
+    @Test
+    public void extractWhoFromRequest() throws Exception {
+        Request req = new Request();
+        Message mes = new Message();
+        ThreadM thread = new ThreadM();
+        //SpaceId from testBot room
+        final String spaceId = "AAAADvB8eGY";
+        thread.setName("spaces/" + spaceId + "/thread/wk-fzcPcktM");
+
+
+        Sender sender = new Sender();
+
+        sender.setName("MyName");
+        mes.setSender(sender);
+        mes.setThread(thread);
+        String what = "something to do";
+        String who = "@Ntina trol";
+        final String expectedDate = "12/12/2018 12:00";
+        mes.setText("reminder " + who + " '" + what + "' at " + expectedDate);
+        req.setMessage(mes);
+
+        Map<String, String> expectedUsers = new HashMap<>();
+        new Expectations() {{
+            client.getListOfMembersInRoom(spaceId); result = expectedUsers;
+        }};
+
+        assertThat(botResource.extractWho(req)).as("Unexpected extracted reminder date").isEqualTo(who.substring(1));
+    }
+
+    @Test
+    public void findIdUserNameTest() {
+
+
+      //In the future
+        }
 
     @Test
     public void isValidDateTest() {

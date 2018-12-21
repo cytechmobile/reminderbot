@@ -24,12 +24,15 @@ public class ClientTest {
     HttpRequest request;
     @Mocked
     HttpRequestFactory requestFactory;
+
     Client client;
+
 
     @BeforeEach
     public final void beforeEach() throws Exception {
         client = new Client();
     }
+
     @Test
     public void sendAsTest() throws Exception {
         final Reminder reminder = new Reminder("'what'", LocalDateTime.now().plusMinutes(10),
@@ -68,86 +71,15 @@ public class ClientTest {
         }};
     }
 
+    @Test
+    public void getListOfMembersInRoom() {
 
-    //Send Card function. Not Used for now it but might needed in future
-   /* public void sendCard() throws IOException, GeneralSecurityException {
+        Client client = new Client();
 
-        String what = "To go for a walk";
-        String card = "{" +
-                "  \"actionResponse\":{" +
-                "    \"type\":\"NEW_MESSAGE\"" +
-                "  }," +
-                "  \"cards\": [" +
-                "    {" +
-                "      \"sections\": [" +
-                "        {" +
-                "          \"widgets\": [" +
-                "            {" +
-                "              \"keyValue\": {" +
-                "                \"topLabel\": \"- Reminder -\"," +
-                "                \"content\": \" " + what + " \"," +
-                "                \"contentMultiline\": \"false\"," +
-                "                \"bottomLabel\": \"Press me for Snooze\"," +
-                "                \"onClick\": {" +
-                "                  \"action\": {" +
-                "                  \"actionMethodName\": \"snooze\"," +
-                "                   \"parameters\": [" +
-                "                   {" +
-                "                   \"key\": \"time\"," +
-                "                   \"value\": \"1 day\"" +
-                "                     }," +
-                "                      {" +
-                "                    \"key\": \"id\"," +
-                "                    \"value\": \"123456\"" +
-                "                            }" +
-                "                         ]" +
-                "                      }" +
-                "                  }," +
-                "                \"icon\": \"CLOCK\"," +
-                "                \"button\": {" +
-                "                  \"textButton\": {" +
-                "                    \"text\": \"I seen reminder delete it now \"," +
-                "                    \"onClick\": {" +
-                "                        \"action\": {" +
-                "                           \"actionMethodName\": \"delete\"," +
-                "                             \"parameters\": [" +
-                "                                {" +
-                "                             \"key\": \"time\"," +
-                "                            \"value\": \"1 day\"" +
-                "                                     }" +
-                "                                   ]" +
-                "                                }" +
-                "                    }" +
-                "                  }" +
-                "                }" +
-                "              }" +
-                "            }" +
-                "          ]" +
-                "        }" +
-                "      ]" +
-                "    }" +
-                "  ]" +
-                "}";
-
-
-        //Custom ids
-        String space_id = "AAAA2f1t66I";
-        String thread_id = "fguBUDlHUYE";
-
-        URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + space_id + "/messages?threadKey=LXWgtWvqyWU");
-        GenericUrl url = new GenericUrl(uri);
-        GoogleCredential credential = GoogleCredential
-                .fromStream(new FileInputStream(BOT_KEY_FILE_PATH))
-                .createScoped(SCOPE);
-
-        HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        HttpRequestFactory requestFactory = httpTransport.createRequestFactory(credential);
-
-        HttpContent content =
-                new ByteArrayContent("application/json", card.getBytes("UTF-8"));
-        com.google.api.client.http.HttpRequest request = requestFactory.buildPostRequest(url, content);
-        request.execute();
-
+        Reminder reminder = new Reminder("trololo", LocalDateTime.now().plusMinutes(10),
+                "DisplayName", "uPWJ7AAAAAE", "pbH-zOAtr8E");
+        client.sendAsyncResponse(reminder);
+        // client.getListOfMembersInRoom("AAAADvB8eGY");
     }
-*/
+
 }
