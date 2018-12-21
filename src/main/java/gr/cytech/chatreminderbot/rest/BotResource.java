@@ -67,10 +67,6 @@ public class BotResource {
                 "2) Set a reminder in another room(needs to be invite first) and notify all\n "+
                 "  @"+BOT_NAME+" reminder #roomName 'what' at 16/3/2018 16:00";
 
-        /// ---- Added to Space - ------
-        if(req.getType().equals("ADDED_TO_SPACE")){
-            return responseBuild(help,space_id);
-        }
 
         //---- Retrieve e message
         String[] splitedMsg = req.getMessage().getText().split("\\s+");
