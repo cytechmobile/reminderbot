@@ -24,8 +24,7 @@ import java.util.Locale;
 public class BotResource {
 
     private final static Logger logger = LoggerFactory.getLogger(BotResource.class.getName());
-
-    public static final String BOT_NAME_ENV = "BOT_NAME_ENV";
+    public static final String BOT_NAME_ENV = "BOT_NAME";
     public static final String BOT_NAME = System.getProperty(BOT_NAME_ENV,
             System.getenv().
                     getOrDefault(BOT_NAME_ENV, "reminder"));
