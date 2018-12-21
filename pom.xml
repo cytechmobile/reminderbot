@@ -53,10 +53,6 @@
                     <includes>
                         <include>**/*IT.java</include>
                     </includes>
-                    <environmentVariables>
-                        <BOT_KEY_FILE_PATH>/home/pavlos/Downloads/chatreminderbot/keys/botnotifiercyt-key.json</BOT_KEY_FILE_PATH>
-                        <BOT_NAME_ENV>botReminderDevTest</BOT_NAME_ENV>
-                    </environmentVariables>
                 </configuration>
                 <executions>
                     <execution>

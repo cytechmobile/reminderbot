@@ -20,10 +20,6 @@ public class Client {
 
     private final static List<String> SCOPE = Arrays.asList("https://www.googleapis.com/auth/chat.bot");
     public static final String KEY_FILE_PATH_ENV = "BOT_KEY_FILE_PATH";
-    public static final String BOT_KEY_FILE_PATH = System.getProperty(KEY_FILE_PATH_ENV,
-            System.getenv().
-                    getOrDefault(KEY_FILE_PATH_ENV, "./botnotifier-key.json"));
-
 
     public void sendAsyncResponse(Reminder reminder) {
 
@@ -61,12 +57,13 @@ public class Client {
         String response = "";
 
         GoogleCredential credential = null;
+        String keyFilePath = getBotKeyFilePath();
         try {
             credential = GoogleCredential
-                    .fromStream(new FileInputStream(BOT_KEY_FILE_PATH))
+                    .fromStream(new FileInputStream(keyFilePath))
                     .createScoped(SCOPE);
         } catch (IOException e) {
-            logger.error("Error creating GoogleCredential using key file:{}", BOT_KEY_FILE_PATH, e);
+            logger.error("Error creating GoogleCredential using key file:{}", keyFilePath, e);
         }
 
         HttpTransport httpTransport = null;
@@ -87,7 +84,6 @@ public class Client {
         } catch (UnsupportedEncodingException e) {
             logger.error("Error creating content from ByteArrayContent using  String message:{}", message, e);
         }
-
 
         HttpRequest request;
 
@@ -110,8 +106,11 @@ public class Client {
             }
             return response;
         }
-
-
     }
 
+    public String getBotKeyFilePath() {
+        return System.getProperty(KEY_FILE_PATH_ENV,
+                System.getenv().
+                        getOrDefault(KEY_FILE_PATH_ENV, "./botnotifier-key.json"));
+    }
 }

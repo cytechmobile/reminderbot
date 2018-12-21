@@ -28,12 +28,11 @@ public class ClientTest {
     Client client;
 
 
-
     @BeforeEach
     public final void beforeEach() throws Exception {
         client = new Client();
-
     }
+
     @Test
     public void sendAsTest() throws Exception {
         final Reminder reminder = new Reminder("'what'", LocalDateTime.now().plusMinutes(10),
@@ -73,14 +72,14 @@ public class ClientTest {
     }
 
     @Test
-    public void getListOfMembersInRoom(){
+    public void getListOfMembersInRoom() {
 
-        Client client= new Client();
+        Client client = new Client();
 
-       Reminder reminder = new Reminder("trololo", LocalDateTime.now().plusMinutes(10),
+        Reminder reminder = new Reminder("trololo", LocalDateTime.now().plusMinutes(10),
                 "DisplayName", "uPWJ7AAAAAE", "pbH-zOAtr8E");
-       client.sendAsyncResponse(reminder);
-       // client.getListOfMembersInRoom("AAAADvB8eGY");
+        client.sendAsyncResponse(reminder);
+        // client.getListOfMembersInRoom("AAAADvB8eGY");
     }
 
 }
