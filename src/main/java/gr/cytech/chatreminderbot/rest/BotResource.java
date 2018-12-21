@@ -323,7 +323,11 @@ public class BotResource {
                 if (splited[2].equals("me")) {
                     //  ---- takes the ID of the sender ---
                     who = request.getMessage().getSender().getName();
-                } else {
+                } else
+                    if (splited[2].equals("@all")) {
+                    //  ---- takes the ID of the sender ---
+                    who ="users/all";
+                } else  {
                     if(splited[2].startsWith("#")){
                         // 2)#RoomName
                         displayName = splited[2];
