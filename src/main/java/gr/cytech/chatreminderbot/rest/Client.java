@@ -31,7 +31,24 @@ public class Client {
         String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> " + reminder.getWhat()
                 + " \" ,  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
-        send(url, message, "POST");
+
+        //Check if message is to be sent to a room ex:reminder #TestRoom
+        if(reminder.getSenderDisplayName().startsWith("#")){
+
+            String spaceID = (String) getListOfSpacesBotBelongs().
+                    getOrDefault(reminder.getSenderDisplayName().substring(1),
+                            reminder.getSpaceId());
+
+            String messageToRoom = "{ \"text\":\"" + "<" + "users/all" + "> " + reminder.getWhat()+"\" }";
+
+            URI uri2 = URI.create("https://chat.googleapis.com/v1/spaces/" + spaceID+ "/messages");
+            GenericUrl url2 = new GenericUrl(uri2);
+
+            send(url2, messageToRoom, "POST");
+        }
+        else {
+            send(url, message, "POST");
+        }
 
     }
 
@@ -52,6 +69,21 @@ public class Client {
         return users;
     }
 
+    public HashMap getListOfSpacesBotBelongs(){
+        URI uri = URI.create("https://chat.googleapis.com/v1/spaces");
+        GenericUrl url = new GenericUrl(uri);
+        String emptyBodyMessage = "";
+        String response = send(url, emptyBodyMessage, "GET");
+        String[] results = response.split("\"");
+        //key=displayNameOfRoom Value:spaceID
+        HashMap<String, String> spaces = new HashMap<>();
+        for (int i = 0; i < results.length; i++) {
+            if (results[i].equals("displayName") && !(results[i+2].equals("")) ) {
+                spaces.put(results[i+2],results[i-6].split("/")[1]);
+            }
+        }
+        return spaces;
+    }
 
     public String send(GenericUrl url, String message, String HttpMethod) {
         String response = "";
