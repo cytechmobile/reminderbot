@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.inject.Inject;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -24,7 +21,7 @@ public class TimerSessionBean {
     @Inject
     BotResource botResource;
 
-    LocalDateTime nextReminderDate;
+    ZonedDateTime nextReminderDate;
 
 
     private final static Logger logger = LoggerFactory.getLogger(Client.class.getName());
@@ -36,7 +33,11 @@ public class TimerSessionBean {
 
         logger.info("Stop any timer before set new");
         this.stopTimer();
-        Date when = Date.from(reminder.getWhen().atZone(ZoneId.systemDefault()).toInstant());
+        // Date when = Date.from(reminder.getWhen().atZone(ZoneId.systemDefault()).toInstant());
+        //TODO use of timezone #1
+
+        //Gets when with timezone given by Db - user
+        Date when = Date.from(reminder.getWhen().toInstant());
         Timer timer = timerService.createSingleActionTimer(when, timerConfig);
     }
 
@@ -84,17 +85,17 @@ public class TimerSessionBean {
 
 
     //Sets the nextTimer - and its Date
-    public void setNextReminder(Reminder newNextReminder, LocalDateTime dateTime) {
+    public void setNextReminder(Reminder newNextReminder, ZonedDateTime dateTime) {
         this.setTimer(newNextReminder);
         this.setNextReminderDate(dateTime);
 
     }
 
-    public LocalDateTime getNextReminderDate() {
+    public ZonedDateTime getNextReminderDate() {
         return nextReminderDate;
     }
 
-    public void setNextReminderDate(LocalDateTime nextReminderDate) {
+    public void setNextReminderDate(ZonedDateTime nextReminderDate) {
         this.nextReminderDate = nextReminderDate;
     }
 

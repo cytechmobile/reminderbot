@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,7 +35,7 @@ public class ClientTest {
 
     @Test
     public void sendAsTest() throws Exception {
-        final Reminder reminder = new Reminder("'what'", LocalDateTime.now().plusMinutes(10),
+        final Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
                 "DisplayName", "uPWJ7AAAAAE", "1E_d3mjJGyM");
 
 
@@ -76,7 +76,7 @@ public class ClientTest {
 
         Client client = new Client();
 
-        Reminder reminder = new Reminder("trololo", LocalDateTime.now().plusMinutes(10),
+        Reminder reminder = new Reminder("trololo", ZonedDateTime.now().plusMinutes(10),
                 "DisplayName", "uPWJ7AAAAAE", "pbH-zOAtr8E");
         client.sendAsyncResponse(reminder);
         // client.getListOfMembersInRoom("AAAADvB8eGY");

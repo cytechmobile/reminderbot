@@ -7,17 +7,20 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.transaction.Transactional;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
+import java.util.List;
 
 
 @Path("/services")
@@ -38,6 +41,15 @@ public class BotResource {
         return entityManager;
     }
 
+    String timeZone;
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
 
     //Gets the class timerSessionBean in order to set reminders
     @Inject
@@ -59,26 +71,25 @@ public class BotResource {
         String thread_id = req.getMessage().getThread().getName().split("/")[3];
         logger.debug("Text:{}", req.getMessage().getText());
 
-        String help = "----- Instructions using the reminder bot -----  \n "+
-                "  *If you are in a DM with the bot there is no need to mention it with @ \n" +
-                "Else in room mention the bot first such as below :\n "+
-                "1) Set a reminder (You can't set reminder for others out side of a room) \n "+
-                "  @"+BOT_NAME+" reminder (@who or me) 'what' at 16/3/2018 16:00 :\n"+
-                "2) Set a reminder in another room(needs to be invite first) and notify all\n "+
-                "  @"+BOT_NAME+" reminder #roomName 'what' at 16/3/2018 16:00";
-
+        String help = "----- Instructions using the reminder bot -----  \n " +
+                "1) Set a reminder:   \n " +
+                " reminder me 'what' at 16/3/2018 16:00 \n" +
+                " *Instead of me, in a room you can mention any other user. \n" +
+                "2) Set a reminder in another room(the bot must be invited first) and notify all\n " +
+                " reminder #roomName 'what' at 16/3/2018 16:00 \n" +
+                "3) Set your team timezone by typing for example: \n" +
+                " timezone Athens ,or GMT-2 by default is GMT \n" +
+                "4) Set your timezone by typing for example: \n" +
+                " mytimezone Athens ,or GMT-2 by default is GMT \n" +
+                " **If you are in a room you must mention the bot using @, then talk to it**\n";
 
         //---- Retrieve e message
         String[] splitedMsg = req.getMessage().getText().split("\\s+");
-
-
         //----- Response with instructions
-        if( splitedMsg[0].equals("help") ||
-                (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("help"))){
-            return responseBuild(help,space_id);
+        if (splitedMsg[0].equals("help") ||
+                (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("help"))) {
+            return responseBuild(help, space_id);
         }
-
-
         ///
         ///
         ///
@@ -86,7 +97,6 @@ public class BotResource {
         ///
         ///
         ///
-
         //Checks if message is long enough and if starts with reminder
         if (req.getMessage().getText().length() > 10 &&
                 splitedMsg[0].equals("reminder") ||
@@ -99,28 +109,34 @@ public class BotResource {
             //Gets who
             String who = extractWho(req);
 
-                //find this DisplayName ID
-                //Give who that id
-
+            //find this DisplayName ID
+            //Give who that id
             logger.debug("WHO : {}", who);
 
             //Gets when to remind
             String when = extractReminderDate(req);
             logger.debug("When: {}", when);
 
-
-            //Checks if when is correct form or is it in past
+            //Checks if when is correct form
             if (!(isValidDate(when))) {
-                return responseBuild("Wrong date format -" +
-                        " Or past Date. Format must be: dd/MM/yyyy HH:mm ", space_id);
+                return responseBuild("Wrong date or Timezone format.\n" +
+                        " DateFormat must be: dd/MM/yyyy HH:mm . \n" +
+                        " For a timezone format you can also use GMT", space_id);
+            }
+            //pass from string to date for this users timezone
+            ZonedDateTime inputDate = dateForm(when);
+
+            //Check if date is in past who this user Timezone
+            if (!(isValidDate(inputDate))) {
+                return responseBuild("This date has passed " + inputDate +
+                        ". Check your timezone or insert in the current reminder", space_id);
             }
 
-            //pass from string to date
-            LocalDateTime inputDate = dateForm(when);
-
-            //Saves the reminder what - when - who - from where
-            Reminder reminder = new Reminder(what, inputDate, who, space_id, thread_id);
+            logger.debug("timezone is set:{}", getTimeZone());
+            //Saves the reminder what - when - who - which timezone -  from where
+            Reminder reminder = new Reminder(what, inputDate, who, getTimeZone(), space_id, thread_id);
             entityManager.persist(reminder);
+
 
             //if there is zero reminders sets the  Reminder
             if (timerSessionBean.getNextReminderDate() == null) {
@@ -145,19 +161,58 @@ public class BotResource {
             ///
             ///
             ///
-            ///------------Case get List of my Reminders -------------------/////////
+            ///------------Case Set Team timezone -------------------/////////
             ///
             ///
             ///
             ///
-            if (req.getMessage().getText().length() > 10 &&
-                    splitedMsg[0].equals("reminderlist") ||
-                    (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("reminderlist"))) {
-                logger.info("List of reminders: ");
-                //Retrieve my reminders
+            if (req.getMessage().getText().length() > 7 &&
+                    splitedMsg[0].equals("timezone") ||
+                    (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("timezone"))) {
 
-                String resp = "List of reminders: ";
+                //Checks given timezone
+                if (extractTimeZone(req) == null) {
+                    String wrongTimeZone = "Given timezone is wrong, try again. Remember you can also use GMT format";
+                    return responseBuild(wrongTimeZone, space_id);
+                }
 
+                TimeZone defaultTimeZone = new TimeZone(extractTimeZone(req), "default");
+
+                if (getGivenTimeZone("default").equals("")) {
+                    entityManager.persist(defaultTimeZone);
+                } else {
+                    Query query = entityManager.createNamedQuery("set.timezone")
+                            .setParameter("timezone", defaultTimeZone.getTimezone())
+                            .setParameter("userid", "default");
+                    query.executeUpdate();
+                }
+                String resp = "You successfully set the default timezone at:" + getGivenTimeZone("default");
+                return responseBuild(resp, space_id);
+            } else if (req.getMessage().getText().length() > 8 &&
+                    splitedMsg[0].equals("mytimezone") ||
+                    (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("mytimezone"))) {
+
+
+                String who = req.getMessage().getSender().getName();
+
+                //Checks given timezone
+                if (extractTimeZone(req) == null) {
+                    String wrongTimeZone = "Given timezone is wrong, try again. Remember you can also use GMT format";
+                    return responseBuild(wrongTimeZone, space_id);
+                }
+
+                TimeZone timeZone = new TimeZone(extractTimeZone(req), who);
+
+
+                if (getGivenTimeZone(who).equals("")) {
+                    entityManager.persist(timeZone);
+                } else {
+                    Query query = entityManager.createNamedQuery("set.timezone")
+                            .setParameter("timezone", timeZone.getTimezone())
+                            .setParameter("userid", who);
+                    query.executeUpdate();
+                }
+                String resp = " <" + who + "> successfully set your timezone at:" + timeZone.getTimezone();
                 return responseBuild(resp, space_id);
             } else
             ///
@@ -170,13 +225,13 @@ public class BotResource {
             ///
             {
                 logger.info("Default ");
-                String responseDefault = "I didnt understand you, maybe i should provide some help \n"+help;
+                String responseDefault = "I didnt understand you, type help for instructions \n";
                 return responseBuild(responseDefault, space_id);
             }
     }
 
     //True if inputDate is before the next reminderDate so it needs to change
-    public boolean checkIfTimerNeedsUpdate(LocalDateTime inputDate) {
+    public boolean checkIfTimerNeedsUpdate(ZonedDateTime inputDate) {
         if (inputDate.isBefore(timerSessionBean.getNextReminderDate())) {
             return true;
         } else {
@@ -190,26 +245,19 @@ public class BotResource {
 
     //Returns date from string, based on dd/MM/yyyy HH:mm format,
     //Is called after we ensure this is the current format
-    LocalDateTime dateForm(String when) {
-        Locale locale = new Locale("en", "gr");
+    ZonedDateTime dateForm(String when) {
         String format = "dd/MM/yyyy HH:mm";
-        DateTimeFormatter fomatter = DateTimeFormatter.ofPattern(format, locale);
-
-        return LocalDateTime.parse(when, fomatter);
+        DateTimeFormatter fomatter = DateTimeFormatter.ofPattern(format);
+        return ZonedDateTime.parse(when, fomatter.withZone(ZoneId.of(getTimeZone())));
     }
 
-
-    //Check if given date in string is in valid format OR valid date
+    //Check if given date in string is in valid format
     boolean isValidDate(String value) {
-        Locale locale = new Locale("en", "gr");
         String format = "dd/MM/yyyy HH:mm";
         LocalDateTime ldt;
-        DateTimeFormatter fomatter = DateTimeFormatter.ofPattern(format, locale);
+        DateTimeFormatter fomatter = DateTimeFormatter.ofPattern(format);
         //Checks format
         try {
-            if (LocalDateTime.parse(value, fomatter).isBefore(LocalDateTime.now())) {
-                return false;
-            }
             ldt = LocalDateTime.parse(value, fomatter);
             String result = ldt.format(fomatter);
             return result.equals(value);
@@ -224,7 +272,8 @@ public class BotResource {
                     String result = lt.format(fomatter);
                     return result.equals(value);
                 } catch (DateTimeParseException e2) {
-                    logger.error("Error Parse LocalDateTime:{}", value, e);
+                    // logger.error("Error Parse LocalDateTime:{}", value, e);
+
                 }
             }
         }
@@ -233,10 +282,20 @@ public class BotResource {
         return false;
     }
 
-    String calculateRemainingTime(LocalDateTime inputDate) {
-        LocalDateTime fromDateTime = LocalDateTime.now();
+    //Check if given date is not in the past
+    boolean isValidDate(ZonedDateTime inputDate) {
+        if (inputDate.isBefore(ZonedDateTime.now(ZoneId.of(getTimeZone())))) {
+            return false;
+        } else {
+            return true;
+        }
+    }
 
-        LocalDateTime tempDateTime = LocalDateTime.from(fromDateTime);
+    String calculateRemainingTime(ZonedDateTime inputDate) {
+        //TODO use of timezone #2
+        ZonedDateTime fromDateTime = ZonedDateTime.now(ZoneId.of(getTimeZone()));
+
+        ZonedDateTime tempDateTime = ZonedDateTime.from(fromDateTime);
 
         long years = tempDateTime.until(inputDate, ChronoUnit.YEARS);
         tempDateTime = tempDateTime.plusYears(years);
@@ -272,15 +331,37 @@ public class BotResource {
         return minutes + " Minutes";
     }
 
+    //Extracts Date, also checks if timezone is applied
+    //if no, checks if user have set timezone
+    //if no uses the default timezone
     String extractReminderDate(Request request) {
-
-        String message[] = request.getMessage().getText().split("\\s+");
+        String partOfDate = request.getMessage().getText().split("'")[2];
+        String message[] = partOfDate.split("\\s+");
         String when = "";
 
         for (int i = 0; i < message.length; i++) {
             if (message[i].equals("at")) {
                 when += message[i + 1];
                 when += " " + message[i + 2];
+                if (message.length == 5) {
+                    String zone = findTimeZones(message[i + 3]);
+                    if (zone != null) {
+                        setTimeZone(zone);
+                        logger.info("SET timeZone became: {}", zone);
+                    } else {
+                        when += "Make fail date format.";
+                    }
+                } else {
+                    String userTimezone = getGivenTimeZone(request.getMessage().getSender().getName());
+                    if (!(userTimezone.equals(""))) {
+                        logger.info("SET timeZone of the user default found: {}", userTimezone);
+                        setTimeZone(userTimezone);
+                    } else {
+                        logger.info("SET timeZone  Default");
+                        setTimeZone(getGivenTimeZone("default"));
+                    }
+
+                }
             }
         }
         return when;
@@ -292,30 +373,61 @@ public class BotResource {
         return what;
     }
 
+    String extractTimeZone(Request request) {
+        String message[] = request.getMessage().getText().split("\\s+");
+        String timeZone = null;
+
+        for (int i = 0; i < message.length; i++) {
+            if (message[i].equals("timezone") || message[i].equals("mytimezone")) {
+                timeZone = findTimeZones(message[i + 1]);
+            }
+        }
+        return timeZone;
+    }
+
+    @Transactional
+    String getGivenTimeZone(String user) {
+        List<TimeZone> timeZones = entityManager.
+                createNamedQuery("get.Alltimezone", TimeZone.class).getResultList();
+        if (timeZones.isEmpty()) {
+            logger.debug("timezones not found return - ");
+            return "";
+        } else {
+            for (TimeZone z : timeZones) {
+                if (z.getUserid().equals(user)) {
+                    logger.debug("found zone: {}", z.getTimezone());
+                    return z.getTimezone();
+                }
+            }
+            logger.debug("Didnt find zone for this user");
+            return "";
+        }
+    }
 
     //Cases checks who to notify:
-    // 1) me
-    // 2)#RoomName
-    // 3) @Firstname Lastname
+    // 1) me - returns <user/id>
+    // 2)#RoomName (with @all) - returns roomsName
+    // 3) @Firstname Lastname - returns <user/id>
+    // 4) @all - returns <user/all>
     String extractWho(Request request) {
         String[] splited = request.getMessage().getText().split("\\s+");
-        String who="";
+        String who = "";
         String displayName = "";
-        String spaceId=request.getMessage().getThread().getName().split("/")[1];
+        String spaceId = request.getMessage().getThread().getName().split("/")[1];
         if (splited[0].equals("reminder")) {
             // 1) me
             if (splited[1].equals("me")) {
                 //  ---- takes the ID of the sender ---
                 who = request.getMessage().getSender().getName();
             } else {
-                if(splited[1].startsWith("#")){
+                if (splited[1].startsWith("#")) {
                     // 2)#RoomName
                     displayName = splited[1];
-                }else{
+                } else {
                     // 3) @Firstname Lastname
                     displayName = splited[1].substring(1) + " " + splited[2];
                 }
-                who = findIdUserName(displayName,spaceId);
+                who = findIdUserName(displayName, spaceId);
             }
         } else {
             if (splited[0].equals("@" + BOT_NAME)) {
@@ -323,19 +435,18 @@ public class BotResource {
                 if (splited[2].equals("me")) {
                     //  ---- takes the ID of the sender ---
                     who = request.getMessage().getSender().getName();
-                } else
-                    if (splited[2].equals("@all")) {
+                } else if (splited[2].equals("@all")) {
                     //  ---- takes the ID of the sender ---
-                    who ="users/all";
-                } else  {
-                    if(splited[2].startsWith("#")){
+                    who = "users/all";
+                } else {
+                    if (splited[2].startsWith("#")) {
                         // 2)#RoomName
                         displayName = splited[2];
-                    }else{
+                    } else {
                         // 3) @Firstname Lastname
                         displayName = splited[2].substring(1) + " " + splited[3];
                     }
-                    who = findIdUserName(displayName,spaceId);
+                    who = findIdUserName(displayName, spaceId);
                 }
             }
         }
@@ -343,11 +454,23 @@ public class BotResource {
         return who;
     }
 
+    String findTimeZones(String inputTimeZone) {
+        List<String> zones = new ArrayList<>();
+        zones.addAll(ZoneId.getAvailableZoneIds());
+        for (String z : zones) {
+            if (z.endsWith(inputTimeZone)) {
+                logger.info("Found: {}", z);
+                return z;
+            }
+        }
+        return null;
+    }
+
     //Gets usersID by his displayName in order to notify him properly
-    String findIdUserName(String displayName,String spaceId){
+    String findIdUserName(String displayName, String spaceId) {
         Client client = new Client();
-      HashMap<String,String > users =  client.getListOfMembersInRoom(spaceId);
-      //if displayName not found then just save the name as it is
-        return users.getOrDefault(displayName,displayName);
+        HashMap<String, String> users = client.getListOfMembersInRoom(spaceId);
+        //if displayName not found then just save the name as it is
+        return users.getOrDefault(displayName, displayName);
     }
 }

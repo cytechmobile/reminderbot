@@ -30,20 +30,22 @@ public class BotResourceIT {
         ThreadM threadM = new ThreadM();
 
 
-
         threadM.setName("space/SPACE_ID/thread/THREAD_ID");
         sender.setName("MyName");
 
         mes.setThread(threadM);
         mes.setSender(sender);
-        final String expectedDate = "12/12/2019 12:00";
-        String spaceId="SPACE_ID";
-        String what= "something to do";
+        String expectedDate = "12/12/2020 12:00 GMT-2";
+        String spaceId = "SPACE_ID";
+        String what = "something to do";
+        botResource.setTimeZone("Europe/Athens");
+
+        String expectedDate2 = "12/12/2020 12:00";
         String successMsg = "Reminder: <<" + what +
                 ">> saved succesfully and will notify you in: " +
-                botResource.calculateRemainingTime(botResource.dateForm(expectedDate));
+                botResource.calculateRemainingTime(botResource.dateForm(expectedDate2));
 
-        mes.setText("reminder me '"+what+"' at " + expectedDate);
+        mes.setText("reminder me '" + what + "' at " + expectedDate);
         req.setMessage(mes);
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
@@ -52,9 +54,8 @@ public class BotResourceIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \""+successMsg +
-                "\" ,  \"thread\": { \"name\": \"spaces/"+spaceId+"\" }}");
-
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + successMsg +
+                "\" ,  \"thread\": { \"name\": \"spaces/" + spaceId + "\" }}");
 
     }
 }
