@@ -64,3 +64,5 @@ buildNumber.properties
 !/.mvn/wrapper/maven-wrapper.jar
 .thorntail-runner-cache/
 keys/
+.classpath
+.project

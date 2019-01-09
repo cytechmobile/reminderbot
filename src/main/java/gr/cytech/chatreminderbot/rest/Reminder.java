@@ -2,8 +2,7 @@ package gr.cytech.chatreminderbot.rest;
 
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "reminder")
@@ -14,7 +13,7 @@ import java.time.LocalDateTime;
                 query = "SELECT r from Reminder r")
 
 })
-public class Reminder implements Serializable {
+public class Reminder {
 
 
     @Id
@@ -26,7 +25,7 @@ public class Reminder implements Serializable {
     private String what;
 
     @Column(name = "whenTo", nullable = false)
-    private LocalDateTime when;
+    private ZonedDateTime when;
 
 
     @Column(name = "sender_displayName", nullable = false)
@@ -38,11 +37,14 @@ public class Reminder implements Serializable {
     @Column(name = "thread_id", nullable = false)
     private String threadId;
 
+    @Column(name = "reminder_timezone", nullable = false)
+    private String reminderTimezone;
+
 
     public Reminder() {
     }
 
-    public Reminder(String what, LocalDateTime when, String senderDisplayName, String spaceId, String threadId) {
+    public Reminder(String what, ZonedDateTime when, String senderDisplayName, String spaceId, String threadId) {
         this.what = what;
         this.when = when;
         this.senderDisplayName = senderDisplayName;
@@ -50,6 +52,15 @@ public class Reminder implements Serializable {
         this.threadId = threadId;
     }
 
+    public Reminder(String what, ZonedDateTime when, String senderDisplayName, String reminderTimezone, String spaceId, String threadId) {
+        this.what = what;
+        this.when = when;
+        this.senderDisplayName = senderDisplayName;
+        this.reminderTimezone = reminderTimezone;
+        this.spaceId = spaceId;
+        this.threadId = threadId;
+
+    }
 
     public int getReminderId() {
         return reminderId;
@@ -88,11 +99,19 @@ public class Reminder implements Serializable {
         this.what = what;
     }
 
-    public LocalDateTime getWhen() {
+    public ZonedDateTime getWhen() {
         return when;
     }
 
-    public void setWhen(LocalDateTime when) {
+    public void setWhen(ZonedDateTime when) {
         this.when = when;
+    }
+
+    public String getReminderTimezone() {
+        return reminderTimezone;
+    }
+
+    public void setReminderTimezone(String timezone) {
+        this.reminderTimezone = timezone;
     }
 }

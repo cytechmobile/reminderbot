@@ -9,17 +9,23 @@ import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BotResourceTest {
-
+    private static final Logger logger = LoggerFactory.getLogger(BotResourceTest.class);
     @Mocked
     EntityManager entityManager;
 
@@ -39,7 +45,7 @@ public class BotResourceTest {
 
         timerSessionBean = new TimerSessionBean();
 
-        reminder = new Reminder("'what'", LocalDateTime.now().plusMinutes(10),
+        reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
                 "DisplayName", "uPWJ7AAAAAE", "1E_d3mjJGyM");
 
 
@@ -50,10 +56,70 @@ public class BotResourceTest {
     }
 
     @Test
+    public void extractTimeZoneTest() {
+        String givenTimeZone1 = "GMTSASS";
+        String givenTimeZone2 = "Athens";
+        String givenTimeZone3 = "GMT-2";
+
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("MyName");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+        mes.setText("timezone " + givenTimeZone1);
+
+        req.setMessage(mes);
+
+        assertThat(botResource.extractTimeZone(req)).isEqualTo(null);
+
+        assertThat(botResource.findTimeZones(givenTimeZone1)).isEqualTo(null);
+        assertThat(botResource.findTimeZones(givenTimeZone2)).isEqualTo("Europe/Athens");
+        assertThat(botResource.findTimeZones(givenTimeZone3)).isEqualTo("Etc/GMT-2");
+
+    }
+
+    @Test
+    public void saveTimeZoneTest() {
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("MyName");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+        mes.setText("timezone Athens");
+
+        req.setMessage(mes);
+
+
+        botResource.handleReq(req);
+
+
+        List<TimeZone> captureTimezone = new ArrayList<>();
+
+        new Verifications() {{
+            entityManager.persist(withCapture(captureTimezone));
+            times = 1;
+        }};
+
+        assertThat(captureTimezone.get(0).getTimezone()).isEqualTo("Europe/Athens");
+
+    }
+
+    @Test
     public void parseReminderDate() throws Exception {
-        LocalDateTime curr = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        ZonedDateTime curr = ZonedDateTime.now(ZoneId.of("Europe/Athens")).truncatedTo(ChronoUnit.MINUTES);
         String inOneHour = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(curr);
-        LocalDateTime result = botResource.dateForm(inOneHour);
+        botResource.setTimeZone("Europe/Athens");
+        ZonedDateTime result = botResource.dateForm(inOneHour);
 
         assertThat(result).as("parsed date is not the expected").isEqualTo(curr);
     }
@@ -71,10 +137,9 @@ public class BotResourceTest {
 
         mes.setThread(threadM);
         mes.setSender(sender);
-        final String expectedDate = "12/12/2019 12:00";
-        mes.setText("reminder me 'something to do' at " + expectedDate);
+        final String expectedDate = "12/12/2020 12:00 GMT-2";
+        mes.setText("reminder me ' setnextreminder Test' at " + expectedDate);
         req.setMessage(mes);
-
 
         // Already set in mock a nextReminder that is to be in 10 mins from now()
         //So this should not be set
@@ -82,7 +147,7 @@ public class BotResourceTest {
 
         //Verifies that setNextReminder is called 0 times because Input reminderDate is AFTER the current
         new Verifications() {{
-            timerSessionBean.setNextReminder((Reminder) any, (LocalDateTime) any);
+            timerSessionBean.setNextReminder((Reminder) any, (ZonedDateTime) any);
             times = 0;
         }};
     }
@@ -100,10 +165,9 @@ public class BotResourceTest {
 
         mes.setThread(threadM);
         mes.setSender(sender);
-        final String expectedDate = "12/12/2019 12:00";
-        mes.setText("reminder me 'something to do' at " + expectedDate);
+        final String expectedDate = "12/12/2019 12:00 GMT-2";
+        mes.setText("reminder me ' persist Reminder Test' at " + expectedDate);
         req.setMessage(mes);
-
         botResource.handleReq(req);
 
 
@@ -118,11 +182,11 @@ public class BotResourceTest {
         Reminder r = capturedReminders.get(0);
 
         // make sure persisted reminder matches our expectations
-        Locale locale = new Locale("en", "gr");
         String format = "dd/MM/yyyy HH:mm";
-        DateTimeFormatter fomatter = DateTimeFormatter.ofPattern(format, locale);
+        DateTimeFormatter fomatter = DateTimeFormatter.ofPattern(format);
 
-        assertThat(r.getWhen()).isEqualTo(LocalDateTime.parse("12/12/2019 12:00", fomatter));
+        assertThat(r.getWhen()).
+                isEqualTo(ZonedDateTime.parse("12/12/2019 12:00", fomatter.withZone(ZoneId.of("Europe/Athens"))));
     }
 
     @Test
@@ -135,7 +199,7 @@ public class BotResourceTest {
 
         sender.setName("MyName");
         mes.setSender(sender);
-        final String expectedDate = "12/12/2018 12:00";
+        final String expectedDate = "12/12/2020 12:00";
         mes.setText("reminder me 'something to do' at " + expectedDate);
         req.setMessage(mes);
 
@@ -187,7 +251,8 @@ public class BotResourceTest {
 
         Map<String, String> expectedUsers = new HashMap<>();
         new Expectations() {{
-            client.getListOfMembersInRoom(spaceId); result = expectedUsers;
+            client.getListOfMembersInRoom(spaceId);
+            result = expectedUsers;
         }};
 
         assertThat(botResource.extractWho(req)).as("Unexpected extracted reminder date").isEqualTo(who.substring(1));
@@ -197,19 +262,19 @@ public class BotResourceTest {
     public void findIdUserNameTest() {
 
 
-      //In the future
-        }
+        //In the future IT test
+    }
 
     @Test
     public void isValidDateTest() {
-        String when = "16/12/2018 21:40";
+        String when = "02/01/2019 15:47";
 
         //Check dates
-        String when1 = "56/12/2018 21:40";
+        String when1 = "56/12/2018 21:40ery";
         //Check month
         String when2 = "16/32/2018 21:40";
         //Check year
-        String when3 = "16/12/2017 21:40";
+        String when3 = "16/12/20178 21:40";
         //Check hour
         String when4 = "16/12/2018 45:40";
         //Check mins
@@ -219,19 +284,19 @@ public class BotResourceTest {
         String when7 = "16/12/2018 2166";
         String when8 = "16.12.2018 21.66";
 
-/*
-        assertEquals(true, botResource.isValidDate(when));
 
-        assertEquals(false, botResource.isValidDate(when1));
-        assertEquals(false, botResource.isValidDate(when2));
-        assertEquals(false, botResource.isValidDate(when3));
-        assertEquals(false, botResource.isValidDate(when4));
-        assertEquals(false, botResource.isValidDate(when5));
+        assertThat(botResource.isValidDate(when)).as("not Valid  reminder date").isEqualTo(true);
 
-        assertEquals(false, botResource.isValidDate(when6));
-        assertEquals(false, botResource.isValidDate(when7));
-        assertEquals(false, botResource.isValidDate(when8));
-*/
+
+        assertThat(botResource.isValidDate(when1)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(botResource.isValidDate(when2)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(botResource.isValidDate(when3)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(botResource.isValidDate(when4)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(botResource.isValidDate(when5)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(botResource.isValidDate(when6)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(botResource.isValidDate(when7)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(botResource.isValidDate(when8)).as("not Valid  reminder date").isEqualTo(false);
+
     }
 
 

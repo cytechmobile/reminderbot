@@ -14,6 +14,7 @@ import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Client {
     private final static Logger logger = LoggerFactory.getLogger(Client.class.getName());
@@ -35,7 +36,7 @@ public class Client {
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if(reminder.getSenderDisplayName().startsWith("#")){
 
-            String spaceID = (String) getListOfSpacesBotBelongs().
+            String spaceID = getListOfSpacesBotBelongs().
                     getOrDefault(reminder.getSenderDisplayName().substring(1),
                             reminder.getSpaceId());
 
@@ -54,12 +55,12 @@ public class Client {
 
 
     //request to get members of a room
-    public HashMap getListOfMembersInRoom(String spaceId) {
+    public Map<String, String> getListOfMembersInRoom(String spaceId) {
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + spaceId + "/members");
         GenericUrl url = new GenericUrl(uri);
         String emptyBodyMessage = "";
         //key=displayName Value:user/id
-        HashMap<String, String> users = new HashMap<>();
+        Map<String, String> users = new HashMap<>();
         String[] splited = send(url, emptyBodyMessage, "GET").split("\"");
         for (int i = 0; i < splited.length; i++) {
             if (splited[i].equals("displayName")) {
@@ -69,14 +70,14 @@ public class Client {
         return users;
     }
 
-    public HashMap getListOfSpacesBotBelongs(){
+    public Map<String, String> getListOfSpacesBotBelongs(){
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces");
         GenericUrl url = new GenericUrl(uri);
         String emptyBodyMessage = "";
         String response = send(url, emptyBodyMessage, "GET");
         String[] results = response.split("\"");
         //key=displayNameOfRoom Value:spaceID
-        HashMap<String, String> spaces = new HashMap<>();
+        Map<String, String> spaces = new HashMap<>();
         for (int i = 0; i < results.length; i++) {
             if (results[i].equals("displayName") && !(results[i+2].equals("")) ) {
                 spaces.put(results[i+2],results[i-6].split("/")[1]);
