@@ -116,7 +116,7 @@ public class BotResourceTest {
 
     @Test
     public void parseReminderDate() throws Exception {
-        ZonedDateTime curr = ZonedDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        ZonedDateTime curr = ZonedDateTime.now(ZoneId.of("Europe/Athens")).truncatedTo(ChronoUnit.MINUTES);
         String inOneHour = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(curr);
         botResource.setTimeZone("Europe/Athens");
         ZonedDateTime result = botResource.dateForm(inOneHour);
