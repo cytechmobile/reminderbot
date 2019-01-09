@@ -19,8 +19,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Path("/services")
@@ -469,7 +469,7 @@ public class BotResource {
     //Gets usersID by his displayName in order to notify him properly
     String findIdUserName(String displayName, String spaceId) {
         Client client = new Client();
-        HashMap<String, String> users = client.getListOfMembersInRoom(spaceId);
+        Map<String, String> users = client.getListOfMembersInRoom(spaceId);
         //if displayName not found then just save the name as it is
         return users.getOrDefault(displayName, displayName);
     }

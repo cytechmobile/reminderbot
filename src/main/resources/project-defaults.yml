@@ -8,6 +8,6 @@ thorntail:
     data-sources:
       wa:
         driver-name: org.postgresql
-        connection-url: jdbc:postgresql://localhost:5432/wa
-        user-name: wa
-        password: wa
+        connection-url: jdbc:postgresql://${env.DB_HOST:localhost}:${env.DB_PORT:5432}/${env.DB_NAME:wa}
+        user-name: ${env.DB_USER:wa}
+        password: ${env.DB_PASS:wa}

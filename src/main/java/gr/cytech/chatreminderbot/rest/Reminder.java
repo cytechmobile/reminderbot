@@ -2,7 +2,6 @@ package gr.cytech.chatreminderbot.rest;
 
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.time.ZonedDateTime;
 
 @Entity
@@ -14,7 +13,7 @@ import java.time.ZonedDateTime;
                 query = "SELECT r from Reminder r")
 
 })
-public class Reminder implements Serializable {
+public class Reminder {
 
 
     @Id
