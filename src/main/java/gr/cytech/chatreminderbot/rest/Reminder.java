@@ -10,8 +10,11 @@ import java.time.ZonedDateTime;
         @NamedQuery(name = "reminder.findNextReminder",
                 query = "SELECT r FROM Reminder r order by r.when"),
         @NamedQuery(name = "reminder.findAll",
-                query = "SELECT r from Reminder r")
-
+                query = "SELECT r from Reminder r"),
+        @NamedQuery(name = "reminder.showReminders",
+                query = "SELECT r from Reminder r where r.senderDisplayName like :userid order by r.when"),
+        @NamedQuery(name = "reminder.findByUserAndReminderId",
+                query = "SELECT r from Reminder r where r.senderDisplayName  like :userId AND r.reminderId = :reminderId")
 })
 public class Reminder {
 

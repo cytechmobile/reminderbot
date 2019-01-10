@@ -58,4 +58,37 @@ public class BotResourceIT {
                 "\" ,  \"thread\": { \"name\": \"spaces/" + spaceId + "\" }}");
 
     }
+
+
+    @Test
+    public void showRemindersTest() {
+        BotResource botResource = new BotResource();
+
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("users/102853879309256732507");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+
+        botResource.setTimeZone("Europe/Athens");
+
+
+        mes.setText("delete 134");
+        req.setMessage(mes);
+
+        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+        //  assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + successMsg
+        //         "\" ,  \"thread\": { \"name\": \"spaces/" + spaceId + "\" }}");
+        logger.info("{}",resp.readEntity(String.class));
+    }
 }
