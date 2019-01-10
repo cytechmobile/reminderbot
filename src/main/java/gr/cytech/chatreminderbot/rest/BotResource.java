@@ -83,6 +83,8 @@ public class BotResource {
                 " mytimezone Athens default is GMT \n" +
                 "5) Show your reminders by typing: \n" +
                 " myreminders \n" +
+                "6) Delete your reminder by typing: \n" +
+                " delete (reminder id) \n" +
                 " **If you are in a room you must mention the bot using @, then talk to it**\n";
 
         //---- Retrieve e message
@@ -233,19 +235,42 @@ public class BotResource {
                     String resp = showReminders(who);
                     return responseBuild(resp, space_id);
                 } else
-                ///
-                ///
-                ///
-                ///------------Case Default -------------------/////////
-                ///
-                ///
-                ///
-                ///
-                {
-                    logger.info("Default ");
-                    String responseDefault = "I didnt understand you, type help for instructions \n";
-                    return responseBuild(responseDefault, space_id);
-                }
+                    ///
+                    ///
+                    ///
+                    ///------------Case Delete reminder -------------------/////////
+                    ///
+                    ///
+                    ///
+                    ///
+                    if (req.getMessage().getText().length() > 8 &&
+                            splitedMsg[0].equals("delete") ||
+                            (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("delete"))) {
+                        String reminderId;
+                        if (splitedMsg.length == 2 && splitedMsg[1].matches("[0-9]+") ) {
+                            reminderId = splitedMsg[1];
+                        } else if (splitedMsg.length == 3 && splitedMsg[2].matches("[0-9]+")) {
+                            reminderId = splitedMsg[2];
+                        } else {
+                            return responseBuild("Wrong command format type help to see the right", space_id);
+                        }
+                        String who = req.getMessage().getSender().getName();
+                        String resp = deleteReminder(reminderId, who);
+                        return responseBuild(resp, space_id);
+                    } else
+                    ///
+                    ///
+                    ///
+                    ///------------Case Default -------------------/////////
+                    ///
+                    ///
+                    ///
+                    ///
+                    {
+                        logger.info("Default ");
+                        String responseDefault = "I didnt understand you, type help for instructions \n";
+                        return responseBuild(responseDefault, space_id);
+                    }
     }
 
     //True if inputDate is before the next reminderDate so it needs to change
@@ -505,7 +530,7 @@ public class BotResource {
             return "---- Reminders not found ---";
         } else {
             for (int i = 0; i < reminders.size(); i++) {
-                remindersShow += i+1 + ") what:' " + reminders.get(i).getWhat() + " ' When: " +
+                remindersShow += i + 1 + ") ID:" + reminders.get(i).getReminderId() + " what:' " + reminders.get(i).getWhat() + " ' When: " +
                         reminders.get(i).getWhen().getDayOfMonth() + " of " +
                         reminders.get(i).getWhen().getMonth() + " at " +
                         reminders.get(i).getWhen().getHour() + ":" +
@@ -513,6 +538,27 @@ public class BotResource {
                         reminders.get(i).getReminderTimezone() + "\n";
             }
             return remindersShow;
+        }
+    }
+
+    @Transactional
+    String deleteReminder(String reminderId, String who) {
+
+        if ((entityManager.find(Reminder.class, Integer.parseInt(reminderId)) != null)) {
+            List<Reminder> reminders = entityManager.
+                    createNamedQuery("reminder.findByUserAndReminderId", Reminder.class)
+                    .setParameter("userId", who)
+                    .setParameter("reminderId", Integer.parseInt(reminderId))
+                    .getResultList();
+            if (reminders.isEmpty()) {
+                return "Couldn't find reminder with id: " + reminderId;
+            }
+            Reminder oldReminder = entityManager.find(Reminder.class, Integer.parseInt(reminderId));
+            logger.debug("Deleted reminder with ID: {}", oldReminder.getReminderId());
+            entityManager.remove(oldReminder);
+            return "Reminder with ID: " + oldReminder.getReminderId() + " successfully deleted!";
+        } else {
+            return "Couldn't find reminder with id: " + reminderId;
         }
     }
 
