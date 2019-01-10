@@ -6,5 +6,5 @@ RUN cd /app && mvn clean package -DskipTests=true
 FROM openjdk:8-jre-alpine
 RUN mkdir /reminder
 COPY --from=builder /app/target/reminder-thorntail.jar /reminder/reminder.jar
-
+EXPOSE 8080
 CMD [ "java", "-jar", "/reminder/reminder.jar" ]
