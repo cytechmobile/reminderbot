@@ -15,6 +15,9 @@ import java.util.List;
 @Startup
 @Singleton
 public class TimerSessionBean {
+    private final static Logger logger = LoggerFactory.getLogger(Client.class.getName());
+    private static final String CHECK_TIMER_MARKER = "check_timer_marker";
+
     @Resource
     TimerService timerService;
 
@@ -24,8 +27,23 @@ public class TimerSessionBean {
 
     ZonedDateTime nextReminderDate;
 
-
-    private final static Logger logger = LoggerFactory.getLogger(Client.class.getName());
+    @PostConstruct
+    void reset() {
+        logger.info("Run from start set next reminder");
+        try {
+            List<Reminder> reminders = entityManager.
+                    createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
+            if (!reminders.isEmpty()) {
+                logger.info("Sets next reminder from db");
+                this.setNextReminder(reminders.get(0), reminders.get(0).getWhen());
+            }
+        } catch (Exception e) {
+            // this is most probably due to Flyway running AFTER EJB @Singleton with @Startup:
+            // https://issues.jboss.org/browse/THORN-827
+            logger.warn("error creating timer session bean. Perhaps due to Flyway not run yet?!", e);
+            timerService.createSingleActionTimer(10_000, new TimerConfig(CHECK_TIMER_MARKER, false));
+        }
+    }
 
     public void setTimer(Reminder reminder) {
         TimerConfig timerConfig = new TimerConfig();
@@ -40,10 +58,8 @@ public class TimerSessionBean {
         Timer timer = timerService.createSingleActionTimer(when, timerConfig);
     }
 
-
     @Timeout
     public void programmaticTimeout(Timer timer) {
-
         List<Reminder> reminders = entityManager.
                 createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
 
@@ -54,7 +70,6 @@ public class TimerSessionBean {
             Client client = new Client();
             client.sendAsyncResponse(reminders.get(0));
             logger.info("Send Message ");
-
 
             //Removes old reminder
             Reminder oldReminder = entityManager.find(Reminder.class, reminders.get(0).getReminderId());
@@ -67,26 +82,9 @@ public class TimerSessionBean {
             } else {
                 logger.info("Empty reminders no next reminder");
                 this.setNextReminderDate(null);
-
             }
         }
-
-
     }
-
-    @PostConstruct
-    void reset() {
-        logger.info("Run from start set next reminder");
-
-        List<Reminder> reminders = entityManager.
-                createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
-        if (!reminders.isEmpty()) {
-            logger.info("Sets next reminder from db");
-            this.setNextReminder(reminders.get(0), reminders.get(0).getWhen());
-        }
-
-    }
-
 
     //Stops if any timer is running in backround
     public void stopTimer() {
@@ -96,12 +94,10 @@ public class TimerSessionBean {
         }
     }
 
-
     //Sets the nextTimer - and its Date
     public void setNextReminder(Reminder newNextReminder, ZonedDateTime dateTime) {
         this.setTimer(newNextReminder);
         this.setNextReminderDate(dateTime);
-
     }
 
     public ZonedDateTime getNextReminderDate() {
@@ -111,6 +107,4 @@ public class TimerSessionBean {
     public void setNextReminderDate(ZonedDateTime nextReminderDate) {
         this.nextReminderDate = nextReminderDate;
     }
-
-
 }
