@@ -3,7 +3,7 @@ FROM maven:3.5-alpine as builder
 ADD . /app
 RUN cd /app && mvn clean package -DskipTests=true
 
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jre
 RUN mkdir /reminder
 COPY --from=builder /app/target/reminder-thorntail.jar /reminder/reminder.jar
 EXPOSE 8080
