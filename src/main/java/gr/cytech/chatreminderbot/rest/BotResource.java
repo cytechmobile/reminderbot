@@ -78,9 +78,11 @@ public class BotResource {
                 "2) Set a reminder in another room(the bot must be invited first) and notify all\n " +
                 " reminder #roomName 'what' at 16/3/2018 16:00 \n" +
                 "3) Set your team timezone by typing for example: \n" +
-                " timezone Athens ,or GMT-2 by default is GMT \n" +
+                " timezone Athens  by default is GMT \n" +
                 "4) Set your timezone by typing for example: \n" +
-                " mytimezone Athens ,or GMT-2 by default is GMT \n" +
+                " mytimezone Athens default is GMT \n" +
+                "5) Show your reminders by typing: \n" +
+                " myreminders \n" +
                 " **If you are in a room you must mention the bot using @, then talk to it**\n";
 
         //---- Retrieve e message
@@ -215,19 +217,35 @@ public class BotResource {
                 String resp = " <" + who + "> successfully set your timezone at:" + timeZone.getTimezone();
                 return responseBuild(resp, space_id);
             } else
-            ///
-            ///
-            ///
-            ///------------Case Default -------------------/////////
-            ///
-            ///
-            ///
-            ///
-            {
-                logger.info("Default ");
-                String responseDefault = "I didnt understand you, type help for instructions \n";
-                return responseBuild(responseDefault, space_id);
-            }
+                ///
+                ///
+                ///
+                ///------------Case Show my reminders -------------------/////////
+                ///
+                ///
+                ///
+                ///
+                if (req.getMessage().getText().length() > 8 &&
+                        splitedMsg[0].equals("myreminders") ||
+                        (splitedMsg[0].equals("@" + BOT_NAME) && splitedMsg[1].equals("myreminders"))) {
+
+                    String who = req.getMessage().getSender().getName();
+                    String resp = showReminders(who);
+                    return responseBuild(resp, space_id);
+                } else
+                ///
+                ///
+                ///
+                ///------------Case Default -------------------/////////
+                ///
+                ///
+                ///
+                ///
+                {
+                    logger.info("Default ");
+                    String responseDefault = "I didnt understand you, type help for instructions \n";
+                    return responseBuild(responseDefault, space_id);
+                }
     }
 
     //True if inputDate is before the next reminderDate so it needs to change
@@ -239,6 +257,7 @@ public class BotResource {
         }
     }
 
+    //Builds a directly response
     private String responseBuild(String message, String space_id) {
         return "{ \"text\": \"" + message + "\" ,  \"thread\": { \"name\": \"spaces/" + space_id + "\" }}";
     }
@@ -291,6 +310,7 @@ public class BotResource {
         }
     }
 
+    //Calculates the reminding time after setting a reminder
     String calculateRemainingTime(ZonedDateTime inputDate) {
         //TODO use of timezone #2
         ZonedDateTime fromDateTime = ZonedDateTime.now(ZoneId.of(getTimeZone()));
@@ -367,12 +387,14 @@ public class BotResource {
         return when;
     }
 
+    //Extracts what to remind from request
     String extractWhat(Request request) {
         String what = request.getMessage().getText().split("'")[1];
         logger.debug("what: {}", what);
         return what;
     }
 
+    //Extract timezone from request -
     String extractTimeZone(Request request) {
         String message[] = request.getMessage().getText().split("\\s+");
         String timeZone = null;
@@ -385,6 +407,7 @@ public class BotResource {
         return timeZone;
     }
 
+    //Retrieves from db users timezone if not found returns ""
     @Transactional
     String getGivenTimeZone(String user) {
         List<TimeZone> timeZones = entityManager.
@@ -454,6 +477,7 @@ public class BotResource {
         return who;
     }
 
+    //Finds timezone full format, if not found return null
     String findTimeZones(String inputTimeZone) {
         List<String> zones = new ArrayList<>();
         zones.addAll(ZoneId.getAvailableZoneIds());
@@ -464,6 +488,32 @@ public class BotResource {
             }
         }
         return null;
+    }
+
+    //Returns a list of WHO reminders, if not found returns not found message
+    @Transactional
+    String showReminders(String who) {
+
+        List<Reminder> reminders = entityManager.
+                createNamedQuery("reminder.showReminders", Reminder.class)
+                .setParameter("userid", who)
+                .getResultList();
+
+        String remindersShow = "---- Reminders that will notify you ---- \n";
+        if (reminders.isEmpty()) {
+            logger.debug("timezones not found return - ");
+            return "---- Reminders not found ---";
+        } else {
+            for (int i = 0; i < reminders.size(); i++) {
+                remindersShow += i+1 + ") what:' " + reminders.get(i).getWhat() + " ' When: " +
+                        reminders.get(i).getWhen().getDayOfMonth() + " of " +
+                        reminders.get(i).getWhen().getMonth() + " at " +
+                        reminders.get(i).getWhen().getHour() + ":" +
+                        reminders.get(i).getWhen().getMinute() + " " +
+                        reminders.get(i).getReminderTimezone() + "\n";
+            }
+            return remindersShow;
+        }
     }
 
     //Gets usersID by his displayName in order to notify him properly

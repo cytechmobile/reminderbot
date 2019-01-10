@@ -18,7 +18,7 @@ public class TimerSessionBean {
     @Resource
     TimerService timerService;
 
-    //Inject botResource in order to get EntityManager
+    // get EntityManager
     @PersistenceContext(name = "wa")
     protected EntityManager entityManager;
 
