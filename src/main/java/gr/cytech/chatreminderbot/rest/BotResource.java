@@ -176,7 +176,7 @@ public class BotResource {
 
                 //Checks given timezone
                 if (extractTimeZone(req) == null) {
-                    String wrongTimeZone = "Given timezone is wrong, try again. Remember you can also use GMT format";
+                    String wrongTimeZone = "Given timezone is wrong, try again.";
                     return responseBuild(wrongTimeZone, space_id);
                 }
 
@@ -201,7 +201,7 @@ public class BotResource {
 
                 //Checks given timezone
                 if (extractTimeZone(req) == null) {
-                    String wrongTimeZone = "Given timezone is wrong, try again. Remember you can also use GMT format";
+                    String wrongTimeZone = "Given timezone is wrong, try again.";
                     return responseBuild(wrongTimeZone, space_id);
                 }
 
@@ -507,8 +507,10 @@ public class BotResource {
         List<String> zones = new ArrayList<>();
         zones.addAll(ZoneId.getAvailableZoneIds());
         for (String z : zones) {
-            if (z.endsWith(inputTimeZone)) {
-                logger.info("Found: {}", z);
+            String[] splitted=z.split("/");
+            if (z.equalsIgnoreCase(inputTimeZone) ||
+                    splitted[splitted.length-1].equalsIgnoreCase(inputTimeZone)) {
+                logger.info("Found: {} ", z);
                 return z;
             }
         }
@@ -531,10 +533,10 @@ public class BotResource {
         } else {
             for (int i = 0; i < reminders.size(); i++) {
                 remindersShow += i + 1 + ") ID:" + reminders.get(i).getReminderId() + " what:' " + reminders.get(i).getWhat() + " ' When: " +
-                        reminders.get(i).getWhen().getDayOfMonth() + " of " +
-                        reminders.get(i).getWhen().getMonth() + " at " +
-                        reminders.get(i).getWhen().getHour() + ":" +
-                        reminders.get(i).getWhen().getMinute() + " " +
+                        reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getDayOfMonth() + " of " +
+                        reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getMonth() + " at " +
+                        reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getHour() + ":" +
+                        String.format("%02d",  reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getMinute())+ " "+
                         reminders.get(i).getReminderTimezone() + "\n";
             }
             return remindersShow;

@@ -79,7 +79,7 @@ public class BotResourceIT {
         botResource.setTimeZone("Europe/Athens");
 
 
-        mes.setText("delete 134");
+        mes.setText("mytimezone thens");
         req.setMessage(mes);
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
