@@ -531,16 +531,22 @@ public class BotResource {
             logger.debug("timezones not found return - ");
             return "---- Reminders not found ---";
         } else {
-            for (int i = 0; i < reminders.size(); i++) {
-                remindersShow += i + 1 + ") ID:" + reminders.get(i).getReminderId() + " what:' " + reminders.get(i).getWhat() + " ' When: " +
-                        reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getDayOfMonth() + " of " +
-                        reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getMonth() + " at " +
-                        reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getHour() + ":" +
-                        String.format("%02d",  reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getMinute())+ " "+
-                        reminders.get(i).getReminderTimezone() + "\n";
-            }
-            return remindersShow;
+            return remindersShow+reminderListToString(reminders);
         }
+    }
+
+    String reminderListToString(List<Reminder> reminders){
+        String remindersShow="";
+        for (int i = 0; i < reminders.size(); i++) {
+            remindersShow += i + 1 + ") ID:" + reminders.get(i).getReminderId() + " what:' " + reminders.get(i).getWhat() + " ' When: " +
+                    reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getDayOfMonth() + " of " +
+                    reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getMonth() + " at " +
+                    reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getHour() + ":" +
+                    String.format("%02d",
+                            reminders.get(i).getWhen().withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone())).getMinute())+ " "+
+                    reminders.get(i).getReminderTimezone() + "\n";
+        }
+        return remindersShow;
     }
 
     @Transactional

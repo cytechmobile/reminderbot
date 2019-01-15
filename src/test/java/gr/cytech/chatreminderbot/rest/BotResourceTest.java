@@ -45,14 +45,39 @@ public class BotResourceTest {
 
         timerSessionBean = new TimerSessionBean();
 
-        reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
-                "DisplayName", "uPWJ7AAAAAE", "1E_d3mjJGyM");
+        reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
+                "DisplayName","Europe/Athens", "uPWJ7AAAAAE", "1E_d3mjJGyM");
 
-
+        reminder.setReminderId(1);
         timerSessionBean.nextReminderDate = reminder.getWhen();
 
         botResource.timerSessionBean = timerSessionBean;
         botResource.entityManager = entityManager;
+    }
+    @Test
+    public void reminderListToStirngTest(){
+        ZonedDateTime nowPlusTen =  ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10);
+        List<Reminder> reminders = new ArrayList<>();
+        reminders.add(reminder);
+        logger.info("{}",botResource.reminderListToString(reminders));
+        String expected = "1) ID:1 what:' Do Something ' When: "+
+                nowPlusTen.getDayOfMonth()+" of "+nowPlusTen.getMonth()+
+                " at "+nowPlusTen.getHour()+":"+ String.format("%02d",nowPlusTen.getMinute())+
+                " Europe/Athens\n";
+        assertThat(botResource.reminderListToString(reminders)).isEqualTo(expected);
+    }
+
+    @Test
+    public void findTimeZonesTest(){
+        String timezone1 = "athens";
+        String timezone2 = "thens";
+        String timezone3 = "PARIS";
+        String timezone4 = "RIS";
+
+        assertThat(botResource.findTimeZones(timezone1)).isEqualTo("Europe/Athens");
+        assertThat(botResource.findTimeZones(timezone2)).isEqualTo(null);
+        assertThat(botResource.findTimeZones(timezone3)).isEqualTo("Europe/Paris");
+        assertThat(botResource.findTimeZones(timezone4)).isEqualTo(null);
     }
 
     @Test

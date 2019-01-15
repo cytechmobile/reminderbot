@@ -55,6 +55,7 @@ public class Reminder {
         this.threadId = threadId;
     }
 
+
     public Reminder(String what, ZonedDateTime when, String senderDisplayName, String reminderTimezone, String spaceId, String threadId) {
         this.what = what;
         this.when = when;
@@ -116,5 +117,9 @@ public class Reminder {
 
     public void setReminderTimezone(String timezone) {
         this.reminderTimezone = timezone;
+    }
+
+    public void setReminderId(int reminderId) {
+        this.reminderId = reminderId;
     }
 }
