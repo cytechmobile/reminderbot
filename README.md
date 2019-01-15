@@ -16,26 +16,26 @@
   The current functionality that this bot supports after you invite it is the following:
 1)  Set a reminder  
 	a) For you   
-		`@bot reminder me 'what' at 16/3/2019 16:33`  
+		`@bot remind me 'what' at 16/03/2019 16:33`  
 	b) For anyone in the current room   
-		`@bot reminder @George Papakis 'what' at 16/3/2019 16:33`  
-	c) All in any the current room  
-		`@bot reminder @all 'what' at 16/3/2019 16:33`  
+		`@bot remind @George Papakis 'what' at 16/03/2019 16:33`  
+	c) All in the current room  
+		`@bot remind @all 'what' at 16/03/2019 16:33`  
 	d) All in any other room that bot is invited    
-		`@bot reminder #roomName 'what' at 16/3/2019 16:33`  
+		`@bot remind #roomName 'what' at 16/03/2019 16:33`  
 		
 2) Set timezone  
 	a) For each reminder   
-		`@bot reminder me 'what' at 16/3/2019 16:33 Athens `  
+		`@bot remind me 'what' at 16/03/2019 16:33 Athens `  
 	b) If previews omitted set timezone for each user in every reminder he sets  
-		`@bot mytimezone London `  
+		`@bot set my timezone to athens`  
 	c) If previews omitted set timezone for every user in the current domain  
-		`@bot timezone Paris`  
+		`@bot set global timezone to Paris`  
 	d) By default it uses GMT
 	
 3) Show my reminders  
-    a) For each user that reminders will notify him.  
-        `@bot myreminders`       
+    a) For each user shows reminders that will notify him.  
+        `@bot list`       
 4) Delete a reminder  
     a) For each user, using a reminders id.  
         `@bot delete 323 `     

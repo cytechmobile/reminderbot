@@ -45,14 +45,39 @@ public class BotResourceTest {
 
         timerSessionBean = new TimerSessionBean();
 
-        reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
-                "DisplayName", "uPWJ7AAAAAE", "1E_d3mjJGyM");
+        reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
+                "DisplayName", "Europe/Athens", "uPWJ7AAAAAE", "1E_d3mjJGyM");
 
-
+        reminder.setReminderId(1);
         timerSessionBean.nextReminderDate = reminder.getWhen();
 
         botResource.timerSessionBean = timerSessionBean;
         botResource.entityManager = entityManager;
+    }
+
+    @Test
+    public void reminderListToStringTest() {
+        ZonedDateTime nowPlusTen = ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10);
+        List<Reminder> reminders = new ArrayList<>();
+        reminders.add(reminder);
+        logger.info("{}", botResource.reminderListToString(reminders));
+        String expected = "1) ID:1 what:' Do Something ' When: " +
+                DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format( nowPlusTen)+
+                " Europe/Athens\n";
+        assertThat(botResource.reminderListToString(reminders)).isEqualTo(expected);
+    }
+
+    @Test
+    public void findTimeZonesTest() {
+        String timezone1 = "athens";
+        String timezone2 = "thens";
+        String timezone3 = "PARIS";
+        String timezone4 = "RIS";
+
+        assertThat(botResource.findTimeZones(timezone1)).isEqualTo("Europe/Athens");
+        assertThat(botResource.findTimeZones(timezone2)).isEqualTo(null);
+        assertThat(botResource.findTimeZones(timezone3)).isEqualTo("Europe/Paris");
+        assertThat(botResource.findTimeZones(timezone4)).isEqualTo(null);
     }
 
     @Test
@@ -71,7 +96,7 @@ public class BotResourceTest {
 
         mes.setThread(threadM);
         mes.setSender(sender);
-        mes.setText("timezone " + givenTimeZone1);
+        mes.setText("set global timezone to" + givenTimeZone1);
 
         req.setMessage(mes);
 
@@ -95,7 +120,7 @@ public class BotResourceTest {
 
         mes.setThread(threadM);
         mes.setSender(sender);
-        mes.setText("timezone Athens");
+        mes.setText("set my timezone to Athens");
 
         req.setMessage(mes);
 
@@ -138,7 +163,7 @@ public class BotResourceTest {
         mes.setThread(threadM);
         mes.setSender(sender);
         final String expectedDate = "12/12/2020 12:00 GMT-2";
-        mes.setText("reminder me ' setnextreminder Test' at " + expectedDate);
+        mes.setText("remind me ' set next reminder Test' at " + expectedDate);
         req.setMessage(mes);
 
         // Already set in mock a nextReminder that is to be in 10 mins from now()
@@ -166,7 +191,7 @@ public class BotResourceTest {
         mes.setThread(threadM);
         mes.setSender(sender);
         final String expectedDate = "12/12/2019 12:00 GMT-2";
-        mes.setText("reminder me ' persist Reminder Test' at " + expectedDate);
+        mes.setText("remind me ' persist Reminder Test' at " + expectedDate);
         req.setMessage(mes);
         botResource.handleReq(req);
 
@@ -200,7 +225,7 @@ public class BotResourceTest {
         sender.setName("MyName");
         mes.setSender(sender);
         final String expectedDate = "12/12/2020 12:00";
-        mes.setText("reminder me 'something to do' at " + expectedDate);
+        mes.setText("remind me 'something to do' at " + expectedDate);
         req.setMessage(mes);
 
         assertThat(botResource.extractReminderDate(req)).as("Unexpected extracted reminder date").isEqualTo(expectedDate);
@@ -221,7 +246,7 @@ public class BotResourceTest {
         mes.setSender(sender);
         String what = "something to do";
         final String expectedDate = "12/12/2018 12:00";
-        mes.setText("reminder me '" + what + "' at " + expectedDate);
+        mes.setText("remind me '" + what + "' at " + expectedDate);
         req.setMessage(mes);
 
         assertThat(botResource.extractWhat(req)).as("Unexpected extracted reminder date").isEqualTo(what);
@@ -246,7 +271,7 @@ public class BotResourceTest {
         String what = "something to do";
         String who = "@Ntina trol";
         final String expectedDate = "12/12/2018 12:00";
-        mes.setText("reminder " + who + " '" + what + "' at " + expectedDate);
+        mes.setText("remind " + who + " '" + what + "' at " + expectedDate);
         req.setMessage(mes);
 
         Map<String, String> expectedUsers = new HashMap<>();
@@ -256,13 +281,6 @@ public class BotResourceTest {
         }};
 
         assertThat(botResource.extractWho(req)).as("Unexpected extracted reminder date").isEqualTo(who.substring(1));
-    }
-
-    @Test
-    public void findIdUserNameTest() {
-
-
-        //In the future IT test
     }
 
     @Test
