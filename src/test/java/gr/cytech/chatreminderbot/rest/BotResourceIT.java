@@ -42,10 +42,10 @@ public class BotResourceIT {
 
         String expectedDate2 = "12/12/2020 12:00";
         String successMsg = "Reminder: <<" + what +
-                ">> saved succesfully and will notify you in: " +
+                ">> saved successfully and will notify you in: " +
                 botResource.calculateRemainingTime(botResource.dateForm(expectedDate2));
 
-        mes.setText("reminder me '" + what + "' at " + expectedDate);
+        mes.setText("remind me '" + what + "' at " + expectedDate);
         req.setMessage(mes);
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
@@ -61,7 +61,7 @@ public class BotResourceIT {
 
 
     @Test
-    public void showRemindersTest() {
+    public void listReminderTest() {
         BotResource botResource = new BotResource();
 
         Request req = new Request();
@@ -79,16 +79,79 @@ public class BotResourceIT {
         botResource.setTimeZone("Europe/Athens");
 
 
-        mes.setText("mytimezone thens");
+        mes.setText("list");
         req.setMessage(mes);
+
+        String responseDefault = "I didnt understand you, type help for instructions \n";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
-        //  assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + successMsg
-        //         "\" ,  \"thread\": { \"name\": \"spaces/" + spaceId + "\" }}");
-        logger.info("{}",resp.readEntity(String.class));
+        //Verify that i didn't get the default wrong message
+        assertThat(resp.readEntity(String.class)).isNotEqualTo("{ \"text\": \"" + responseDefault +
+                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
+
+    @Test
+    public void setGlobalTimezoneTest() {
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("users/102853879309256732507");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+
+        mes.setText("@reminder set global timezone to athens");
+        req.setMessage(mes);
+
+        String expectedResponse = "You successfully set the global timezone at:Europe/Athens";
+
+        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+        //Verify that i didn't get the default wrong message
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
+                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+    }
+
+    @Test
+    public void checkRemindFormatTest() {
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("users/102853879309256732507");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+
+        mes.setText("@reminder remind me 'can't save that'at 17/01/2020 13:12");
+        req.setMessage(mes);
+
+        String expectedResponse = "Wrong remind format.Check ' ' or at (before date). See example below \n" +
+                "@reminder remind me 'Something' at 21/01/2019 15:03";
+
+        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
+                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+    }
+
+   
 }
