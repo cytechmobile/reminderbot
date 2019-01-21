@@ -163,34 +163,6 @@ class ControlIT {
                 "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 
-    //Manual testing
-    @Test
-    void manualTest() {
-        Request req = new Request();
-        Message mes = new Message();
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
-
-
-        threadM.setName("space/AAAADvB8eGY/thread/wk-fzcPcktM");
-        sender.setName("users/102853879309256732507");
-
-        mes.setThread(threadM);
-        mes.setSender(sender);
-
-        //remind me 'kati ' at 24/01/2019 18:20
-        mes.setText("@reminder list ");
-
-        req.setMessage(mes);
-
-
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
-                .request()
-                .post(Entity.json(req));
-        resp.bufferEntity();
-        logger.info(" \n resp TEXT: \n {} \n", resp.readEntity(String.class).split("\"")[3]);
-    }
 
 
 }
