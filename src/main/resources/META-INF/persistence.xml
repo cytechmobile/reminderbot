@@ -9,8 +9,8 @@
         <!-- Persistence provider -->
 
         <!-- Entity classes -->
-        <class>gr.cytech.chatreminderbot.rest.message.Sender</class>
-        <class>gr.cytech.chatreminderbot.rest.Reminder</class>
+        <class>gr.cytech.chatreminderbot.rest.controlCases.TimeZone</class>
+        <class>gr.cytech.chatreminderbot.rest.controlCases.Reminder</class>
         <properties>
             <!--<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL95Dialect"/>-->
         </properties>

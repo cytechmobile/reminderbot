@@ -1,4 +1,4 @@
-package gr.cytech.chatreminderbot.rest;
+package gr.cytech.chatreminderbot.rest.controlCases;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,7 @@ import java.util.List;
 @Startup
 @Singleton
 public class TimerSessionBean {
-    private final static Logger logger = LoggerFactory.getLogger(Client.class.getName());
+    private final static Logger logger = LoggerFactory.getLogger(TimerSessionBean.class.getName());
     private static final String CHECK_TIMER_MARKER = "check_timer_marker";
 
     @Resource
@@ -25,7 +25,7 @@ public class TimerSessionBean {
     @PersistenceContext(name = "wa")
     protected EntityManager entityManager;
 
-    ZonedDateTime nextReminderDate;
+    public ZonedDateTime nextReminderDate;
 
     @PostConstruct
     void reset() {
@@ -86,7 +86,7 @@ public class TimerSessionBean {
         }
     }
 
-    //Stops if any timer is running in backround
+    //Stops if any timer is running in background
     public void stopTimer() {
         for (Object obj : timerService.getTimers()) {
             Timer t = (Timer) obj;

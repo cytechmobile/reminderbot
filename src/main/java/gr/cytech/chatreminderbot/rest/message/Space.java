@@ -1,7 +1,6 @@
 package gr.cytech.chatreminderbot.rest.message;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Space{
@@ -18,7 +17,6 @@ public class Space{
     public Space() {
     }
 
-    @JsonProperty("name")
     public String getSpaceName() {
         return spaceName;
     }
@@ -27,7 +25,6 @@ public class Space{
         this.spaceName = spaceName;
     }
 
-    @JsonProperty("displayName")
     public String getSpaceDisplayName() {
         return spaceDisplayName;
     }
@@ -36,7 +33,6 @@ public class Space{
         this.spaceDisplayName = spaceDisplayName;
     }
 
-    @JsonProperty("type")
     public String getSpaceType() {
         return spaceType;
     }

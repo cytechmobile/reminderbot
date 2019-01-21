@@ -11,14 +11,6 @@ public class Request {
     private Space space;
     private Message message;
 
-    public Request(String type, String token, String eventTime, Space space, Message message) {
-        this.type = type;
-        this.token = token;
-        this.eventTime = eventTime;
-        this.space = space;
-        this.message = message;
-    }
-
     public Request() {
     }
 
@@ -32,10 +24,6 @@ public class Request {
 
     public Space getSpace() {
         return space;
-    }
-
-    public void setSpace(Space space) {
-        this.space = space;
     }
 
     public String getType() {
@@ -62,7 +50,9 @@ public class Request {
         this.eventTime = eventTime;
     }
 
-
+    public void setSpace(Space space) {
+        this.space = space;
+    }
 }
 
 

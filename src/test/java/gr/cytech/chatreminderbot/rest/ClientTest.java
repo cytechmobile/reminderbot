@@ -2,6 +2,8 @@ package gr.cytech.chatreminderbot.rest;
 
 
 import com.google.api.client.http.*;
+import gr.cytech.chatreminderbot.rest.controlCases.Client;
+import gr.cytech.chatreminderbot.rest.controlCases.Reminder;
 import mockit.Delegate;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -71,14 +73,5 @@ public class ClientTest {
         }};
     }
 
-    @Test
-    public void getListOfMembersInRoom() {
 
-        Client client = new Client();
-
-        Reminder reminder = new Reminder("trololo", ZonedDateTime.now().plusMinutes(10),
-                "DisplayName", "uPWJ7AAAAAE", "pbH-zOAtr8E");
-        client.sendAsyncResponse(reminder);
-        // client.getListOfMembersInRoom("AAAADvB8eGY");
-    }
 }

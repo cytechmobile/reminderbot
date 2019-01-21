@@ -6,5 +6,4 @@ import javax.ws.rs.core.Application;
 @ApplicationPath("/bot")
 public class App extends Application {
 
-
 }
