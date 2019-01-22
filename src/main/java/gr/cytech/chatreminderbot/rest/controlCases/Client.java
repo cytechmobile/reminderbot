@@ -1,4 +1,4 @@
-package gr.cytech.chatreminderbot.rest;
+package gr.cytech.chatreminderbot.rest.controlCases;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -20,7 +20,7 @@ public class Client {
     private final static Logger logger = LoggerFactory.getLogger(Client.class.getName());
 
     private final static List<String> SCOPE = Arrays.asList("https://www.googleapis.com/auth/chat.bot");
-    public static final String KEY_FILE_PATH_ENV = "BOT_KEY_FILE_PATH";
+    private static final String KEY_FILE_PATH_ENV = "BOT_KEY_FILE_PATH";
 
     public void sendAsyncResponse(Reminder reminder) {
 
@@ -34,20 +34,19 @@ public class Client {
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
-        if(reminder.getSenderDisplayName().startsWith("#")){
+        if (reminder.getSenderDisplayName().startsWith("#")) {
 
             String spaceID = getListOfSpacesBotBelongs().
                     getOrDefault(reminder.getSenderDisplayName().substring(1),
                             reminder.getSpaceId());
 
-            String messageToRoom = "{ \"text\":\"" + "<" + "users/all" + "> " + reminder.getWhat()+"\" }";
+            String messageToRoom = "{ \"text\":\"" + "<" + "users/all" + "> " + reminder.getWhat() + "\" }";
 
-            URI uri2 = URI.create("https://chat.googleapis.com/v1/spaces/" + spaceID+ "/messages");
+            URI uri2 = URI.create("https://chat.googleapis.com/v1/spaces/" + spaceID + "/messages");
             GenericUrl url2 = new GenericUrl(uri2);
 
             send(url2, messageToRoom, "POST");
-        }
-        else {
+        } else {
             send(url, message, "POST");
         }
 
@@ -70,7 +69,7 @@ public class Client {
         return users;
     }
 
-    public Map<String, String> getListOfSpacesBotBelongs(){
+    Map<String, String> getListOfSpacesBotBelongs() {
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces");
         GenericUrl url = new GenericUrl(uri);
         String emptyBodyMessage = "";
@@ -79,14 +78,14 @@ public class Client {
         //key=displayNameOfRoom Value:spaceID
         Map<String, String> spaces = new HashMap<>();
         for (int i = 0; i < results.length; i++) {
-            if (results[i].equals("displayName") && !(results[i+2].equals("")) ) {
-                spaces.put(results[i+2],results[i-6].split("/")[1]);
+            if (results[i].equals("displayName") && !(results[i + 2].equals(""))) {
+                spaces.put(results[i + 2], results[i - 6].split("/")[1]);
             }
         }
         return spaces;
     }
 
-    public String send(GenericUrl url, String message, String HttpMethod) {
+    private String send(GenericUrl url, String message, String HttpMethod) {
         String response = "";
 
         GoogleCredential credential = null;
@@ -141,7 +140,7 @@ public class Client {
         }
     }
 
-    public String getBotKeyFilePath() {
+    private String getBotKeyFilePath() {
         return System.getProperty(KEY_FILE_PATH_ENV,
                 System.getenv().
                         getOrDefault(KEY_FILE_PATH_ENV, "./botnotifier-key.json"));

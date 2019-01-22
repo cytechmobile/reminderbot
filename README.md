@@ -36,6 +36,8 @@
 3) Show my reminders  
     a) For each user shows reminders that will notify him.  
         `@bot list`       
+          Example:  
+         `1) ID:23 what:' Something to do ' When: 23/01/2019 18:20 Europe/Athens` 
 4) Delete a reminder  
     a) For each user, using a reminders id.  
         `@bot delete 323 `     
