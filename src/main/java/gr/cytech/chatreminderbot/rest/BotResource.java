@@ -37,7 +37,7 @@ public class BotResource {
             message = control.controlResponse();
             return responseBuild();
         }catch (Exception e){
-            logger.info("Error: {} from message:{}",e,req.getMessage().getText());
+            logger.warn("Error from message:{}",req.getMessage().getText(), e);
             message = "Not even a clue what you just said";
             return responseBuild();
         }

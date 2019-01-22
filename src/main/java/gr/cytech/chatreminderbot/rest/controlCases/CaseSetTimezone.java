@@ -4,13 +4,13 @@ import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-@Stateless
+
 public class CaseSetTimezone {
     private final static Logger logger = LoggerFactory.getLogger(CaseSetTimezone.class.getName());
 
@@ -25,20 +25,12 @@ public class CaseSetTimezone {
 
 
     String response = "I didnt understand whose timezone to set, type help for instructions \n";
+
     public CaseSetTimezone() {
-    }
-
-
-    public String getKeyWord_my() {
-        return keyWord_my;
     }
 
     public void setKeyWord_my(String keyWord_my) {
         this.keyWord_my = keyWord_my;
-    }
-
-    public String getKeyWord_global() {
-        return keyWord_global;
     }
 
     public void setKeyWord_global(String keyWord_global) {
@@ -53,19 +45,12 @@ public class CaseSetTimezone {
         this.request = request;
     }
 
-    public ArrayList<String> getSplitMsg() {
-        return splitMsg;
-    }
-
     public void setSplitMsg(ArrayList<String> splitMsg) {
         this.splitMsg = splitMsg;
     }
 
 
-
-
-
-
+    @Transactional
     public String setTimezone() {
         givenTimezone = extractTimeZone();
         //Checks given timezone
@@ -105,23 +90,20 @@ public class CaseSetTimezone {
                 response = " <" + who + "> successfully set your timezone at:" + timeZone.getTimezone();
                 return response;
             }
-
         return response;
     }
-
 
     public String extractTimeZone() {
         String message[] = request.getMessage().getText().split("\\s+");
         String timeZone = null;
         for (int i = 0; i < message.length; i++) {
             if (message[i].equals("timezone") && message.length == i + 3) {
-                TimeZone timeZoneFinder =  new TimeZone();
+                TimeZone timeZoneFinder = new TimeZone();
                 timeZone = timeZoneFinder.findTimeZones(message[i + 2]);
             }
         }
         return timeZone;
     }
-
 
     public String getGivenTimeZone(String user) {
         List<TimeZone> timeZones = entityManager.

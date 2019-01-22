@@ -4,13 +4,12 @@ import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-@Stateless
+
 public class CaseShowReminders {
     private final static Logger logger = LoggerFactory.getLogger(CaseShowReminders.class.getName());
 
@@ -29,7 +28,6 @@ public class CaseShowReminders {
     public void setRequest(Request request) {
         this.request = request;
     }
-
 
     public String showReminders() {
         List<Reminder> reminders = entityManager.

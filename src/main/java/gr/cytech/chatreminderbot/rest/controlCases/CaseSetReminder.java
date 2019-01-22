@@ -4,7 +4,6 @@ import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -17,10 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
-@Stateless
 public class CaseSetReminder {
     private final static Logger logger = LoggerFactory.getLogger(CaseSetReminder.class.getName());
-
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
@@ -44,10 +41,6 @@ public class CaseSetReminder {
     private ArrayList<String> splitMsg;
     private ArrayList<String> whoPart;
     private ZonedDateTime inputDate;
-
-    public String getBOT_NAME() {
-        return BOT_NAME;
-    }
 
     public void setBOT_NAME(String BOT_NAME) {
         this.BOT_NAME = BOT_NAME;
@@ -95,31 +88,12 @@ public class CaseSetReminder {
         threadId = request.getMessage().getThread().getThreadId();
     }
 
-    public String getSpaceId() {
-        return spaceId;
-    }
-
-    public void setSpaceId(String spaceId) {
-        this.spaceId = spaceId;
-    }
-
-    public String getThreadId() {
-        return threadId;
-    }
-
-    public void setThreadId(String threadId) {
-        this.threadId = threadId;
-    }
-
-    public ZonedDateTime getInputDate() {
-        return inputDate;
-    }
 
     public void setInputDate(ZonedDateTime inputDate) {
         this.inputDate = inputDate;
     }
 
-
+    @Transactional
     public String setReminder() {
 
         if (!checkRemindMessageFormat().equals("")) {
@@ -152,7 +126,6 @@ public class CaseSetReminder {
         return successMsg;
     }
 
-
     /*
      * uses the text message of the user from Request
      * message:(@reminder) remind me 'Something to do' at 16/03/2019 15:05 athens
@@ -170,6 +143,7 @@ public class CaseSetReminder {
      *   get it from users settings
      *   get it from global settings
      * */
+
     public void setInfosForRemind() {
 
         //what: Something to do
@@ -227,7 +201,7 @@ public class CaseSetReminder {
                     } else {
                         // A name that is not 2 parts
                         displayName = "";
-                        for (int i =1; i<whoPart.size(); i++) {
+                        for (int i = 1; i < whoPart.size(); i++) {
                             displayName += whoPart.get(i) + " ";
                         }
                     }
@@ -239,7 +213,6 @@ public class CaseSetReminder {
 
     }
 
-    @Transactional
     public void saveAndSetReminder(Reminder reminder) {
         entityManager.persist(reminder);
         //if there is no next reminder, sets this as next

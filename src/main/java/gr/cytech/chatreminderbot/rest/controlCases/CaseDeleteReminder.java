@@ -4,13 +4,12 @@ import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-@Stateless
+
 public class CaseDeleteReminder {
     private final static Logger logger = LoggerFactory.getLogger(CaseDeleteReminder.class.getName());
 
@@ -31,9 +30,6 @@ public class CaseDeleteReminder {
         this.request = request;
     }
 
-    public ArrayList<String> getSplitMsg() {
-        return splitMsg;
-    }
 
     public void setSplitMsg(ArrayList<String> splitMsg) {
         this.splitMsg = splitMsg;

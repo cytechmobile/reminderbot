@@ -4,12 +4,10 @@ import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-@Stateless
 public class Control {
     private final static Logger logger = LoggerFactory.getLogger(Control.class.getName());
     private static final String BOT_NAME_ENV = "BOT_NAME";
@@ -120,7 +118,6 @@ public class Control {
                             }
 
     }
-
 
     //--  Cases ----
 
