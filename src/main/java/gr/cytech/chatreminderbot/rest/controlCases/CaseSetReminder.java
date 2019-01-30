@@ -326,8 +326,8 @@ public class CaseSetReminder {
             whoPart.remove(0);
         }
 
-        if (splitMsg.get(1).length() > 50) {
-            return "Part what can not be more than 50 chars.";
+        if (splitMsg.get(1).length() >= 255) {
+            return "Part what can not be more than 255 chars.";
         } else if (splitMsg.size() != 3) {
             return "Use  quotation marks  `'` only two times. One before and one after what, type Help for example.";
         } else if (whoPart.size() < 2) {

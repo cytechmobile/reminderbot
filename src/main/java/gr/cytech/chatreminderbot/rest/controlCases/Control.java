@@ -22,6 +22,9 @@ public class Control {
     CaseShowReminders caseShowReminders;
 
     @Inject
+    CaseShowSettings caseShowsettings;
+
+    @Inject
     CaseSetTimezone caseSetTimezone;
 
     @Inject
@@ -46,6 +49,8 @@ public class Control {
     private String keyWord_ShowReminders = "list";
 
     private String keyWord_deleteReminder = "delete";
+
+    private String keyWord_ShowSettings = "settings";
     //-- End of keyWords
 
     //-- Responses
@@ -111,6 +116,10 @@ public class Control {
                                 logger.info("----Case delete reminder----");
                                 return caseDeleteReminder();
                             } else
+                                if (splitMsg.size()== 1 && splitMsg.get(0).equals(keyWord_ShowSettings)){
+                                    logger.info("---- Case Settings -----");
+                                    return caseShowSettings();
+                                }else
                             ///------------Case Default -------------------
                             {
                                 logger.info("----Case default ---- ");
@@ -169,6 +178,11 @@ public class Control {
     public String caseShowReminders() {
         caseShowReminders.setRequest(request);
         return caseShowReminders.showReminders();
+    }
+
+    public String caseShowSettings(){
+        caseShowsettings.setRequest(request);
+        return caseShowsettings.showSettings();
     }
 
     public String caseDeleteReminder() {
