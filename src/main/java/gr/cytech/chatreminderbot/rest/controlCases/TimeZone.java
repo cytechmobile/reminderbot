@@ -15,12 +15,7 @@ import java.util.List;
         @NamedQuery(name = "get.Alltimezone",
                 query = "SELECT t from TimeZone t"),
         @NamedQuery(name = "set.timezone",
-                query = "UPDATE TimeZone t set t.timezone = :timezone WHERE t.userid LIKE :userid "),
-        @NamedQuery(name = "get.UserTimezone",
-                query = "SELECT t from TimeZone t where t.userid = :id"),
-        @NamedQuery(name = "get.defaultTimezone",
-                query = "SELECT t from TimeZone t where t.userid = 'default'")
-
+                query = "UPDATE TimeZone t set t.timezone = :timezone WHERE t.userid LIKE :userid ")
 })
 public class TimeZone {
     private final static Logger logger = LoggerFactory.getLogger(TimeZone.class.getName());
