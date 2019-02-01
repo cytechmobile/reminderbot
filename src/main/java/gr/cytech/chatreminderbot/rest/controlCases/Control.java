@@ -184,8 +184,7 @@ public class Control {
     }
 
     private String caseShowSettings(){
-        caseShowsettings.setRequest(request);
-        return caseShowsettings.showSettings();
+        return caseShowsettings.showSettings(request);
     }
 
     private String caseDeleteReminder() {
