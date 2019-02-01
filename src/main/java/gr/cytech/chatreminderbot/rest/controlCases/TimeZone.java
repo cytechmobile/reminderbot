@@ -17,7 +17,9 @@ import java.util.List;
         @NamedQuery(name = "set.timezone",
                 query = "UPDATE TimeZone t set t.timezone = :timezone WHERE t.userid LIKE :userid "),
         @NamedQuery(name = "get.UserTimezone",
-                query = "SELECT t from TimeZone t where t.userid = :id")
+                query = "SELECT t from TimeZone t where t.userid = :id"),
+        @NamedQuery(name = "get.defaultTimezone",
+                query = "SELECT t from TimeZone t where t.userid = 'default'")
 
 })
 public class TimeZone {
@@ -38,6 +40,7 @@ public class TimeZone {
         this.timezone = timezone;
         this.userid = userid;
     }
+
 
    public String getUserid() {
         return userid;
@@ -60,5 +63,10 @@ public class TimeZone {
         }
         logger.info("Wrong timezone");
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "'" + timezone + '\'';
     }
 }
