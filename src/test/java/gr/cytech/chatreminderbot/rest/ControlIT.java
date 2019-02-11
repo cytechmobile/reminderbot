@@ -163,6 +163,68 @@ class ControlIT {
                 "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 
+    @Test
+    void noTimezoneFound() {
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("MyName");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+
+        mes.setText("@reminder timezones");
+        req.setMessage(mes);
+
+        String expectedResponse = "---- No Timezone found default timezone is ---- \n" +
+                "Timezone = 'Europe/Athens'";
+
+        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
+                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+    }
+    @Test
+    void timezoneFounded() {
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("MyName");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+
+        mes.setText("@reminder timezones");
+        req.setMessage(mes);
+
+        String expectedResponse = "---- Your timezone is  ---- \n" +
+                "Timezone = 'Europe/Athens'\n" +
+                " ---- Default timezone is ---- \n" +
+                "Timezone = 'Europe/Athens'";
+
+        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
+                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+    }
+
+
 
 
 }
