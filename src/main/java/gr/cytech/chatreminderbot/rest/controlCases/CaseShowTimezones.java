@@ -30,14 +30,13 @@ public class CaseShowTimezones {
         String noTimezoneFound = "---- No Timezone found default timezone is ---- \n";
         String defaultTimezone = "---- Default timezone is ---- \n";
 
-        TimeZone defaultTimezoneQuery = (TimeZone) entityManager
-                .createQuery("SELECT t from TimeZone t where t.userid = :id")
-                .setParameter("id", "default")
+        TimeZone defaultTimezoneQuery = (TimeZone) entityManager.createNamedQuery("show.timezones")
+                .setParameter("id","default")
                 .getSingleResult();
         try {
 
             TimeZone myTimezone = (TimeZone) entityManager
-                    .createQuery("SELECT t from TimeZone t where t.userid = :id")
+                    .createNamedQuery("show.timezones")
                     .setParameter("id", request.getMessage().getSender().getName())
                     .getSingleResult();
 
