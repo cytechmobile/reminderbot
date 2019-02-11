@@ -163,10 +163,16 @@ class ControlIT {
                 "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 
+
+
     @Test
-    void noTimezoneFound() {
+    void setAndReturnTimezone() {
         Request req = new Request();
+        Request req_for_timezone = new Request();
+
         Message mes = new Message();
+        Message mes_set_timezone = new Message();
+
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
 
@@ -174,34 +180,19 @@ class ControlIT {
         threadM.setName("space/SPACE_ID/thread/THREAD_ID");
         sender.setName("MyName");
 
-        mes.setThread(threadM);
-        mes.setSender(sender);
 
-        mes.setText("@reminder timezones");
-        req.setMessage(mes);
+        mes_set_timezone.setThread(threadM);
+        mes_set_timezone.setSender(sender);
 
-        String expectedResponse = "---- No Timezone found default timezone is ---- \n" +
-                "Timezone = 'Europe/Athens'";
 
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+        mes_set_timezone.setText("@reminder set my timezone to Athens");
+        req_for_timezone.setMessage(mes_set_timezone);
+
+        Client c1 = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp1 = c1.target("http://localhost:8080/bot/services/handleReq")
                 .request()
-                .post(Entity.json(req));
-        resp.bufferEntity();
-
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
-                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
-    }
-    @Test
-    void timezoneFounded() {
-        Request req = new Request();
-        Message mes = new Message();
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
-
-
-        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
-        sender.setName("MyName");
+                .post(Entity.json(req_for_timezone));
+        resp1.bufferEntity();
 
         mes.setThread(threadM);
         mes.setSender(sender);
@@ -214,13 +205,13 @@ class ControlIT {
                 " ---- Default timezone is ---- \n" +
                 "Timezone = 'Europe/Athens'";
 
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+        Client c2 = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp2 = c2.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
-        resp.bufferEntity();
+        resp2.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
+        assertThat(resp2.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
                 "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 
