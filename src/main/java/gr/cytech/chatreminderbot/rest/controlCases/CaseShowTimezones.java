@@ -8,7 +8,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 
-public class CaseShowSettings {
+public class CaseShowTimezones {
     private final static Logger logger = LoggerFactory.getLogger(CaseShowReminders.class.getName());
 
     @PersistenceContext(name = "wa")
@@ -20,17 +20,17 @@ public class CaseShowSettings {
         return request;
     }
 
-    public CaseShowSettings() {
+    public CaseShowTimezones() {
 
     }
 
-    String showSettings(Request request) {
+    String showTimezones(Request request) {
         this.request = request;
-        String settingsShow = "---- Your timezone is  ---- \n";
-        String settingsNoTimezoneFound = "---- No Timezone found default timezone is ---- \n";
-        String settingsDefaultTimezone = "--- Default timezone is --- \n";
+        String showTimezone = "---- Your timezone is  ---- \n";
+        String noTimezoneFound = "---- No Timezone found default timezone is ---- \n";
+        String defaultTimezone = "---- Default timezone is ---- \n";
 
-        TimeZone defaultTimezone = (TimeZone) entityManager
+        TimeZone defaultTimezoneQuery = (TimeZone) entityManager
                 .createQuery("SELECT t from TimeZone t where t.userid = :id")
                 .setParameter("id", "default")
                 .getSingleResult();
@@ -41,12 +41,12 @@ public class CaseShowSettings {
                     .setParameter("id", request.getMessage().getSender().getName())
                     .getSingleResult();
 
-            return settingsShow + "Timezone = " + myTimezone.toString() + "\n " + settingsDefaultTimezone +
-                    "Timezone = " + defaultTimezone.toString();
+            return showTimezone + "Timezone = " + myTimezone.toString() + "\n " + defaultTimezone +
+                    "Timezone = " + defaultTimezoneQuery.toString();
 
         } catch (NoResultException e) {
 
-            return settingsNoTimezoneFound + "Timezone = " + defaultTimezone.toString();
+            return noTimezoneFound + "Timezone = " + defaultTimezoneQuery.toString();
 
         }
 

@@ -22,7 +22,7 @@ public class Control {
     CaseShowReminders caseShowReminders;
 
     @Inject
-    CaseShowSettings caseShowsettings;
+    CaseShowTimezones caseShowTimezones;
 
     @Inject
     CaseSetTimezone caseSetTimezone;
@@ -52,7 +52,7 @@ public class Control {
 
     private static final String KEYWORD_DELETE_REMINDER = "delete";
 
-    private static final String KEYWORD_SHOW_SETTINGS = "timezones";
+    private static final String KEYWORD_SHOW_TIMEZONES = "timezones";
     //-- End of keyWords
 
     //-- Responses
@@ -89,45 +89,44 @@ public class Control {
 
         if (splitMsg.isEmpty()) {
             return RESPONSE_CASE_EMPTY_REQUEST;
-        } else
-            //----- Case Response with instructions - Help
-            if (splitMsg.size() == 1 && splitMsg.get(0).equals(KEYWORD_HELP)) {
-                logger.info("----Case Help----");
-                return caseHelp();
-            } else
-                //-------Case create Reminder -----------------
-                if (splitMsg.get(0).equals(KEYWORD_REMIND)) {
-                    logger.info("---Case remind---");
-                    return caseSetReminder();
-                } else
-                    //------------Case Set  timezones -------------------
-                    if (splitMsg.size() == 5 && (splitMsg.get(0).equals(keyWords_setTimezone[0])
+        }
+        //----- Case Response with instructions - Help
+        if (splitMsg.size() == 1 && splitMsg.get(0).equals(KEYWORD_HELP)) {
+            logger.info("----Case Help----");
+            return caseHelp();
+        }
+        //-------Case create Reminder -----------------
+        if (splitMsg.get(0).equals(KEYWORD_REMIND)) {
+            logger.info("---Case remind---");
+            return caseSetReminder();
+        }
+        //------------Case Set  timezones -------------------
+        if (splitMsg.size() == 5 && (splitMsg.get(0).equals(keyWords_setTimezone[0])
 
-                            && splitMsg.get(2).equals(keyWords_setTimezone[1])
-                            && splitMsg.get(3).equals(keyWords_setTimezone[2]))) {
-                        logger.info("----Case set timezone----");
+                && splitMsg.get(2).equals(keyWords_setTimezone[1])
+                && splitMsg.get(3).equals(keyWords_setTimezone[2]))) {
+            logger.info("----Case set timezone----");
 
-                        return caseSetTimezone();
-                    } else
-                        ///------------Case Show my reminders -------------------
-                        if (splitMsg.size() == 1 && splitMsg.get(0).equals(KEYWORD_SHOW_REMINDERS)) {
-                            logger.info("----Case list reminders----");
-                            return caseShowReminders();
-                        } else
-                            ///------------Case Delete reminder -------------------
-                            if (splitMsg.size() == 2 && splitMsg.get(0).equals(KEYWORD_DELETE_REMINDER)) {
-                                logger.info("----Case delete reminder----");
-                                return caseDeleteReminder();
-                            } else
-                                if (splitMsg.size()== 1 && splitMsg.get(0).equals(KEYWORD_SHOW_SETTINGS)){
-                                    logger.info("---- Case Settings -----");
-                                    return caseShowSettings();
-                                }else
-                            ///------------Case Default -------------------
-                            {
-                                logger.info("----Case default ---- ");
-                                return RESPONSE_CASE_DEFAULT;
-                            }
+            return caseSetTimezone();
+        }
+        ///------------Case Show my reminders -------------------
+        if (splitMsg.size() == 1 && splitMsg.get(0).equals(KEYWORD_SHOW_REMINDERS)) {
+            logger.info("----Case list reminders----");
+            return caseShowReminders();
+        }
+        ///------------Case Delete reminder -------------------
+        if (splitMsg.size() == 2 && splitMsg.get(0).equals(KEYWORD_DELETE_REMINDER)) {
+            logger.info("----Case delete reminder----");
+            return caseDeleteReminder();
+        }
+        if (splitMsg.size()== 1 && splitMsg.get(0).equals(KEYWORD_SHOW_TIMEZONES)){
+            logger.info("---- Case Timezones -----");
+            return caseShowTimezones();
+        }
+        ///------------Case Default -------------------
+
+        logger.info("----Case default ---- ");
+        return RESPONSE_CASE_DEFAULT;
 
     }
 
@@ -183,8 +182,8 @@ public class Control {
         return caseShowReminders.showReminders();
     }
 
-    private String caseShowSettings(){
-        return caseShowsettings.showSettings(request);
+    private String caseShowTimezones(){
+        return caseShowTimezones.showTimezones(request);
     }
 
     private String caseDeleteReminder() {
