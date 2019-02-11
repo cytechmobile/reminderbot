@@ -40,7 +40,6 @@ hs_err_pid*
 .idea/
 cmake-build-debug/
 cmake-build-release/
-.idea/**/mongoSettings.xml
 *.iws
 *.iml
 *.ipr
@@ -66,3 +65,4 @@ buildNumber.properties
 keys/
 .classpath
 .project
+.vscode/
