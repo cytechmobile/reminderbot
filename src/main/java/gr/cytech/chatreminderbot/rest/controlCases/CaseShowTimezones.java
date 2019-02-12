@@ -24,16 +24,18 @@ public class CaseShowTimezones {
 
     }
 
+
     String showTimezones(Request request) {
         this.request = request;
         String showTimezone = "---- Your timezone is  ---- \n";
         String noTimezoneFound = "---- No Timezone found default timezone is ---- \n";
         String defaultTimezone = "---- Default timezone is ---- \n";
 
-        TimeZone defaultTimezoneQuery = (TimeZone) entityManager.createNamedQuery("show.timezones")
-                .setParameter("id","default")
-                .getSingleResult();
+
         try {
+            TimeZone defaultTimezoneQuery = (TimeZone) entityManager.createNamedQuery("show.timezones")
+                    .setParameter("id","default")
+                    .getSingleResult();
 
             TimeZone myTimezone = (TimeZone) entityManager
                     .createNamedQuery("show.timezones")
@@ -44,6 +46,9 @@ public class CaseShowTimezones {
                     "Timezone = " + defaultTimezoneQuery.toString();
 
         } catch (NoResultException e) {
+            TimeZone defaultTimezoneQuery = (TimeZone) entityManager.createNamedQuery("show.timezones")
+                    .setParameter("id","default")
+                    .getSingleResult();
 
             return noTimezoneFound + "Timezone = " + defaultTimezoneQuery.toString();
 
