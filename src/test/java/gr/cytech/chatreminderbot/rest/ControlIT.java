@@ -227,11 +227,12 @@ class ControlIT {
                 "Timezone = 'Europe/Athens'";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+        c.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req2));
 
-        resp = c.target("http://localhost:8080/bot/services/handleReq")
+
+         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
 
