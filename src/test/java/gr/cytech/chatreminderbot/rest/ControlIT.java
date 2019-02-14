@@ -198,10 +198,6 @@ class ControlIT {
 
     @Test
     void setAndReturnTimezone() {
-        Request req = new Request();
-        Request req2 = new Request();
-        Message mes = new Message();
-        Message mes2 = new Message();
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
 
@@ -209,16 +205,18 @@ class ControlIT {
         threadM.setName("space/SPACE_ID/thread/THREAD_ID");
         sender.setName("MyName");
 
+        Request req = new Request();
+        Message mes = new Message();
         mes.setThread(threadM);
         mes.setSender(sender);
-
-        mes2.setThread(threadM);
-        mes2.setSender(sender);
-
-
-        mes2.setText("@reminder set my timezone to athens");
         mes.setText("@reminder timezones");
         req.setMessage(mes);
+
+        Message mes2 = new Message();
+        Request req2 = new Request();
+        mes2.setThread(threadM);
+        mes2.setSender(sender);
+        mes2.setText("@reminder set my timezone to athens");
         req2.setMessage(mes2);
 
         String expectedResponse = "---- Your timezone is  ---- \n" +
@@ -226,20 +224,31 @@ class ControlIT {
                 " ---- Default timezone is ---- \n" +
                 "Timezone = 'Europe/Athens'";
 
+        String responseIfSetTimezoneFails = "Not even a clue what you just said";
+
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        c.target("http://localhost:8080/bot/services/handleReq")
+        Response respForReq2 = c.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req2));
+        respForReq2.bufferEntity();
 
 
-         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
-                .request()
-                .post(Entity.json(req));
+        if (respForReq2.getStatus() == 200){
+            Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                    .request()
+                    .post(Entity.json(req));
+            resp.bufferEntity();
 
-        resp.bufferEntity();
+            assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
+                    "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        }else{
+            assertThat(respForReq2.readEntity(String.class)).isEqualTo("{ \"text\": \"" + responseIfSetTimezoneFails +
+                    "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        }
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
-                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+
+
+
     }
 
 
