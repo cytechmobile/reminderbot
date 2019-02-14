@@ -22,6 +22,9 @@ public class Control {
     CaseShowReminders caseShowReminders;
 
     @Inject
+    CaseShowTimezones caseShowTimezones;
+
+    @Inject
     CaseSetTimezone caseSetTimezone;
 
     @Inject
@@ -32,25 +35,31 @@ public class Control {
     private ArrayList<String> splitMsg;
 
     //--- Key Words
-    private String keyWord_help = "help";
 
-    private String keyWord_remind = "remind";
+    private static final String KEYWORD_HELP = "help";
+
+    private static final String KEYWORD_REMIND = "remind";
 
     //Current format;
     //set my timezone to athens
+
     private String[] keyWords_setTimezone = {"set", "timezone", "to"};
-    private String keyWord_setTimezone_global = "global";
-    private String keyWord_setTimezone_my = "my";
+    private static final String KEYWORD_SET_TIMEZONE_GLOBAL = "global";
+    private static final String KEYWORD_SET_TIMEZONE_MY = "my";
 
 
-    private String keyWord_ShowReminders = "list";
+    private static final String KEYWORD_SHOW_REMINDERS = "list";
 
-    private String keyWord_deleteReminder = "delete";
+    private static final String KEYWORD_DELETE_REMINDER = "delete";
+
+    private static final String KEYWORD_SHOW_TIMEZONES = "timezones";
     //-- End of keyWords
 
     //-- Responses
-    private String responseCaseDefault = "I didnt understand you, type help for instructions \n";
-    private String responseCaseEmptyRequest = "I didnt understand you, you send empty message";
+    private static final String RESPONSE_CASE_DEFAULT = "I didnt understand you, type help for instructions \n";
+
+    private static final String RESPONSE_CASE_EMPTY_REQUEST = "I didnt understand you, you send empty message";
+
 
     public Control() {
     }
@@ -79,49 +88,51 @@ public class Control {
     public String controlResponse() {
 
         if (splitMsg.isEmpty()) {
-            return responseCaseEmptyRequest;
-        } else
-            //----- Case Response with instructions - Help
-            if (splitMsg.size() == 1 && splitMsg.get(0).equals(keyWord_help)) {
-                logger.info("----Case Help----");
-                return caseHelp();
-            } else
-                //-------Case create Reminder -----------------
-                if (splitMsg.get(0).equals(keyWord_remind)) {
-                    logger.info("---Case remind---");
+            return RESPONSE_CASE_EMPTY_REQUEST;
+        }
+        //----- Case Response with instructions - Help
+        if (splitMsg.size() == 1 && splitMsg.get(0).equals(KEYWORD_HELP)) {
+            logger.info("----Case Help----");
+            return caseHelp();
+        }
+        //-------Case create Reminder -----------------
+        if (splitMsg.get(0).equals(KEYWORD_REMIND)) {
+            logger.info("---Case remind---");
+            return caseSetReminder();
+        }
+        //------------Case Set  timezones -------------------
+        if (splitMsg.size() == 5 && (splitMsg.get(0).equals(keyWords_setTimezone[0])
 
-                    return caseSetReminder();
-                } else
-                    //------------Case Set  timezones -------------------
-                    if (splitMsg.size() == 5 && (splitMsg.get(0).equals(keyWords_setTimezone[0])
+                && splitMsg.get(2).equals(keyWords_setTimezone[1])
+                && splitMsg.get(3).equals(keyWords_setTimezone[2]))) {
+            logger.info("----Case set timezone----");
 
-                            && splitMsg.get(2).equals(keyWords_setTimezone[1])
-                            && splitMsg.get(3).equals(keyWords_setTimezone[2]))) {
-                        logger.info("----Case set timezone----");
+            return caseSetTimezone();
+        }
+        ///------------Case Show my reminders -------------------
+        if (splitMsg.size() == 1 && splitMsg.get(0).equals(KEYWORD_SHOW_REMINDERS)) {
+            logger.info("----Case list reminders----");
+            return caseShowReminders();
+        }
+        ///------------Case Delete reminder -------------------
+        if (splitMsg.size() == 2 && splitMsg.get(0).equals(KEYWORD_DELETE_REMINDER)) {
+            logger.info("----Case delete reminder----");
+            return caseDeleteReminder();
+        }
+        if (splitMsg.size()== 1 && splitMsg.get(0).equals(KEYWORD_SHOW_TIMEZONES)){
+            logger.info("---- Case Timezones -----");
+            return caseShowTimezones();
+        }
+        ///------------Case Default -------------------
 
-                        return caseSetTimezone();
-                    } else
-                        ///------------Case Show my reminders -------------------
-                        if (splitMsg.size() == 1 && splitMsg.get(0).equals(keyWord_ShowReminders)) {
-                            logger.info("----Case list reminders----");
-                            return caseShowReminders();
-                        } else
-                            ///------------Case Delete reminder -------------------
-                            if (splitMsg.size() == 2 && splitMsg.get(0).equals(keyWord_deleteReminder)) {
-                                logger.info("----Case delete reminder----");
-                                return caseDeleteReminder();
-                            } else
-                            ///------------Case Default -------------------
-                            {
-                                logger.info("----Case default ---- ");
-                                return responseCaseDefault;
-                            }
+        logger.info("----Case default ---- ");
+        return RESPONSE_CASE_DEFAULT;
 
     }
 
     //--  Cases ----
 
-    public String caseHelp() {
+    private String caseHelp() {
         return "\n ----- Instructions using the reminder bot -----  \n \n" +
                 "1)  Set a reminder  \n \n" +
                 "    a) For you   \n" +
@@ -150,28 +161,32 @@ public class Control {
                 "     `@" + BOT_NAME + " delete 323 ` \n";
     }
 
-    public String caseSetReminder() {
+    private String caseSetReminder() {
         caseSetReminder.setRequest(request);
         caseSetReminder.setBOT_NAME(BOT_NAME);
         return caseSetReminder.setReminder();
     }
 
-    public String caseSetTimezone() {
+    private String caseSetTimezone() {
 
         caseSetTimezone.setRequest(request);
         caseSetTimezone.setSplitMsg(splitMsg);
-        caseSetTimezone.setKeyWord_global(keyWord_setTimezone_global);
-        caseSetTimezone.setKeyWord_my(keyWord_setTimezone_my);
+        caseSetTimezone.setKeyWord_global(KEYWORD_SET_TIMEZONE_GLOBAL);
+        caseSetTimezone.setKeyWord_my(KEYWORD_SET_TIMEZONE_MY);
 
         return caseSetTimezone.setTimezone();
     }
 
-    public String caseShowReminders() {
+    private String caseShowReminders() {
         caseShowReminders.setRequest(request);
         return caseShowReminders.showReminders();
     }
 
-    public String caseDeleteReminder() {
+    private String caseShowTimezones(){
+        return caseShowTimezones.showTimezones(request);
+    }
+
+    private String caseDeleteReminder() {
         caseDeleteReminder.setRequest(request);
         caseDeleteReminder.setSplitMsg(splitMsg);
         return caseDeleteReminder.deleteReminder();
