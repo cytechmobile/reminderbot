@@ -20,18 +20,14 @@ import javax.ws.rs.core.Response;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ControlIT {
-
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
     @Test
     void handleRequest() {
-
-
         Request req = new Request();
         Message mes = new Message();
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
-
 
         threadM.setName("space/SPACE_ID/thread/THREAD_ID");
         sender.setName("MyName");
@@ -43,7 +39,6 @@ class ControlIT {
         String expectedDate = expectedWhen + " athens";
         String spaceId = "SPACE_ID";
         String what = "something to do";
-
 
         mes.setText("remind me '" + what + "' at " + expectedDate);
         req.setMessage(mes);
@@ -58,7 +53,6 @@ class ControlIT {
         caseSetReminder.setWhen(expectedWhen);
         caseSetReminder.setTimeZone("Europe/Athens");
 
-
         String successMsg = "Reminder: <<" + what +
                 ">> saved successfully and will notify you in: " +
                 caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm());
@@ -71,25 +65,20 @@ class ControlIT {
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + successMsg +
                 "\" ,  \"thread\": { \"name\": \"spaces/" + spaceId + "\" }}");
-
     }
-
 
     @Test
     void listReminderTest() {
-
         Request req = new Request();
         Message mes = new Message();
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
-
 
         threadM.setName("space/SPACE_ID/thread/THREAD_ID");
         sender.setName("MyName");
 
         mes.setThread(threadM);
         mes.setSender(sender);
-
 
         mes.setText("list");
         req.setMessage(mes);
@@ -112,7 +101,6 @@ class ControlIT {
         Message mes = new Message();
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
-
 
         threadM.setName("space/SPACE_ID/thread/THREAD_ID");
         sender.setName("MyName");
@@ -142,7 +130,6 @@ class ControlIT {
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
 
-
         threadM.setName("space/SPACE_ID/thread/THREAD_ID");
         sender.setName("MyName");
 
@@ -171,7 +158,6 @@ class ControlIT {
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
 
-
         threadM.setName("space/SPACE_ID/thread/THREAD_ID");
         sender.setName("MyName");
 
@@ -193,24 +179,13 @@ class ControlIT {
                 "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 
-
-
-
     @Test
     void setAndReturnTimezone() {
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
 
-
         threadM.setName("space/SPACE_ID/thread/THREAD_ID");
         sender.setName("MyName");
-
-        Request req = new Request();
-        Message mes = new Message();
-        mes.setThread(threadM);
-        mes.setSender(sender);
-        mes.setText("@reminder timezones");
-        req.setMessage(mes);
 
         Message mes2 = new Message();
         Request req2 = new Request();
@@ -224,34 +199,31 @@ class ControlIT {
                 " ---- Default timezone is ---- \n" +
                 "Timezone = 'Europe/Athens'";
 
-        String responseIfSetTimezoneFails = "Not even a clue what you just said";
-
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response respForReq2 = c.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req2));
         respForReq2.bufferEntity();
 
+        assertThat(respForReq2.getStatus())
+                .as("received error response when setting user time zone")
+                .isEqualTo(200);
 
-        if (respForReq2.getStatus() == 200){
-            Response resp = c.target("http://localhost:8080/bot/services/handleReq")
-                    .request()
-                    .post(Entity.json(req));
-            resp.bufferEntity();
+        Request req = new Request();
+        Message mes = new Message();
+        mes.setThread(threadM);
+        mes.setSender(sender);
+        mes.setText("@reminder timezones");
+        req.setMessage(mes);
 
-            assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
-                    "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
-        }else{
-            assertThat(respForReq2.readEntity(String.class)).isEqualTo("{ \"text\": \"" + responseIfSetTimezoneFails +
-                    "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
-        }
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
 
-
-
-
+        assertThat(resp.readEntity(String.class))
+                .as("Unexpected response when getting user time zone")
+                .isEqualTo("{ \"text\": \"" + expectedResponse +
+                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
-
-
-
-
 }
