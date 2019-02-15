@@ -17,7 +17,8 @@ import java.util.Arrays;
 import java.util.Map;
 
 public class CaseSetReminder {
-    private final static Logger logger = LoggerFactory.getLogger(CaseSetReminder.class.getName());
+    private static final Logger logger = LoggerFactory
+            .getLogger(CaseSetReminder.class.getName());
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
@@ -30,7 +31,7 @@ public class CaseSetReminder {
     @Inject
     CaseSetTimezone caseSetTimezone;
 
-    private String BOT_NAME;
+    private String botName;
     private String timeZone;
     private String who;
     private String when;
@@ -42,8 +43,8 @@ public class CaseSetReminder {
     private ArrayList<String> whoPart;
     private ZonedDateTime inputDate;
 
-    public void setBOT_NAME(String BOT_NAME) {
-        this.BOT_NAME = BOT_NAME;
+    public void setBotName(String botName) {
+        this.botName = botName;
     }
 
     public String getTimeZone() {
@@ -103,27 +104,25 @@ public class CaseSetReminder {
         setInfosForRemind();
 
         if (!(isValidFormatDate(when))) {
-            return "Wrong date or Timezone format.\n" +
-                    " DateFormat must be: dd/MM/yyyy HH:mm . \n" +
-                    " For a timezone format you can also use GMT";
+            return "Wrong date or Timezone format.\n"
+                    + " DateFormat must be: dd/MM/yyyy HH:mm . \n"
+                    + " For a timezone format you can also use GMT";
         }
 
         //pass from string to ZoneDateTime
         setInputDate(dateForm());
         //Check if date has passed
         if (inputDate.isBefore(ZonedDateTime.now(ZoneId.of(getTimeZone())))) {
-            return "This date has passed " + inputDate +
-                    ". Check your timezone or insert in the current reminder";
+            return "This date has passed "
+                    + inputDate + ". Check your timezone or insert in the current reminder";
         }
 
         Reminder reminder = new Reminder(what, inputDate, who, timeZone, spaceId, threadId);
         saveAndSetReminder(reminder);
 
-        String successMsg = "Reminder: <<" + what + ">> " +
-                "saved successfully and will notify you in: " +
-                calculateRemainingTime(inputDate);
-
-        return successMsg;
+        return "Reminder: <<" + what + ">> "
+                + "saved successfully and will notify you in: "
+                + calculateRemainingTime(inputDate);
     }
 
     /*
@@ -151,7 +150,7 @@ public class CaseSetReminder {
         logger.info("set what: {}", what);
 
         //dateParts: at 16/03/2019 15:05 athens
-        String dateParts[] = splitMsg.get(2).split("\\s+");
+        String[] dateParts = splitMsg.get(2).split("\\s+");
         String when = "";
         for (int i = 0; i < dateParts.length; i++) {
             if (dateParts[i].equals("at")) {
@@ -196,8 +195,8 @@ public class CaseSetReminder {
                 } else {
                     // 3) @Firstname Lastname
                     if (whoPart.size() == 3) {
-                        displayName = whoPart.get(1).substring(1) +
-                                " " + whoPart.get(2);
+                        displayName = whoPart.get(1).substring(1)
+                                + " " + whoPart.get(2);
                     } else {
                         // A name that is not 2 parts
                         displayName = "";
@@ -219,10 +218,10 @@ public class CaseSetReminder {
         if (timerSessionBean.getNextReminderDate() == null) {
             logger.info("set NEW reminder to : {}", inputDate);
             timerSessionBean.setNextReminder(reminder, inputDate);
-        } else
+        } else {
         //ELSE  if the new reminder is before the nextReminder,
         // changes as next reminder this
-        {
+
             if (inputDate.isBefore(timerSessionBean.getNextReminderDate())) {
                 logger.info("CHANGE next reminder to: {}", inputDate);
                 timerSessionBean.setNextReminder(reminder, inputDate);
@@ -288,19 +287,19 @@ public class CaseSetReminder {
         long minutes = tempDateTime.until(inputDate, ChronoUnit.MINUTES);
 
         if (months > 0) {
-            return months + " Months,  " +
-                    days + " Days, " +
-                    hours + " Hours, " +
-                    minutes + " Minutes";
+            return months + " Months,  "
+                    + days + " Days, "
+                    + hours + " Hours, "
+                    + minutes + " Minutes";
         }
         if (days > 0) {
-            return days + " Days, " +
-                    hours + " Hours, " +
-                    minutes + " Minutes";
+            return days + " Days, "
+                    + hours + " Hours, "
+                    + minutes + " Minutes";
         }
         if (hours > 0) {
-            return hours + " Hours, " +
-                    minutes + " Minutes";
+            return hours + " Hours, "
+                    + minutes + " Minutes";
         }
 
         return minutes + " Minutes";
@@ -321,10 +320,7 @@ public class CaseSetReminder {
     public String checkRemindMessageFormat() {
         splitMsg = new ArrayList<>(Arrays.asList(request.getMessage().getText().split("\'")));
 
-        whoPart = new ArrayList<>(Arrays.asList(splitMsg.get(0).split("\\s+")));
-        if (whoPart.get(0).equals("@" + BOT_NAME)) {
-            whoPart.remove(0);
-        }
+        removingBotName();
 
         if (splitMsg.get(1).length() >= 255) {
             return "Part what can not be more than 255 chars.";
@@ -339,6 +335,13 @@ public class CaseSetReminder {
         }
 
         return "";
+    }
+
+    private void removingBotName() {
+        whoPart = new ArrayList<>(Arrays.asList(splitMsg.get(0).split("\\s+")));
+        if (whoPart.get(0).equals("@" + botName)) {
+            whoPart.remove(0);
+        }
     }
 
 }
