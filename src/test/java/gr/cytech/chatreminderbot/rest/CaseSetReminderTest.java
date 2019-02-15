@@ -36,32 +36,32 @@ public class CaseSetReminderTest {
 
     private CaseSetReminder caseSetReminder;
 
-    private Reminder reminder;
-
     private Request request;
     private Message message;
 
-    String spaceId = "AAAADvB8eGY";
-    String threadId = "wk-fzcPcktM";
     @BeforeEach
     final void beforeEach(){
+        request = new Request();
+        message = new Message();
+
+        String spaceId = "SPACE_ID";
+        String threadId = "THREAD_ID";
+
         caseSetReminder = new CaseSetReminder();
         caseSetReminder.entityManager = entityManager;
         caseSetReminder.timerSessionBean=timerSessionBean;
 
-        request = new Request();
-        message = new Message();
-
         ThreadM thread = new ThreadM();
-        thread.setName("spaces/" + spaceId + "/thread/"+threadId+"");
+
+        thread.setName("spaces/" + spaceId + "/thread/"+ threadId +"");
         Sender sender = new Sender();
         sender.setName("MyName");
         message.setSender(sender);
         message.setThread(thread);
 
 
-        reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", "uPWJ7AAAAAE", "1E_d3mjJGyM");
+        Reminder reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
+                "DisplayName", "Europe/Athens", spaceId, threadId);
 
         reminder.setReminderId(1);
         timerSessionBean.nextReminderDate = reminder.getWhen();

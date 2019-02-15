@@ -16,16 +16,19 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CaseShowRemindersTest {
-    private static final Logger logger = LoggerFactory.getLogger(CaseShowRemindersTest.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(CaseShowRemindersTest.class);
 
     private Reminder reminder;
     private CaseShowReminders caseShowReminders;
 
     @BeforeEach
     final void beforeEach() throws Exception {
+        String spaceId = "SPACE_ID";
+        String threadId = "THREAD_ID";
         caseShowReminders = new CaseShowReminders();
         reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", "uPWJ7AAAAAE", "1E_d3mjJGyM");
+                "DisplayName", "Europe/Athens", spaceId, threadId);
 
         reminder.setReminderId(1);
     }

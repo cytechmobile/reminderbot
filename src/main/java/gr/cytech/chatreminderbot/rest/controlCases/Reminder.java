@@ -31,7 +31,6 @@ public class Reminder {
     @Column(name = "whenTo", nullable = false)
     private ZonedDateTime when;
 
-
     @Column(name = "sender_displayName", nullable = false)
     private String senderDisplayName;
 
@@ -101,16 +100,20 @@ public class Reminder {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Reminder reminder = (Reminder) o;
-        return reminderId == reminder.reminderId &&
-                Objects.equals(what, reminder.what) &&
-                Objects.equals(when, reminder.when) &&
-                Objects.equals(senderDisplayName, reminder.senderDisplayName) &&
-                Objects.equals(spaceId, reminder.spaceId) &&
-                Objects.equals(threadId, reminder.threadId) &&
-                Objects.equals(reminderTimezone, reminder.reminderTimezone);
+        return reminderId == reminder.reminderId
+                && Objects.equals(what, reminder.what)
+                && Objects.equals(when, reminder.when)
+                && Objects.equals(senderDisplayName, reminder.senderDisplayName)
+                && Objects.equals(spaceId, reminder.spaceId)
+                && Objects.equals(threadId, reminder.threadId)
+                && Objects.equals(reminderTimezone, reminder.reminderTimezone);
     }
 
     @Override

@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,9 +17,10 @@ import java.util.List;
 import java.util.Map;
 
 public class Client {
-    private final static Logger logger = LoggerFactory.getLogger(Client.class.getName());
+    private static final Logger logger = LoggerFactory
+            .getLogger(Client.class.getName());
 
-    private final static List<String> SCOPE = Arrays.asList("https://www.googleapis.com/auth/chat.bot");
+    private static final List<String> SCOPE = Arrays.asList("https://www.googleapis.com/auth/chat.bot");
     private static final String KEY_FILE_PATH_ENV = "BOT_KEY_FILE_PATH";
 
     public void sendAsyncResponse(Reminder reminder) {
@@ -85,7 +86,7 @@ public class Client {
         return spaces;
     }
 
-    private String send(GenericUrl url, String message, String HttpMethod) {
+    private String send(GenericUrl url, String message, String httpMethod) {
         String response = "";
 
         GoogleCredential credential = null;
@@ -111,15 +112,11 @@ public class Client {
 
 
         HttpContent content = null;
-        try {
-            content = new ByteArrayContent("application/json", message.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            logger.error("Error creating content from ByteArrayContent using  String message:{}", message, e);
-        }
+        content = new ByteArrayContent("application/json", message.getBytes(StandardCharsets.UTF_8));
 
         HttpRequest request;
 
-        if (HttpMethod.equals("POST")) {
+        if (httpMethod.equals("POST")) {
             try {
                 request = requestFactory.buildPostRequest(url, content);
                 request.execute();

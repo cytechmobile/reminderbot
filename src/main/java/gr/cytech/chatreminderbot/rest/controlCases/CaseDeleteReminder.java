@@ -11,13 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CaseDeleteReminder {
-    private final static Logger logger = LoggerFactory.getLogger(CaseDeleteReminder.class.getName());
+    private static final Logger logger = LoggerFactory
+            .getLogger(CaseDeleteReminder.class.getName());
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
-    String reminderId;
-    Request request;
-    ArrayList<String> splitMsg;
+    private Request request;
+    private ArrayList<String> splitMsg;
 
     public CaseDeleteReminder() {
     }
@@ -37,6 +37,7 @@ public class CaseDeleteReminder {
 
     @Transactional
     public String deleteReminder() {
+        String reminderId;
         if (splitMsg.get(1).matches("[0-9]+")) {
             reminderId = splitMsg.get(1);
         } else {

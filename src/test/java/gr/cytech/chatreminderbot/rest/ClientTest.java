@@ -15,12 +15,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClientTest {
-    private final static Logger logger = LoggerFactory.getLogger(ClientTest.class.getName());
+    private static final Logger logger = LoggerFactory
+            .getLogger(ClientTest.class.getName());
 
     @Mocked
     HttpRequest request;
@@ -37,8 +39,10 @@ public class ClientTest {
 
     @Test
     public void sendAsTest() throws Exception {
+        String threadId = "THREAD_ID";
+        String spaceId = "SPACE_ID";
         final Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
-                "DisplayName", "uPWJ7AAAAAE", "1E_d3mjJGyM");
+                "DisplayName", spaceId, threadId);
 
 
         //Expectations
@@ -46,7 +50,7 @@ public class ClientTest {
                 + " \" ,  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
-        HttpContent content2 = new ByteArrayContent("application/json", message.getBytes("UTF-8"));
+        HttpContent content2 = new ByteArrayContent("application/json", message.getBytes(StandardCharsets.UTF_8));
 
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + reminder.getSpaceId() + "/messages");
         GenericUrl url2 = new GenericUrl(uri);

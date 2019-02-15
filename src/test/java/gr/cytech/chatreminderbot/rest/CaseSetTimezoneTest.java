@@ -32,17 +32,19 @@ public class CaseSetTimezoneTest {
 
     @BeforeEach
     final void beforeEach() throws Exception {
+        String threadId = "THREAD_ID";
+        String spaceId = "SPACE_ID";
         caseSetTimezone = new CaseSetTimezone();
         reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", "uPWJ7AAAAAE", "1E_d3mjJGyM");
+                "DisplayName", "Europe/Athens", spaceId, threadId);
 
         reminder.setReminderId(1);
 
         caseSetTimezone.entityManager = entityManager;
 
          control = new Control();
-        caseSetTimezone.setKeyWord_global("global");
-        caseSetTimezone.setKeyWord_my("my");
+        caseSetTimezone.setKeyWordGlobal("global");
+        caseSetTimezone.setKeyWordMy("my");
     }
 
     @Test

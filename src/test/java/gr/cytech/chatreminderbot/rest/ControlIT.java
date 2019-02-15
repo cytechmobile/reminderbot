@@ -20,7 +20,8 @@ import javax.ws.rs.core.Response;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ControlIT {
-    private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
+    private static final Logger logger = LoggerFactory
+            .getLogger(ControlIT.class);
 
     @Test
     void handleRequest() {
@@ -47,7 +48,7 @@ class ControlIT {
 
         CaseSetReminder caseSetReminder = new CaseSetReminder();
         caseSetReminder.setRequest(req);
-        caseSetReminder.setBOT_NAME("reminder");
+        caseSetReminder.setBotName("reminder");
 
         //In order to use calculateRemainingTime need to define: timezone, when
         caseSetReminder.setWhen(expectedWhen);
@@ -205,6 +206,7 @@ class ControlIT {
                 .post(Entity.json(req2));
         respForReq2.bufferEntity();
 
+        logger.info("makes sure that the response is 200(OK) to continue");
         assertThat(respForReq2.getStatus())
                 .as("received error response when setting user time zone")
                 .isEqualTo(200);

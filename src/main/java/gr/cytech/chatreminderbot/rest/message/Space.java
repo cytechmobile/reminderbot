@@ -3,7 +3,7 @@ package gr.cytech.chatreminderbot.rest.message;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Space{
+public class Space {
     private  String spaceName;
     private  String spaceDisplayName;
     private  String spaceType;
