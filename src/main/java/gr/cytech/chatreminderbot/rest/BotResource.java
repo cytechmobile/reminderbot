@@ -14,8 +14,7 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/services")
 public class BotResource {
-    private static final Logger logger = LoggerFactory
-            .getLogger(BotResource.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(BotResource.class);
     private String spaceId;
     private String message;
     @Inject

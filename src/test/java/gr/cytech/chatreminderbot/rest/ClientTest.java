@@ -20,8 +20,7 @@ import java.time.ZonedDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClientTest {
-    private static final Logger logger = LoggerFactory
-            .getLogger(ClientTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ClientTest.class);
 
     @Mocked
     HttpRequest request;

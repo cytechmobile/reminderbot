@@ -11,8 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CaseDeleteReminder {
-    private static final Logger logger = LoggerFactory
-            .getLogger(CaseDeleteReminder.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CaseDeleteReminder.class);
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;

@@ -17,8 +17,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 public class CaseSetReminder {
-    private static final Logger logger = LoggerFactory
-            .getLogger(CaseSetReminder.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CaseSetReminder.class);
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;

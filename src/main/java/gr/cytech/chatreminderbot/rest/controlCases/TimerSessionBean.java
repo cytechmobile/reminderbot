@@ -15,8 +15,8 @@ import java.util.List;
 @Startup
 @Singleton
 public class TimerSessionBean {
-    private static final Logger logger = LoggerFactory
-            .getLogger(TimerSessionBean.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(TimerSessionBean.class);
+
     private static final String CHECK_TIMER_MARKER = "check_timer_marker";
 
     @Resource

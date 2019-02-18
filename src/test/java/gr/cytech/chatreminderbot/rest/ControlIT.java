@@ -20,8 +20,7 @@ import javax.ws.rs.core.Response;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ControlIT {
-    private static final Logger logger = LoggerFactory
-            .getLogger(ControlIT.class);
+    private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
     @Test
     void handleRequest() {

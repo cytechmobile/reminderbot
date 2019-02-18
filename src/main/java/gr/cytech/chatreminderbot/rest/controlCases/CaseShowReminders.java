@@ -11,8 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class CaseShowReminders {
-    private static final Logger logger = LoggerFactory
-            .getLogger(CaseShowReminders.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CaseShowReminders.class);
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;

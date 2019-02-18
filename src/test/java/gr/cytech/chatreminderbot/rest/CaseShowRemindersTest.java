@@ -16,8 +16,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CaseShowRemindersTest {
-    private static final Logger logger = LoggerFactory
-            .getLogger(CaseShowRemindersTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(CaseShowRemindersTest.class);
 
     private Reminder reminder;
     private CaseShowReminders caseShowReminders;

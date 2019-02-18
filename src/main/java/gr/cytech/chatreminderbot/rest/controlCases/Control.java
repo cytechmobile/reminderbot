@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Control {
-    private static final Logger logger = LoggerFactory
-            .getLogger(Control.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Control.class);
+
     private static final String BOT_NAME_ENV = "BOT_NAME";
     private static final String BOT_NAME = System.getProperty(BOT_NAME_ENV, System.getenv()
                     .getOrDefault(BOT_NAME_ENV, "reminder"));

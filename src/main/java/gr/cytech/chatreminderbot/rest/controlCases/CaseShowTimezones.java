@@ -10,8 +10,7 @@ import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
 public class CaseShowTimezones {
-    private static final Logger logger = LoggerFactory
-            .getLogger(CaseShowReminders.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CaseShowReminders.class);
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;

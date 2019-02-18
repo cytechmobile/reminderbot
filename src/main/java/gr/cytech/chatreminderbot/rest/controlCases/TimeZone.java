@@ -19,8 +19,7 @@ import java.util.List;
                 query = "SELECT t from TimeZone t where t.userid = :id ")
 })
 public class TimeZone {
-    private static final Logger logger = LoggerFactory
-            .getLogger(TimeZone.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(TimeZone.class);
 
     @Column(name = "timezone")
     private String timezone;

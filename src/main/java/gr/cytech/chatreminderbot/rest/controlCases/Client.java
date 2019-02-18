@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Client {
-    private static final Logger logger = LoggerFactory
-            .getLogger(Client.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
     private static final List<String> SCOPE = Arrays.asList("https://www.googleapis.com/auth/chat.bot");
     private static final String KEY_FILE_PATH_ENV = "BOT_KEY_FILE_PATH";

@@ -12,8 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CaseSetTimezone {
-    private static final Logger logger = LoggerFactory
-            .getLogger(CaseSetTimezone.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CaseSetTimezone.class);
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
