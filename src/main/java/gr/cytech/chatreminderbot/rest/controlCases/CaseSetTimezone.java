@@ -12,29 +12,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CaseSetTimezone {
-    private final static Logger logger = LoggerFactory.getLogger(CaseSetTimezone.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CaseSetTimezone.class);
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
 
-    String givenTimezone;
-    Request request;
-    ArrayList<String> splitMsg;
-    String keyWord_my;
-    String keyWord_global;
-
-
-    String response = "I didnt understand whose timezone to set, type help for instructions \n";
+    private Request request;
+    private ArrayList<String> splitMsg;
+    private String keyWordMy;
+    private String keyWordGlobal;
+    private String response = "I didnt understand whose timezone to set, type help for instructions \n";
 
     public CaseSetTimezone() {
     }
 
-    public void setKeyWord_my(String keyWord_my) {
-        this.keyWord_my = keyWord_my;
+    public void setKeyWordMy(String keyWordMy) {
+        this.keyWordMy = keyWordMy;
     }
 
-    public void setKeyWord_global(String keyWord_global) {
-        this.keyWord_global = keyWord_global;
+    public void setKeyWordGlobal(String keyWordGlobal) {
+        this.keyWordGlobal = keyWordGlobal;
     }
 
     public Request getRequest() {
@@ -49,16 +46,15 @@ public class CaseSetTimezone {
         this.splitMsg = splitMsg;
     }
 
-
     @Transactional
     public String setTimezone() {
-        givenTimezone = extractTimeZone();
+        String givenTimezone = extractTimeZone();
         //Checks given timezone
         if (givenTimezone == null) {
             return "Given timezone is wrong, try again.";
         }
         // setting global timezone
-        if (splitMsg.get(1).equals(keyWord_global)) {
+        if (splitMsg.get(1).equals(keyWordGlobal)) {
             logger.info("---Case Set global timezone---");
 
             TimeZone defaultTimeZone = new TimeZone(givenTimezone, "default");
@@ -73,9 +69,9 @@ public class CaseSetTimezone {
             response = "You successfully set the global timezone at:" + defaultTimeZone.getTimezone();
             return response;
 
-        } else
+        } else {
             // setting user timezone
-            if (splitMsg.get(1).equals(keyWord_my)) {
+            if (splitMsg.get(1).equals(keyWordMy)) {
                 logger.info("---Case Set user timezone---");
                 String who = request.getMessage().getSender().getName();
                 TimeZone timeZone = new TimeZone(givenTimezone, who);
@@ -90,11 +86,12 @@ public class CaseSetTimezone {
                 response = " <" + who + "> successfully set your timezone at:" + timeZone.getTimezone();
                 return response;
             }
+        }
         return response;
     }
 
     public String extractTimeZone() {
-        String message[] = request.getMessage().getText().split("\\s+");
+        String[] message = request.getMessage().getText().split("\\s+");
         String timeZone = null;
         for (int i = 0; i < message.length; i++) {
             if (message[i].equals("timezone") && message.length == i + 3) {
@@ -106,8 +103,8 @@ public class CaseSetTimezone {
     }
 
     public String getGivenTimeZone(String user) {
-        List<TimeZone> timeZones = entityManager.
-                createNamedQuery("get.Alltimezone", TimeZone.class).getResultList();
+        List<TimeZone> timeZones = entityManager
+                .createNamedQuery("get.Alltimezone", TimeZone.class).getResultList();
 
         if (timeZones.isEmpty()) {
             logger.debug("timezones not found return - ");
@@ -123,6 +120,4 @@ public class CaseSetTimezone {
             return "";
         }
     }
-
-
 }

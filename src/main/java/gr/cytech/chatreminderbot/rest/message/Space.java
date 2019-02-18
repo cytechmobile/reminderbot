@@ -3,10 +3,10 @@ package gr.cytech.chatreminderbot.rest.message;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Space{
-    private  String spaceName;
-    private  String spaceDisplayName;
-    private  String spaceType;
+public class Space {
+    private String spaceName;
+    private String spaceDisplayName;
+    private String spaceType;
 
     public Space(String spaceName, String spaceDisplayName, String spaceType) {
         this.spaceName = spaceName;

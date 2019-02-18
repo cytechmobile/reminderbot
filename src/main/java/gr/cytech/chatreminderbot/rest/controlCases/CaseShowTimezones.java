@@ -10,7 +10,7 @@ import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
 public class CaseShowTimezones {
-    private final static Logger logger = LoggerFactory.getLogger(CaseShowReminders.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CaseShowReminders.class);
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
@@ -24,28 +24,29 @@ public class CaseShowTimezones {
     public CaseShowTimezones() {
 
     }
+
     public boolean defaultTimezoneExists() {
         return entityManager.createQuery("SELECT t from TimeZone t where t.userid = :default")
-                .setParameter("default","default")
+                .setParameter("default", "default")
                 .getResultList().size() == 1;
     }
 
     @Transactional
-    String showTimezones(Request request) {
+    public String showTimezones(Request request) {
         this.request = request;
         String showTimezone = "---- Your timezone is  ---- \n";
         String noTimezoneFound = "---- No Timezone found default timezone is ---- \n";
         String defaultTimezone = "---- Default timezone is ---- \n";
 
-        if (!defaultTimezoneExists()){
+        if (!defaultTimezoneExists()) {
             logger.info("created default timezone");
-            TimeZone timeZone = new TimeZone("Europe/Athens","default");
+            TimeZone timeZone = new TimeZone("Europe/Athens", "default");
             entityManager.persist(timeZone);
 
         }
 
         TimeZone defaultTimezoneQuery = (TimeZone) entityManager.createNamedQuery("show.timezones")
-                .setParameter("id","default")
+                .setParameter("id", "default")
                 .getSingleResult();
         try {
 
@@ -54,8 +55,8 @@ public class CaseShowTimezones {
                     .setParameter("id", request.getMessage().getSender().getName())
                     .getSingleResult();
 
-            return showTimezone + "Timezone = " + myTimezone.toString() + "\n " + defaultTimezone +
-                    "Timezone = " + defaultTimezoneQuery.toString();
+            return showTimezone + "Timezone = " + myTimezone.toString() + "\n " + defaultTimezone
+                    + "Timezone = " + defaultTimezoneQuery.toString();
 
         } catch (NoResultException e) {
             logger.info("in case no timezone found for the user");
@@ -64,6 +65,4 @@ public class CaseShowTimezones {
         }
 
     }
-
-
 }

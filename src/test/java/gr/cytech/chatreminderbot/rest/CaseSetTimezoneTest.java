@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 public class CaseSetTimezoneTest {
 
     private Reminder reminder;
@@ -29,20 +30,21 @@ public class CaseSetTimezoneTest {
     @Mocked
     private EntityManager entityManager;
 
-
     @BeforeEach
     final void beforeEach() throws Exception {
+        String threadId = "THREAD_ID";
+        String spaceId = "SPACE_ID";
         caseSetTimezone = new CaseSetTimezone();
         reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", "uPWJ7AAAAAE", "1E_d3mjJGyM");
+                "DisplayName", "Europe/Athens", spaceId, threadId);
 
         reminder.setReminderId(1);
 
         caseSetTimezone.entityManager = entityManager;
 
-         control = new Control();
-        caseSetTimezone.setKeyWord_global("global");
-        caseSetTimezone.setKeyWord_my("my");
+        control = new Control();
+        caseSetTimezone.setKeyWordGlobal("global");
+        caseSetTimezone.setKeyWordMy("my");
     }
 
     @Test
@@ -67,7 +69,6 @@ public class CaseSetTimezoneTest {
 
     }
 
-
     @Test
     void saveTimeZoneTest() {
         Request req = new Request();
@@ -84,22 +85,20 @@ public class CaseSetTimezoneTest {
 
         req.setMessage(mes);
 
-
         caseSetTimezone.setRequest(req);
         control.setRequest(req);
         caseSetTimezone.setSplitMsg(control.getSplitMsg());
         caseSetTimezone.setTimezone();
 
-
         List<TimeZone> captureTimezone = new ArrayList<>();
 
-        new Verifications() {{
-            entityManager.persist(withCapture(captureTimezone));
-            times = 1;
-        }};
+        new Verifications() {
+            {
+                entityManager.persist(withCapture(captureTimezone));
+                times = 1;
+            }
+        };
 
         assertThat(captureTimezone.get(0).getTimezone()).isEqualTo("Europe/Athens");
-
     }
-
 }

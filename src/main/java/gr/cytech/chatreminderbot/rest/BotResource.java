@@ -14,11 +14,11 @@ import javax.ws.rs.core.MediaType;
 
 @Path("/services")
 public class BotResource {
-    private final static Logger logger = LoggerFactory.getLogger(BotResource.class.getName());
-    private String space_id;
+    private static final Logger logger = LoggerFactory.getLogger(BotResource.class);
+    private String spaceId;
     private String message;
     @Inject
-    Control control;
+    private Control control;
 
     /*
      * Handles requests from google chat which are assign to this path
@@ -32,19 +32,21 @@ public class BotResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String handleReq(Request req) {
         control.setRequest(req);
-        space_id = req.getMessage().getThread().getSpaceId();
-        try{
+        spaceId = req.getMessage().getThread().getSpaceId();
+        try {
             message = control.controlResponse();
             return responseBuild();
-        }catch (Exception e){
-            logger.warn("Error from message:{}",req.getMessage().getText(), e);
+        } catch (Exception e) {
+            logger.warn("Error from message:{}", req.getMessage().getText(), e);
             message = "Not even a clue what you just said";
             return responseBuild();
         }
     }
 
-    private String responseBuild( ) {
-        return "{ \"text\": \"" + message + "\" ,  \"thread\": { \"name\": \"spaces/" + space_id + "\" }}";
+    private String responseBuild() {
+        return "{ \"text\": \""
+                + message + "\" ,  \"thread\": { \"name\": \"spaces/"
+                + spaceId + "\" }}";
     }
 
 }

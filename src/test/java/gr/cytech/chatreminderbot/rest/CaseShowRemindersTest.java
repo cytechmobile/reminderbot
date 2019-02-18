@@ -23,13 +23,14 @@ public class CaseShowRemindersTest {
 
     @BeforeEach
     final void beforeEach() throws Exception {
+        String spaceId = "SPACE_ID";
+        String threadId = "THREAD_ID";
         caseShowReminders = new CaseShowReminders();
         reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", "uPWJ7AAAAAE", "1E_d3mjJGyM");
+                "DisplayName", "Europe/Athens", spaceId, threadId);
 
         reminder.setReminderId(1);
     }
-
 
     @Test
     void reminderListToStringTest() {
@@ -37,9 +38,9 @@ public class CaseShowRemindersTest {
         List<Reminder> reminders = new ArrayList<>();
         reminders.add(reminder);
         logger.info("{}", caseShowReminders.reminderListToString(reminders));
-        String expected = "1) ID:1 what:' Do Something ' When: " +
-                DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(nowPlusTen) +
-                " Europe/Athens\n";
+        String expected = "1) ID:1 what:' Do Something ' When: "
+                + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(nowPlusTen)
+                + " Europe/Athens\n";
         assertThat(caseShowReminders.reminderListToString(reminders)).isEqualTo(expected);
     }
 

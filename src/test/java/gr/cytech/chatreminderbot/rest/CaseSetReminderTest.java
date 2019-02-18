@@ -36,32 +36,31 @@ public class CaseSetReminderTest {
 
     private CaseSetReminder caseSetReminder;
 
-    private Reminder reminder;
-
     private Request request;
     private Message message;
 
-    String spaceId = "AAAADvB8eGY";
-    String threadId = "wk-fzcPcktM";
     @BeforeEach
-    final void beforeEach(){
-        caseSetReminder = new CaseSetReminder();
-        caseSetReminder.entityManager = entityManager;
-        caseSetReminder.timerSessionBean=timerSessionBean;
-
+    final void beforeEach() {
         request = new Request();
         message = new Message();
 
+        String spaceId = "SPACE_ID";
+        String threadId = "THREAD_ID";
+
+        caseSetReminder = new CaseSetReminder();
+        caseSetReminder.entityManager = entityManager;
+        caseSetReminder.timerSessionBean = timerSessionBean;
+
         ThreadM thread = new ThreadM();
-        thread.setName("spaces/" + spaceId + "/thread/"+threadId+"");
+
+        thread.setName("spaces/" + spaceId + "/thread/" + threadId + "");
         Sender sender = new Sender();
         sender.setName("MyName");
         message.setSender(sender);
         message.setThread(thread);
 
-
-        reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", "uPWJ7AAAAAE", "1E_d3mjJGyM");
+        Reminder reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
+                "DisplayName", "Europe/Athens", spaceId, threadId);
 
         reminder.setReminderId(1);
         timerSessionBean.nextReminderDate = reminder.getWhen();
@@ -91,10 +90,12 @@ public class CaseSetReminderTest {
         caseSetReminder.setReminder();
 
         //Verifies that setNextReminder is called 0 times because Input reminderDate is AFTER the current
-        new Verifications() {{
-            timerSessionBean.setNextReminder((Reminder) any, (ZonedDateTime) any);
-            times = 0;
-        }};
+        new Verifications() {
+            {
+                timerSessionBean.setNextReminder((Reminder) any, (ZonedDateTime) any);
+                times = 0;
+            }
+        };
     }
 
     @Test
@@ -106,13 +107,14 @@ public class CaseSetReminderTest {
         caseSetReminder.setRequest(request);
         caseSetReminder.setReminder();
 
-
         List<Reminder> capturedReminders = new ArrayList<>();
 
-        new Verifications() {{
-            entityManager.persist(withCapture(capturedReminders));
-            times = 1;
-        }};
+        new Verifications() {
+            {
+                entityManager.persist(withCapture(capturedReminders));
+                times = 1;
+            }
+        };
 
         assertThat(capturedReminders).as("no reminders persisted").hasSize(1);
         Reminder reminder = capturedReminders.get(0);
@@ -121,17 +123,16 @@ public class CaseSetReminderTest {
         String format = "dd/MM/yyyy HH:mm";
         DateTimeFormatter fomatter = DateTimeFormatter.ofPattern(format);
 
-        assertThat(reminder.getWhen()).
-                isEqualTo(ZonedDateTime.parse("12/12/2019 12:00", fomatter.withZone(ZoneId.of("Europe/Athens"))));
+        assertThat(reminder.getWhen())
+                .isEqualTo(ZonedDateTime.parse("12/12/2019 12:00", fomatter.withZone(ZoneId.of("Europe/Athens"))));
     }
 
-
     @Test
-    void setInfosTest(){
+    void setInfosTest() {
         String what = "something to do";
         String who = "@Ntina trol";
         final String expectedDate = "12/12/2018 12:00";
-        message.setText("remind " + who + " '" + what + "' at " + expectedDate+" athens");
+        message.setText("remind " + who + " '" + what + "' at " + expectedDate + " athens");
         request.setMessage(message);
         caseSetReminder.setRequest(request);
         caseSetReminder.checkRemindMessageFormat();

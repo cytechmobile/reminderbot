@@ -1,6 +1,5 @@
 package gr.cytech.chatreminderbot.rest;
 
-
 import com.google.api.client.http.*;
 import gr.cytech.chatreminderbot.rest.controlCases.Client;
 import gr.cytech.chatreminderbot.rest.controlCases.Reminder;
@@ -15,12 +14,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClientTest {
-    private final static Logger logger = LoggerFactory.getLogger(ClientTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ClientTest.class);
 
     @Mocked
     HttpRequest request;
@@ -29,7 +29,6 @@ public class ClientTest {
 
     Client client;
 
-
     @BeforeEach
     public final void beforeEach() throws Exception {
         client = new Client();
@@ -37,41 +36,44 @@ public class ClientTest {
 
     @Test
     public void sendAsTest() throws Exception {
+        String threadId = "THREAD_ID";
+        String spaceId = "SPACE_ID";
         final Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
-                "DisplayName", "uPWJ7AAAAAE", "1E_d3mjJGyM");
-
+                "DisplayName", spaceId, threadId);
 
         //Expectations
         String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> " + reminder.getWhat()
                 + " \" ,  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
-        HttpContent content2 = new ByteArrayContent("application/json", message.getBytes("UTF-8"));
+        HttpContent content2 = new ByteArrayContent("application/json", message.getBytes(StandardCharsets.UTF_8));
 
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + reminder.getSpaceId() + "/messages");
         GenericUrl url2 = new GenericUrl(uri);
 
+        new Expectations() {
+            {
+                requestFactory.buildPostRequest((GenericUrl) any, (HttpContent) any);
+                result = new Delegate<HttpRequest>() {
+                    public HttpRequest buildPostRequest(GenericUrl url, HttpContent content) throws IOException {
 
-        new Expectations() {{
-            requestFactory.buildPostRequest((GenericUrl) any, (HttpContent) any);
-            result = new Delegate<HttpRequest>() {
-                public HttpRequest buildPostRequest(GenericUrl url, HttpContent content) throws IOException {
-
-                    assertThat(url).isEqualTo(url2);
-                    //Cant compare 2 httpContent?
-                    assertThat(content.getLength()).isEqualTo(content2.getLength());
-                    return request;
-                }
-            };
-        }};
+                        assertThat(url).isEqualTo(url2);
+                        //Cant compare 2 httpContent?
+                        assertThat(content.getLength()).isEqualTo(content2.getLength());
+                        return request;
+                    }
+                };
+            }
+        };
 
         client.sendAsyncResponse(reminder);
 
-        new Verifications() {{
-            request.execute();
-            times = 1;
-        }};
+        new Verifications() {
+            {
+                request.execute();
+                times = 1;
+            }
+        };
     }
-
 
 }

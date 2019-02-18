@@ -9,10 +9,9 @@ public class Message {
     private String text;
     private ThreadM thread;
 
-
-
     public Message() {
     }
+
     public String getName() {
         return name;
     }

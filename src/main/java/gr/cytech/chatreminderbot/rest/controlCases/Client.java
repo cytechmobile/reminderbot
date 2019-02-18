@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,13 +17,12 @@ import java.util.List;
 import java.util.Map;
 
 public class Client {
-    private final static Logger logger = LoggerFactory.getLogger(Client.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
-    private final static List<String> SCOPE = Arrays.asList("https://www.googleapis.com/auth/chat.bot");
+    private static final List<String> SCOPE = Arrays.asList("https://www.googleapis.com/auth/chat.bot");
     private static final String KEY_FILE_PATH_ENV = "BOT_KEY_FILE_PATH";
 
     public void sendAsyncResponse(Reminder reminder) {
-
         //URL request - responses to current thread
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + reminder.getSpaceId() + "/messages");
         GenericUrl url = new GenericUrl(uri);
@@ -36,8 +35,8 @@ public class Client {
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
 
-            String spaceID = getListOfSpacesBotBelongs().
-                    getOrDefault(reminder.getSenderDisplayName().substring(1),
+            String spaceID = getListOfSpacesBotBelongs()
+                    .getOrDefault(reminder.getSenderDisplayName().substring(1),
                             reminder.getSpaceId());
 
             String messageToRoom = "{ \"text\":\"" + "<" + "users/all" + "> " + reminder.getWhat() + "\" }";
@@ -52,9 +51,9 @@ public class Client {
 
     }
 
-
     //request to get members of a room
     public Map<String, String> getListOfMembersInRoom(String spaceId) {
+
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + spaceId + "/members");
         GenericUrl url = new GenericUrl(uri);
         String emptyBodyMessage = "";
@@ -85,7 +84,7 @@ public class Client {
         return spaces;
     }
 
-    private String send(GenericUrl url, String message, String HttpMethod) {
+    private String send(GenericUrl url, String message, String httpMethod) {
         String response = "";
 
         GoogleCredential credential = null;
@@ -109,17 +108,12 @@ public class Client {
 
         HttpRequestFactory requestFactory = httpTransport.createRequestFactory(credential);
 
-
         HttpContent content = null;
-        try {
-            content = new ByteArrayContent("application/json", message.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            logger.error("Error creating content from ByteArrayContent using  String message:{}", message, e);
-        }
+        content = new ByteArrayContent("application/json", message.getBytes(StandardCharsets.UTF_8));
 
         HttpRequest request;
 
-        if (HttpMethod.equals("POST")) {
+        if (httpMethod.equals("POST")) {
             try {
                 request = requestFactory.buildPostRequest(url, content);
                 request.execute();
@@ -142,7 +136,7 @@ public class Client {
 
     private String getBotKeyFilePath() {
         return System.getProperty(KEY_FILE_PATH_ENV,
-                System.getenv().
-                        getOrDefault(KEY_FILE_PATH_ENV, "./botnotifier-key.json"));
+                System.getenv()
+                        .getOrDefault(KEY_FILE_PATH_ENV, "./botnotifier-key.json"));
     }
 }

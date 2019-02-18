@@ -11,12 +11,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class CaseShowReminders {
-    private final static Logger logger = LoggerFactory.getLogger(CaseShowReminders.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CaseShowReminders.class);
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
 
-    Request request;
+    private Request request;
 
     public CaseShowReminders() {
     }
@@ -30,8 +30,8 @@ public class CaseShowReminders {
     }
 
     public String showReminders() {
-        List<Reminder> reminders = entityManager.
-                createNamedQuery("reminder.showReminders", Reminder.class)
+        List<Reminder> reminders = entityManager
+                .createNamedQuery("reminder.showReminders", Reminder.class)
                 .setParameter("userid", request.getMessage().getSender().getName())
                 .getResultList();
 
@@ -48,12 +48,12 @@ public class CaseShowReminders {
         String remindersShow = "";
 
         for (int i = 0; i < reminders.size(); i++) {
-            remindersShow += i + 1 + ") ID:" + reminders.get(i).getReminderId() + " what:' " +
-                    reminders.get(i).getWhat() + " ' When: " +
-                    DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+            remindersShow += i + 1 + ") ID:" + reminders.get(i).getReminderId() + " what:' "
+                    + reminders.get(i).getWhat() + " ' When: "
+                    + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
                             .format(reminders.get(i).getWhen()
-                                    .withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone()))) + " " +
-                    reminders.get(i).getReminderTimezone() + "\n";
+                                    .withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone()))) + " "
+                    + reminders.get(i).getReminderTimezone() + "\n";
         }
         return remindersShow;
     }

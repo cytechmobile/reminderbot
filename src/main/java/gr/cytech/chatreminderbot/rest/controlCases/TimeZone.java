@@ -1,6 +1,5 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +19,7 @@ import java.util.List;
                 query = "SELECT t from TimeZone t where t.userid = :id ")
 })
 public class TimeZone {
-    private final static Logger logger = LoggerFactory.getLogger(TimeZone.class.getName());
-
+    private static final Logger logger = LoggerFactory.getLogger(TimeZone.class);
 
     @Column(name = "timezone")
     private String timezone;
@@ -38,12 +36,11 @@ public class TimeZone {
         this.userid = userid;
     }
 
-
-   public String getUserid() {
+    public String getUserid() {
         return userid;
     }
 
-   public String getTimezone() {
+    public String getTimezone() {
         return timezone;
     }
 
@@ -53,8 +50,8 @@ public class TimeZone {
 //            z is like Europe/Athens so,
 //            we either get it at full form or as the city name.
             String[] slitted = timeZone.split("/");
-            if (timeZone.equalsIgnoreCase(inputTimeZone) ||
-                    slitted[slitted.length - 1].equalsIgnoreCase(inputTimeZone)) {
+            if (timeZone.equalsIgnoreCase(inputTimeZone)
+                    || slitted[slitted.length - 1].equalsIgnoreCase(inputTimeZone)) {
                 return timeZone;
             }
         }
