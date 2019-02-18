@@ -54,9 +54,9 @@ class ControlIT {
         caseSetReminder.setWhen(expectedWhen);
         caseSetReminder.setTimeZone("Europe/Athens");
 
-        String successMsg = "Reminder: <<" + what +
-                ">> saved successfully and will notify you in: " +
-                caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm());
+        String successMsg = "Reminder: <<" + what
+                + ">> saved successfully and will notify you in: "
+                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm());
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
@@ -64,8 +64,8 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + successMsg +
-                "\" ,  \"thread\": { \"name\": \"spaces/" + spaceId + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + successMsg
+                + "\" ,  \"thread\": { \"name\": \"spaces/" + spaceId + "\" }}");
     }
 
     @Test
@@ -92,8 +92,8 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isNotEqualTo("{ \"text\": \"" + responseDefault +
-                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isNotEqualTo("{ \"text\": \"" + responseDefault
+                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 
     @Test
@@ -120,8 +120,8 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
-                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
+                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 
     @Test
@@ -140,7 +140,8 @@ class ControlIT {
         mes.setText("@reminder remind me 'can't save that'at 17/01/2020 13:12");
         req.setMessage(mes);
 
-        String expectedResponse = "Use  quotation marks  `'` only two times. One before and one after what, type Help for example.";
+        String expectedResponse = "Use  quotation marks  `'` only two times. "
+                + "One before and one after what, type Help for example.";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
@@ -148,8 +149,8 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
-                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
+                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 
     @Test
@@ -168,7 +169,9 @@ class ControlIT {
         mes.setText("@reminder set my timezone to athens");
         req.setMessage(mes);
 
-        String expectedResponse = " <"+req.getMessage().getSender().getName()+"> successfully set your timezone at:Europe/Athens";
+        String expectedResponse = " <"
+                + req.getMessage().getSender().getName()
+                + "> successfully set your timezone at:Europe/Athens";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
@@ -176,8 +179,8 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse +
-                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
+                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 
     @Test
@@ -195,10 +198,10 @@ class ControlIT {
         mes2.setText("@reminder set my timezone to athens");
         req2.setMessage(mes2);
 
-        String expectedResponse = "---- Your timezone is  ---- \n" +
-                "Timezone = 'Europe/Athens'\n" +
-                " ---- Default timezone is ---- \n" +
-                "Timezone = 'Europe/Athens'";
+        String expectedResponse = "---- Your timezone is  ---- \n"
+                + "Timezone = 'Europe/Athens'\n"
+                + " ---- Default timezone is ---- \n"
+                + "Timezone = 'Europe/Athens'";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response respForReq2 = c.target("http://localhost:8080/bot/services/handleReq")
@@ -225,7 +228,7 @@ class ControlIT {
 
         assertThat(resp.readEntity(String.class))
                 .as("Unexpected response when getting user time zone")
-                .isEqualTo("{ \"text\": \"" + expectedResponse +
-                "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+                .isEqualTo("{ \"text\": \"" + expectedResponse
+                        + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
     }
 }

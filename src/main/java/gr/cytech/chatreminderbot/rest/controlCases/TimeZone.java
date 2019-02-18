@@ -1,6 +1,5 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,12 +37,11 @@ public class TimeZone {
         this.userid = userid;
     }
 
-
-   public String getUserid() {
+    public String getUserid() {
         return userid;
     }
 
-   public String getTimezone() {
+    public String getTimezone() {
         return timezone;
     }
 

@@ -33,16 +33,15 @@ public class CaseShowRemindersTest {
         reminder.setReminderId(1);
     }
 
-
     @Test
     void reminderListToStringTest() {
         ZonedDateTime nowPlusTen = ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10);
         List<Reminder> reminders = new ArrayList<>();
         reminders.add(reminder);
         logger.info("{}", caseShowReminders.reminderListToString(reminders));
-        String expected = "1) ID:1 what:' Do Something ' When: " +
-                DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(nowPlusTen) +
-                " Europe/Athens\n";
+        String expected = "1) ID:1 what:' Do Something ' When: "
+                + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(nowPlusTen)
+                + " Europe/Athens\n";
         assertThat(caseShowReminders.reminderListToString(reminders)).isEqualTo(expected);
     }
 

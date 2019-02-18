@@ -1,6 +1,5 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
-
 import javax.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -13,12 +12,13 @@ import java.util.Objects;
         @NamedQuery(name = "reminder.findAll",
                 query = "SELECT r from Reminder r"),
         @NamedQuery(name = "reminder.showReminders",
-                query = "SELECT r from Reminder r where r.senderDisplayName like :userid order by r.when"),
+                query = "SELECT r from Reminder r where r.senderDisplayName "
+                        + "like :userid order by r.when"),
         @NamedQuery(name = "reminder.findByUserAndReminderId",
-                query = "SELECT r from Reminder r where r.senderDisplayName  like :userId AND r.reminderId = :reminderId")
+                query = "SELECT r from Reminder r where r.senderDisplayName "
+                        + "like :userId AND r.reminderId = :reminderId")
 })
 public class Reminder {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,7 +43,6 @@ public class Reminder {
     @Column(name = "reminder_timezone", nullable = false)
     private String reminderTimezone;
 
-
     public Reminder() {
     }
 
@@ -55,8 +54,8 @@ public class Reminder {
         this.threadId = threadId;
     }
 
-
-    public Reminder(String what, ZonedDateTime when, String senderDisplayName, String reminderTimezone, String spaceId, String threadId) {
+    public Reminder(String what, ZonedDateTime when, String senderDisplayName,
+                    String reminderTimezone, String spaceId, String threadId) {
         this.what = what;
         this.when = when;
         this.senderDisplayName = senderDisplayName;

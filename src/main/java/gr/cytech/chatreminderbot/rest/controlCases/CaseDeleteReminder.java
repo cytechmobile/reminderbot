@@ -16,7 +16,9 @@ public class CaseDeleteReminder {
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
+
     private Request request;
+
     private ArrayList<String> splitMsg;
 
     public CaseDeleteReminder() {
@@ -30,23 +32,22 @@ public class CaseDeleteReminder {
         this.request = request;
     }
 
-
     public void setSplitMsg(ArrayList<String> splitMsg) {
         this.splitMsg = splitMsg;
     }
 
     @Transactional
-    public String deleteReminder() {
+    String deleteReminder() {
         String reminderId;
         if (splitMsg.get(1).matches("[0-9]+")) {
             reminderId = splitMsg.get(1);
         } else {
+
             return "Wrong id format, must be only numbers";
         }
-
         // -- Checks reminder id AND userid
-        List<Reminder> reminders = entityManager.
-                createNamedQuery("reminder.findByUserAndReminderId", Reminder.class)
+        List<Reminder> reminders = entityManager
+                .createNamedQuery("reminder.findByUserAndReminderId", Reminder.class)
                 .setParameter("userId", request.getMessage().getSender().getName())
                 .setParameter("reminderId", Integer.parseInt(reminderId))
                 .getResultList();
@@ -59,6 +60,5 @@ public class CaseDeleteReminder {
         logger.info("Deleted reminder with ID: {}", oldReminder.getReminderId());
         return "Reminder with ID: " + oldReminder.getReminderId() + " successfully deleted!";
     }
-
 
 }

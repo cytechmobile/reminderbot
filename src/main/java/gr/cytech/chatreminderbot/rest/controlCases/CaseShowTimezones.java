@@ -25,6 +25,7 @@ public class CaseShowTimezones {
     public CaseShowTimezones() {
 
     }
+
     public boolean defaultTimezoneExists() {
         return entityManager.createQuery("SELECT t from TimeZone t where t.userid = :default")
                 .setParameter("default", "default")
@@ -32,7 +33,7 @@ public class CaseShowTimezones {
     }
 
     @Transactional
-    String showTimezones(Request request) {
+    public String showTimezones(Request request) {
         this.request = request;
         String showTimezone = "---- Your timezone is  ---- \n";
         String noTimezoneFound = "---- No Timezone found default timezone is ---- \n";
@@ -65,6 +66,4 @@ public class CaseShowTimezones {
         }
 
     }
-
-
 }

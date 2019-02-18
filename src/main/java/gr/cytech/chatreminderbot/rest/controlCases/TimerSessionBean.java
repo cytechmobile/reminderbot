@@ -32,8 +32,8 @@ public class TimerSessionBean {
     void reset() {
         logger.info("Run from start set next reminder");
         try {
-            List<Reminder> reminders = entityManager.
-                    createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
+            List<Reminder> reminders = entityManager
+                    .createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
             if (!reminders.isEmpty()) {
                 logger.info("Sets next reminder from db");
                 this.setNextReminder(reminders.get(0), reminders.get(0).getWhen());
@@ -61,8 +61,8 @@ public class TimerSessionBean {
 
     @Timeout
     public void programmaticTimeout(Timer timer) {
-        List<Reminder> reminders = entityManager.
-                createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
+        List<Reminder> reminders = entityManager
+                .createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
 
         if (reminders.isEmpty()) {
             logger.info("Empty reminders no -----next reminder");

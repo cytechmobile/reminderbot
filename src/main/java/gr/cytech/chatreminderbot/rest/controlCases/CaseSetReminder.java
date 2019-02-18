@@ -32,15 +32,25 @@ public class CaseSetReminder {
     CaseSetTimezone caseSetTimezone;
 
     private String botName;
+
     private String timeZone;
+
     private String who;
+
     private String when;
+
     private String what;
+
     private Request request;
+
     private String spaceId;
+
     private String threadId;
+
     private ArrayList<String> splitMsg;
+
     private ArrayList<String> whoPart;
+
     private ZonedDateTime inputDate;
 
     public void setBotName(String botName) {
@@ -88,7 +98,6 @@ public class CaseSetReminder {
         spaceId = request.getMessage().getThread().getSpaceId();
         threadId = request.getMessage().getThread().getThreadId();
     }
-
 
     public void setInputDate(ZonedDateTime inputDate) {
         this.inputDate = inputDate;
@@ -279,7 +288,6 @@ public class CaseSetReminder {
 
         long days = tempDateTime.until(inputDate, ChronoUnit.DAYS);
         tempDateTime = tempDateTime.plusDays(days);
-
 
         long hours = tempDateTime.until(inputDate, ChronoUnit.HOURS);
         tempDateTime = tempDateTime.plusHours(hours);

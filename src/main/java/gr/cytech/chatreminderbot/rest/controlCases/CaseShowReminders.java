@@ -31,8 +31,8 @@ public class CaseShowReminders {
     }
 
     public String showReminders() {
-        List<Reminder> reminders = entityManager.
-                createNamedQuery("reminder.showReminders", Reminder.class)
+        List<Reminder> reminders = entityManager
+                .createNamedQuery("reminder.showReminders", Reminder.class)
                 .setParameter("userid", request.getMessage().getSender().getName())
                 .getResultList();
 

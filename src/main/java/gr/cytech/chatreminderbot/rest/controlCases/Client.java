@@ -24,7 +24,6 @@ public class Client {
     private static final String KEY_FILE_PATH_ENV = "BOT_KEY_FILE_PATH";
 
     public void sendAsyncResponse(Reminder reminder) {
-
         //URL request - responses to current thread
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + reminder.getSpaceId() + "/messages");
         GenericUrl url = new GenericUrl(uri);
@@ -37,8 +36,8 @@ public class Client {
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
 
-            String spaceID = getListOfSpacesBotBelongs().
-                    getOrDefault(reminder.getSenderDisplayName().substring(1),
+            String spaceID = getListOfSpacesBotBelongs()
+                    .getOrDefault(reminder.getSenderDisplayName().substring(1),
                             reminder.getSpaceId());
 
             String messageToRoom = "{ \"text\":\"" + "<" + "users/all" + "> " + reminder.getWhat() + "\" }";
@@ -53,9 +52,9 @@ public class Client {
 
     }
 
-
     //request to get members of a room
     public Map<String, String> getListOfMembersInRoom(String spaceId) {
+
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + spaceId + "/members");
         GenericUrl url = new GenericUrl(uri);
         String emptyBodyMessage = "";
@@ -110,7 +109,6 @@ public class Client {
 
         HttpRequestFactory requestFactory = httpTransport.createRequestFactory(credential);
 
-
         HttpContent content = null;
         content = new ByteArrayContent("application/json", message.getBytes(StandardCharsets.UTF_8));
 
@@ -139,7 +137,7 @@ public class Client {
 
     private String getBotKeyFilePath() {
         return System.getProperty(KEY_FILE_PATH_ENV,
-                System.getenv().
-                        getOrDefault(KEY_FILE_PATH_ENV, "./botnotifier-key.json"));
+                System.getenv()
+                        .getOrDefault(KEY_FILE_PATH_ENV, "./botnotifier-key.json"));
     }
 }

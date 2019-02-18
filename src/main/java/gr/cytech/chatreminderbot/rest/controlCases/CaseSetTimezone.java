@@ -47,7 +47,6 @@ public class CaseSetTimezone {
         this.splitMsg = splitMsg;
     }
 
-
     @Transactional
     public String setTimezone() {
         String givenTimezone = extractTimeZone();
@@ -71,7 +70,7 @@ public class CaseSetTimezone {
             response = "You successfully set the global timezone at:" + defaultTimeZone.getTimezone();
             return response;
 
-        } else
+        } else {
             // setting user timezone
             if (splitMsg.get(1).equals(keyWordMy)) {
                 logger.info("---Case Set user timezone---");
@@ -88,6 +87,7 @@ public class CaseSetTimezone {
                 response = " <" + who + "> successfully set your timezone at:" + timeZone.getTimezone();
                 return response;
             }
+        }
         return response;
     }
 
@@ -104,8 +104,8 @@ public class CaseSetTimezone {
     }
 
     public String getGivenTimeZone(String user) {
-        List<TimeZone> timeZones = entityManager.
-                createNamedQuery("get.Alltimezone", TimeZone.class).getResultList();
+        List<TimeZone> timeZones = entityManager
+                .createNamedQuery("get.Alltimezone", TimeZone.class).getResultList();
 
         if (timeZones.isEmpty()) {
             logger.debug("timezones not found return - ");
@@ -121,6 +121,4 @@ public class CaseSetTimezone {
             return "";
         }
     }
-
-
 }

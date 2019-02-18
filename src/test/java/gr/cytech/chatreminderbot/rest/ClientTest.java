@@ -1,6 +1,5 @@
 package gr.cytech.chatreminderbot.rest;
 
-
 import com.google.api.client.http.*;
 import gr.cytech.chatreminderbot.rest.controlCases.Client;
 import gr.cytech.chatreminderbot.rest.controlCases.Reminder;
@@ -31,7 +30,6 @@ public class ClientTest {
 
     Client client;
 
-
     @BeforeEach
     public final void beforeEach() throws Exception {
         client = new Client();
@@ -44,7 +42,6 @@ public class ClientTest {
         final Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
                 "DisplayName", spaceId, threadId);
 
-
         //Expectations
         String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> " + reminder.getWhat()
                 + " \" ,  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
@@ -55,27 +52,29 @@ public class ClientTest {
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + reminder.getSpaceId() + "/messages");
         GenericUrl url2 = new GenericUrl(uri);
 
+        new Expectations() {
+            {
+                requestFactory.buildPostRequest((GenericUrl) any, (HttpContent) any);
+                result = new Delegate<HttpRequest>() {
+                    public HttpRequest buildPostRequest(GenericUrl url, HttpContent content) throws IOException {
 
-        new Expectations() {{
-            requestFactory.buildPostRequest((GenericUrl) any, (HttpContent) any);
-            result = new Delegate<HttpRequest>() {
-                public HttpRequest buildPostRequest(GenericUrl url, HttpContent content) throws IOException {
-
-                    assertThat(url).isEqualTo(url2);
-                    //Cant compare 2 httpContent?
-                    assertThat(content.getLength()).isEqualTo(content2.getLength());
-                    return request;
-                }
-            };
-        }};
+                        assertThat(url).isEqualTo(url2);
+                        //Cant compare 2 httpContent?
+                        assertThat(content.getLength()).isEqualTo(content2.getLength());
+                        return request;
+                    }
+                };
+            }
+        };
 
         client.sendAsyncResponse(reminder);
 
-        new Verifications() {{
-            request.execute();
-            times = 1;
-        }};
+        new Verifications() {
+            {
+                request.execute();
+                times = 1;
+            }
+        };
     }
-
 
 }

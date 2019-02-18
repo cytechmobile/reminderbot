@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 public class CaseSetTimezoneTest {
 
     private Reminder reminder;
@@ -28,7 +29,6 @@ public class CaseSetTimezoneTest {
 
     @Mocked
     private EntityManager entityManager;
-
 
     @BeforeEach
     final void beforeEach() throws Exception {
@@ -42,7 +42,7 @@ public class CaseSetTimezoneTest {
 
         caseSetTimezone.entityManager = entityManager;
 
-         control = new Control();
+        control = new Control();
         caseSetTimezone.setKeyWordGlobal("global");
         caseSetTimezone.setKeyWordMy("my");
     }
@@ -69,7 +69,6 @@ public class CaseSetTimezoneTest {
 
     }
 
-
     @Test
     void saveTimeZoneTest() {
         Request req = new Request();
@@ -86,22 +85,20 @@ public class CaseSetTimezoneTest {
 
         req.setMessage(mes);
 
-
         caseSetTimezone.setRequest(req);
         control.setRequest(req);
         caseSetTimezone.setSplitMsg(control.getSplitMsg());
         caseSetTimezone.setTimezone();
 
-
         List<TimeZone> captureTimezone = new ArrayList<>();
 
-        new Verifications() {{
-            entityManager.persist(withCapture(captureTimezone));
-            times = 1;
-        }};
+        new Verifications() {
+            {
+                entityManager.persist(withCapture(captureTimezone));
+                times = 1;
+            }
+        };
 
         assertThat(captureTimezone.get(0).getTimezone()).isEqualTo("Europe/Athens");
-
     }
-
 }
