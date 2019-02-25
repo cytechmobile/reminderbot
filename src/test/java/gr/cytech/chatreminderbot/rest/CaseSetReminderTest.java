@@ -52,8 +52,8 @@ public class CaseSetReminderTest {
         message.setSender(sender);
         message.setThread(thread);
 
-        Reminder reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", spaceId, threadId);
+        Reminder reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens"))
+                .plusMinutes(10), "DisplayName", "Europe/Athens", spaceId, threadId);
 
         reminder.setReminderId(1);
         when(timerSessionBean.getNextReminderDate()).thenReturn(reminder.getWhen());
@@ -86,7 +86,7 @@ public class CaseSetReminderTest {
     }
 
     @Test
-    void mockitoPersistReminder() throws Exception {
+    void persistReminder() throws Exception {
 
         String expectedDate = "12/12/2019 12:00 GMT-2";
         message.setText("remind me 'persist Reminder Test' at " + expectedDate);
