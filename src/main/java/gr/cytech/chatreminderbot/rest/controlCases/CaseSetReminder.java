@@ -30,6 +30,9 @@ public class CaseSetReminder {
     @Inject
     CaseSetTimezone caseSetTimezone;
 
+    @Inject
+    public Client client;
+
     private String botName;
 
     private String timeZone;
@@ -318,7 +321,6 @@ public class CaseSetReminder {
      * @return user/id if not found given displayName
      * */
     public String findIdUserName(String displayName, String spaceId) {
-        Client client = new Client();
         Map<String, String> users = client.getListOfMembersInRoom(spaceId);
         //if displayName not found then just save the name as it is
         return users.getOrDefault(displayName, displayName);
