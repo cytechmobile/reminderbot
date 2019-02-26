@@ -90,7 +90,7 @@ public class Control {
      * Chose case to response accordingly key words in request
      * @returns a string with the response
      * */
-    public String controlResponse() throws Exception {
+    public String controlResponse() {
         if (splitMsg.isEmpty()) {
             return RESPONSE_CASE_EMPTY_REQUEST;
         }
@@ -191,7 +191,7 @@ public class Control {
         return caseShowTimezones.showTimezones(request);
     }
 
-    private String caseShowVersion() throws Exception {
+    private String caseShowVersion() {
         return caseShowVersion.showVersion();
     }
 
