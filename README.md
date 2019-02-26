@@ -43,3 +43,7 @@ a) For each user shows reminders that will notify him.
 4) Delete a reminder  
     a) For each user, using a reminders id.  
         `@bot delete 323 `     
+5) Show current version of the bot                                  
+    a) For each user, using a reminder version.  
+        `@bot version`          
+ 
