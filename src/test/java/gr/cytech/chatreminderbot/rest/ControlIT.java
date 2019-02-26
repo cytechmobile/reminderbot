@@ -16,6 +16,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -171,6 +172,37 @@ class ControlIT {
         String expectedResponse = " <"
                 + req.getMessage().getSender().getName()
                 + "> successfully set your timezone at:Europe/Athens";
+
+        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+
+        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
+                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+    }
+
+    @Test
+    void showVersion() throws Exception {
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("MyName");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+
+        mes.setText("@reminder version");
+        req.setMessage(mes);
+
+        final Properties properties = new Properties();
+        properties.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
+
+        String expectedResponse = "Hi my version right now is: " + properties.getProperty("version");
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
