@@ -8,36 +8,27 @@ import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
 import gr.cytech.chatreminderbot.rest.message.ThreadM;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import javax.persistence.EntityManager;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class CaseSetReminderTest {
 
-    @Mocked
-    private EntityManager entityManager;
-
-    @Mocked
-    private TimerSessionBean timerSessionBean;
-
-    @Mocked
-    private Client client;
-
-    private CaseSetReminder caseSetReminder;
+    public CaseSetReminder caseSetReminder;
 
     private Request request;
     private Message message;
+    private Client client;
 
     @BeforeEach
     final void beforeEach() {
@@ -47,10 +38,12 @@ public class CaseSetReminderTest {
         String spaceId = "SPACE_ID";
         String threadId = "THREAD_ID";
 
+        TimerSessionBean timerSessionBean = mock(TimerSessionBean.class);
+        Client client = mock(Client.class);
         caseSetReminder = new CaseSetReminder();
-        caseSetReminder.entityManager = entityManager;
+        caseSetReminder.entityManager = mock(EntityManager.class);
         caseSetReminder.timerSessionBean = timerSessionBean;
-
+        caseSetReminder.client = client;
         ThreadM thread = new ThreadM();
 
         thread.setName("spaces/" + spaceId + "/thread/" + threadId + "");
@@ -59,11 +52,11 @@ public class CaseSetReminderTest {
         message.setSender(sender);
         message.setThread(thread);
 
-        Reminder reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", spaceId, threadId);
+        Reminder reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens"))
+                .plusMinutes(10), "DisplayName", "Europe/Athens", spaceId, threadId);
 
         reminder.setReminderId(1);
-        timerSessionBean.nextReminderDate = reminder.getWhen();
+        when(timerSessionBean.getNextReminderDate()).thenReturn(reminder.getWhen());
     }
 
     @Test
@@ -79,23 +72,17 @@ public class CaseSetReminderTest {
 
     @Test
     void setNextReminderTest() throws Exception {
-
-        final String expectedDate = "12/12/2019 12:00 athens";
+        String expectedDate = "12/12/2019 12:00 athens";
         message.setText("remind me ' set next reminder Test' at " + expectedDate);
         request.setMessage(message);
-
-        // Already set in mock a nextReminder that is to be in 10 mins from now()
+        // Already set in mock a nextReminder that is to be in 10 minutes from now()
         //So this should not be set
         caseSetReminder.setRequest(request);
         caseSetReminder.setReminder();
-
         //Verifies that setNextReminder is called 0 times because Input reminderDate is AFTER the current
-        new Verifications() {
-            {
-                timerSessionBean.setNextReminder((Reminder) any, (ZonedDateTime) any);
-                times = 0;
-            }
-        };
+        verify(caseSetReminder.timerSessionBean, times(0))
+                .setNextReminder(any(Reminder.class), any(ZonedDateTime.class));
+
     }
 
     @Test
@@ -107,15 +94,11 @@ public class CaseSetReminderTest {
         caseSetReminder.setRequest(request);
         caseSetReminder.setReminder();
 
-        List<Reminder> capturedReminders = new ArrayList<>();
+        ArgumentCaptor<Reminder> argumentCaptor = ArgumentCaptor.forClass(Reminder.class);
 
-        new Verifications() {
-            {
-                entityManager.persist(withCapture(capturedReminders));
-                times = 1;
-            }
-        };
+        verify(caseSetReminder.entityManager, times(1)).persist(argumentCaptor.capture());
 
+        List<Reminder> capturedReminders = argumentCaptor.getAllValues();
         assertThat(capturedReminders).as("no reminders persisted").hasSize(1);
         Reminder reminder = capturedReminders.get(0);
 

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.*;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.ZonedDateTime;
@@ -21,6 +22,9 @@ public class TimerSessionBean {
 
     @Resource
     TimerService timerService;
+
+    @Inject
+    Client client;
 
     // get EntityManager
     @PersistenceContext(name = "wa")
@@ -68,7 +72,6 @@ public class TimerSessionBean {
             logger.info("Empty reminders no -----next reminder");
         } else {
             //Sends message
-            Client client = new Client();
             client.sendAsyncResponse(reminders.get(0));
             logger.info("Send Message ");
 

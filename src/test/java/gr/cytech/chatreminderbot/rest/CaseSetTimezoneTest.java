@@ -8,43 +8,47 @@ import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
 import gr.cytech.chatreminderbot.rest.message.ThreadM;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class CaseSetTimezoneTest {
 
-    private Reminder reminder;
-    private CaseSetTimezone caseSetTimezone;
-    Control control;
+    private static final Logger logger = LoggerFactory.getLogger(CaseSetTimezoneTest.class);
 
-    @Mocked
-    private EntityManager entityManager;
+    private CaseSetTimezone caseSetTimezone;
+    private Control control;
 
     @BeforeEach
-    final void beforeEach() throws Exception {
+    public void beforeEach() throws Exception {
         String threadId = "THREAD_ID";
         String spaceId = "SPACE_ID";
         caseSetTimezone = new CaseSetTimezone();
-        reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
+        Reminder reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
                 "DisplayName", "Europe/Athens", spaceId, threadId);
 
         reminder.setReminderId(1);
-
+        EntityManager entityManager = mock(EntityManager.class);
         caseSetTimezone.entityManager = entityManager;
 
         control = new Control();
         caseSetTimezone.setKeyWordGlobal("global");
         caseSetTimezone.setKeyWordMy("my");
+
+        TypedQuery query = mock(TypedQuery.class);
+
+        when(caseSetTimezone.entityManager.createNamedQuery("get.Alltimezone", TimeZone.class)).thenReturn(query);
     }
 
     @Test
@@ -66,11 +70,10 @@ public class CaseSetTimezoneTest {
         req.setMessage(mes);
         caseSetTimezone.setRequest(req);
         assertThat(caseSetTimezone.extractTimeZone()).isEqualTo(null);
-
     }
 
     @Test
-    void saveTimeZoneTest() {
+    public void saveTimeZoneTest() {
         Request req = new Request();
         Message mes = new Message();
         Sender sender = new Sender();
@@ -90,14 +93,9 @@ public class CaseSetTimezoneTest {
         caseSetTimezone.setSplitMsg(control.getSplitMsg());
         caseSetTimezone.setTimezone();
 
-        List<TimeZone> captureTimezone = new ArrayList<>();
-
-        new Verifications() {
-            {
-                entityManager.persist(withCapture(captureTimezone));
-                times = 1;
-            }
-        };
+        ArgumentCaptor<TimeZone> argumentCaptor = ArgumentCaptor.forClass(TimeZone.class);
+        verify(caseSetTimezone.entityManager, times(1)).persist(argumentCaptor.capture());
+        List<TimeZone> captureTimezone = argumentCaptor.getAllValues();
 
         assertThat(captureTimezone.get(0).getTimezone()).isEqualTo("Europe/Athens");
     }

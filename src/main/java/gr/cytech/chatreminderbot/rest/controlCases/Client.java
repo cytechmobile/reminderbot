@@ -1,17 +1,14 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +16,13 @@ import java.util.Map;
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
-    private static final List<String> SCOPE = Arrays.asList("https://www.googleapis.com/auth/chat.bot");
+    private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
     private static final String KEY_FILE_PATH_ENV = "BOT_KEY_FILE_PATH";
 
-    public void sendAsyncResponse(Reminder reminder) {
+    @Inject
+    protected HttpRequestFactory requestFactory;
+
+    public String sendAsyncResponse(Reminder reminder) {
         //URL request - responses to current thread
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + reminder.getSpaceId() + "/messages");
         GenericUrl url = new GenericUrl(uri);
@@ -44,9 +44,9 @@ public class Client {
             URI uri2 = URI.create("https://chat.googleapis.com/v1/spaces/" + spaceID + "/messages");
             GenericUrl url2 = new GenericUrl(uri2);
 
-            send(url2, messageToRoom, "POST");
+            return send(url2, messageToRoom, "POST");
         } else {
-            send(url, message, "POST");
+            return send(url, message, "POST");
         }
 
     }
@@ -85,58 +85,29 @@ public class Client {
     }
 
     private String send(GenericUrl url, String message, String httpMethod) {
-        String response = "";
-
-        GoogleCredential credential = null;
-        String keyFilePath = getBotKeyFilePath();
-        try {
-            credential = GoogleCredential
-                    .fromStream(new FileInputStream(keyFilePath))
-                    .createScoped(SCOPE);
-        } catch (IOException e) {
-            logger.error("Error creating GoogleCredential using key file:{}", keyFilePath, e);
-        }
-
-        HttpTransport httpTransport = null;
-        try {
-            httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        } catch (GeneralSecurityException e) {
-            logger.error("Error -GeneralSecurityException- creating httpTransport ", e);
-        } catch (IOException e) {
-            logger.error("Error -IOException- creating httpTransport ", e);
-        }
-
-        HttpRequestFactory requestFactory = httpTransport.createRequestFactory(credential);
-
-        HttpContent content = null;
-        content = new ByteArrayContent("application/json", message.getBytes(StandardCharsets.UTF_8));
+        HttpContent content = new ByteArrayContent("application/json",
+                message.getBytes(StandardCharsets.UTF_8));
 
         HttpRequest request;
-
-        if (httpMethod.equals("POST")) {
-            try {
+        try {
+            if (httpMethod.equals("POST")) {
                 request = requestFactory.buildPostRequest(url, content);
-                request.execute();
-            } catch (IOException e) {
-                logger.error("Error creating request using url: {}", url, e);
-            }
-            return "";
-        } else {
-            HttpResponse httpResponse;
-            try {
+            } else {
                 request = requestFactory.buildGetRequest(url);
-                httpResponse = request.execute();
-                response += httpResponse.parseAsString();
-            } catch (IOException e) {
-                logger.error("Error creating request using url: {}", url, e);
             }
-            return response;
+        } catch (Exception e) {
+            logger.error("Error creating request using url: {}", url, e);
+            return null;
         }
-    }
 
-    private String getBotKeyFilePath() {
-        return System.getProperty(KEY_FILE_PATH_ENV,
-                System.getenv()
-                        .getOrDefault(KEY_FILE_PATH_ENV, "./botnotifier-key.json"));
+        String response = "";
+        try {
+            HttpResponse httpResponse = request.execute();
+            response = httpResponse.parseAsString();
+        } catch (IOException e) {
+            logger.error("Error creating request using url: {}", url, e);
+        }
+
+        return response;
     }
 }
