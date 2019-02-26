@@ -192,7 +192,7 @@ public class Control {
     }
 
     private String caseShowVersion() throws Exception {
-        return caseShowVersion.showVersion(request);
+        return caseShowVersion.showVersion();
     }
 
     private String caseDeleteReminder() {
