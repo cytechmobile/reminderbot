@@ -30,6 +30,9 @@ public class Control {
     @Inject
     CaseSetReminder caseSetReminder;
 
+    @Inject
+    CaseShowVersion caseShowVersion;
+
     private Request request;
     private ArrayList<String> splitMsg;
 
@@ -53,6 +56,8 @@ public class Control {
     private static final String KEYWORD_DELETE_REMINDER = "delete";
 
     private static final String KEYWORD_SHOW_TIMEZONES = "timezones";
+
+    private static final String KEYWORD_SHOW_VERSION = "version";
     //-- End of keyWords
 
     //-- Responses
@@ -85,7 +90,7 @@ public class Control {
      * Chose case to response accordingly key words in request
      * @returns a string with the response
      * */
-    public String controlResponse() {
+    public String controlResponse() throws Exception {
         if (splitMsg.isEmpty()) {
             return RESPONSE_CASE_EMPTY_REQUEST;
         }
@@ -119,6 +124,10 @@ public class Control {
         if (splitMsg.size() == 1 && splitMsg.get(0).equals(KEYWORD_SHOW_TIMEZONES)) {
             logger.info("---- Case Timezones -----");
             return caseShowTimezones();
+        }
+        if (splitMsg.size() == 1 && splitMsg.get(0).equals(KEYWORD_SHOW_VERSION)) {
+            logger.info("---- Case Version -----");
+            return caseShowVersion();
         }
         ///------------Case Default -------------------
 
@@ -180,6 +189,10 @@ public class Control {
 
     private String caseShowTimezones() {
         return caseShowTimezones.showTimezones(request);
+    }
+
+    private String caseShowVersion() throws Exception {
+        return caseShowVersion.showVersion(request);
     }
 
     private String caseDeleteReminder() {
