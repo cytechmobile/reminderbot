@@ -25,20 +25,43 @@ public class ClientTest {
     public void sendAsTest() throws Exception {
         String threadId = "THREAD_ID";
         String spaceId = "SPACE_ID";
-        final Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
-                "DisplayName", spaceId, threadId);
-
-        //Expectations
-        final String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> " + reminder.getWhat()
-                + " \" ,  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
-                + "/threads/" + reminder.getThreadId() + "\" }}";
-
+        Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
+                "DisplayName", "Europe/Athens", spaceId, threadId);
         MockHttpTransport transport = new MockHttpTransport.Builder()
                 .setLowLevelHttpResponse(new MockLowLevelHttpResponse()
                         .setContent("ok")
                         .setStatusCode(200))
                 .build();
 
+        //Expectations
+//        final String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> " + reminder.getWhat()
+//                + " \" ,  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
+//                + "/threads/" + reminder.getThreadId() + "\" }}";
+        final String message = "{\n"
+                + "  \"cards\" : [ {\n"
+                + "    \"sections\" : [ {\n"
+                + "      \"widgets\" : [ {\n"
+                + "        \"textParagraph\" : {\n"
+                + "          \"text\" : \"" + reminder.getWhat() + "\"\n"
+                + "        }\n"
+                + "      }, {\n"
+                + "        \"buttons\" : [ {\n"
+                + "          \"textButton\" : {\n"
+                + "            \"onClick\" : {\n"
+                + "              \"openLink\" : {\n"
+                + "                \"url\" : \"https://users.cytech.gr/~pavlos/pavlos.php?http://pegasus.cytech.gr:8080/bot/services/button?name=" + reminder.getSenderDisplayName() + "&text=" + reminder.getWhat() + "&timezone=" + reminder.getReminderTimezone() + "&space=" + reminder.getSpaceId() + "&thread=" + reminder.getThreadId() + "\"\n"
+                + "              }\n"
+                + "            },\n"
+                + "            \"text\" : \"remind me again in 10\"\n"
+                + "          }\n"
+                + "        } ]\n"
+                + "      } ]\n"
+                + "    } ]\n"
+                + "  } ],\n"
+                + "  \"thread\" : {\n"
+                + "    \"name\" : \"spaces/SPACE_ID/threads/THREAD_ID\"\n"
+                + "  }\n"
+                + "}";
         client.requestFactory = transport.createRequestFactory();
 
         String result = client.sendAsyncResponse(reminder);

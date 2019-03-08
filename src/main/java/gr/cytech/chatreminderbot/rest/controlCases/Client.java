@@ -1,6 +1,9 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.api.client.http.*;
+import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,9 +31,25 @@ public class Client {
         GenericUrl url = new GenericUrl(uri);
 
         //Construct string in json format
-        String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> " + reminder.getWhat()
-                + " \" ,  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
+        String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> \" "
+                + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        Object response = new CardResponseBuilder()
+                .thread("spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId())
+                .textParagraph(reminder.getWhat())
+                .textButton("remind me again in 10", "https://users.cytech.gr/~pavlos/pavlos.php?http://pegasus.cytech.gr:8080/bot/services/button?name=" + reminder.getSenderDisplayName() + "&text=" + reminder.getWhat() + "&timezone=" + reminder.getReminderTimezone() + "&space=" + reminder.getSpaceId() + "&thread=" + reminder.getThreadId())
+                .build();
+
+        String cardResponse;
+        try {
+            cardResponse = mapper.writeValueAsString(response);
+        } catch (Exception e) {
+            return "Internal server error";
+        }
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
@@ -39,14 +58,14 @@ public class Client {
                     .getOrDefault(reminder.getSenderDisplayName().substring(1),
                             reminder.getSpaceId());
 
-            String messageToRoom = "{ \"text\":\"" + "<" + "users/all" + "> " + reminder.getWhat() + "\" }";
+            String messageToRoom = "{ \"text\":\"" + "<users/all> " + reminder.getWhat() + "\" }";
 
             URI uri2 = URI.create("https://chat.googleapis.com/v1/spaces/" + spaceID + "/messages");
             GenericUrl url2 = new GenericUrl(uri2);
-
             return send(url2, messageToRoom, "POST");
         } else {
-            return send(url, message, "POST");
+            //            return send(url, cardResponse, "POST");
+            return send(url,message,"POST") + send(url, cardResponse, "POST");
         }
 
     }
@@ -84,7 +103,7 @@ public class Client {
         return spaces;
     }
 
-    private String send(GenericUrl url, String message, String httpMethod) {
+    public String send(GenericUrl url, String message, String httpMethod) {
         HttpContent content = new ByteArrayContent("application/json",
                 message.getBytes(StandardCharsets.UTF_8));
 

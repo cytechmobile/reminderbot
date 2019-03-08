@@ -54,8 +54,8 @@ class ControlIT {
         caseSetReminder.setWhen(expectedWhen);
         caseSetReminder.setTimeZone("Europe/Athens");
 
-        String successMsg = "Reminder: <<" + what
-                + ">> saved successfully and will notify you in: "
+        String successMsg = "Reminder: \\\"" + what
+                + "\\\"saved successfully and will notify you in: "
                 + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm());
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
@@ -64,8 +64,20 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + successMsg
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + spaceId + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
+                 + "  \"cards\" : [ {\n"
+                 + "    \"sections\" : [ {\n"
+                 + "      \"widgets\" : [ {\n"
+                 + "        \"textParagraph\" : {\n"
+                 + "          \"text\" : \"" + successMsg + "\"\n"
+                 + "        }\n"
+                 + "      } ]\n"
+                 + "    } ]\n"
+                 + "  } ],\n"
+                 + "  \"thread\" : {\n"
+                 + "    \"name\" : \"spaces/SPACE_ID\"\n"
+                 + "  }\n"
+                 + "}");
     }
 
     @Test
@@ -92,8 +104,20 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isNotEqualTo("{ \"text\": \"" + responseDefault
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isNotEqualTo("{\n"
+                + "  \"cards\" : [ {\n"
+                + "    \"sections\" : [ {\n"
+                + "      \"widgets\" : [ {\n"
+                + "        \"textParagraph\" : {\n"
+                + "          \"text\" : \"" + responseDefault + "\"\n"
+                + "        }\n"
+                + "      } ]\n"
+                + "    } ]\n"
+                + "  } ],\n"
+                + "  \"thread\" : {\n"
+                + "    \"name\" : \"spaces/SPACE_ID\"\n"
+                + "  }\n"
+                + "}");
     }
 
     @Test
@@ -120,8 +144,21 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
+                + "  \"cards\" : [ {\n"
+                + "    \"sections\" : [ {\n"
+                + "      \"widgets\" : [ {\n"
+                + "        \"textParagraph\" : {\n"
+                + "          \"text\" : \"" + expectedResponse + "\"\n"
+                + "        }\n"
+                + "      } ]\n"
+                + "    } ]\n"
+                + "  } ],\n"
+                + "  \"thread\" : {\n"
+                + "    \"name\" : \"spaces/SPACE_ID\"\n"
+                + "  }\n"
+                + "}");
+
     }
 
     @Test
@@ -149,8 +186,20 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
+                 + "  \"cards\" : [ {\n"
+                 + "    \"sections\" : [ {\n"
+                 + "      \"widgets\" : [ {\n"
+                 + "        \"textParagraph\" : {\n"
+                 + "          \"text\" : \"" + expectedResponse + "\"\n"
+                 + "        }\n"
+                 + "      } ]\n"
+                 + "    } ]\n"
+                 + "  } ],\n"
+                 + "  \"thread\" : {\n"
+                 + "    \"name\" : \"spaces/SPACE_ID\"\n"
+                 + "  }\n"
+                 + "}");
     }
 
     @Test
@@ -179,8 +228,20 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
+                + "  \"cards\" : [ {\n"
+                + "    \"sections\" : [ {\n"
+                + "      \"widgets\" : [ {\n"
+                + "        \"textParagraph\" : {\n"
+                + "          \"text\" : \"" + expectedResponse + "\"\n"
+                + "        }\n"
+                + "      } ]\n"
+                + "    } ]\n"
+                + "  } ],\n"
+                + "  \"thread\" : {\n"
+                + "    \"name\" : \"spaces/SPACE_ID\"\n"
+                + "  }\n"
+                + "}");
     }
 
     @Test
@@ -210,8 +271,20 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
+                  + "  \"cards\" : [ {\n"
+                  + "    \"sections\" : [ {\n"
+                  + "      \"widgets\" : [ {\n"
+                  + "        \"textParagraph\" : {\n"
+                  + "          \"text\" : \"" + expectedResponse + "\"\n"
+                  + "        }\n"
+                  + "      } ]\n"
+                  + "    } ]\n"
+                  + "  } ],\n"
+                  + "  \"thread\" : {\n"
+                  + "    \"name\" : \"spaces/SPACE_ID\"\n"
+                  + "  }\n"
+                  + "}");
     }
 
     @Test
@@ -229,9 +302,9 @@ class ControlIT {
         mes2.setText("@reminder set my timezone to athens");
         req2.setMessage(mes2);
 
-        String expectedResponse = "---- Your timezone is  ---- \n"
-                + "Timezone = 'Europe/Athens'\n"
-                + " ---- Default timezone is ---- \n"
+        String expectedResponse = "---- Your timezone is  ---- \\n"
+                + "Timezone = 'Europe/Athens'\\n "
+                + "---- Default timezone is ---- \\n"
                 + "Timezone = 'Europe/Athens'";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
@@ -257,9 +330,19 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class))
-                .as("Unexpected response when getting user time zone")
-                .isEqualTo("{ \"text\": \"" + expectedResponse
-                        + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).as("Unexpected response when getting user time zone").isEqualTo("{\n"
+                 + "  \"cards\" : [ {\n"
+                 + "    \"sections\" : [ {\n"
+                 + "      \"widgets\" : [ {\n"
+                 + "        \"textParagraph\" : {\n"
+                 + "          \"text\" : \"" + expectedResponse + "\"\n"
+                 + "        }\n"
+                 + "      } ]\n"
+                 + "    } ]\n"
+                 + "  } ],\n"
+                 + "  \"thread\" : {\n"
+                 + "    \"name\" : \"spaces/SPACE_ID\"\n"
+                 + "  }\n"
+                 + "}");
     }
 }
