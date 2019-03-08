@@ -23,6 +23,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
+    String expectedResponseMethod(String expectedMessage){
+        return "{\n"
+                + "  \"cards\" : [ {\n"
+                + "    \"sections\" : [ {\n"
+                + "      \"widgets\" : [ {\n"
+                + "        \"textParagraph\" : {\n"
+                + "          \"text\" : \"" + expectedMessage + "\"\n"
+                + "        }\n"
+                + "      } ]\n"
+                + "    } ]\n"
+                + "  } ],\n"
+                + "  \"thread\" : {\n"
+                + "    \"name\" : \"spaces/SPACE_ID\"\n"
+                + "  }\n"
+                + "}";
+    }
+
     @Test
     void handleRequest() {
         Request req = new Request();
@@ -64,20 +81,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
-                 + "  \"cards\" : [ {\n"
-                 + "    \"sections\" : [ {\n"
-                 + "      \"widgets\" : [ {\n"
-                 + "        \"textParagraph\" : {\n"
-                 + "          \"text\" : \"" + successMsg + "\"\n"
-                 + "        }\n"
-                 + "      } ]\n"
-                 + "    } ]\n"
-                 + "  } ],\n"
-                 + "  \"thread\" : {\n"
-                 + "    \"name\" : \"spaces/SPACE_ID\"\n"
-                 + "  }\n"
-                 + "}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(successMsg));
     }
 
     @Test
@@ -104,20 +108,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isNotEqualTo("{\n"
-                + "  \"cards\" : [ {\n"
-                + "    \"sections\" : [ {\n"
-                + "      \"widgets\" : [ {\n"
-                + "        \"textParagraph\" : {\n"
-                + "          \"text\" : \"" + responseDefault + "\"\n"
-                + "        }\n"
-                + "      } ]\n"
-                + "    } ]\n"
-                + "  } ],\n"
-                + "  \"thread\" : {\n"
-                + "    \"name\" : \"spaces/SPACE_ID\"\n"
-                + "  }\n"
-                + "}");
+        assertThat(resp.readEntity(String.class)).isNotEqualTo(expectedResponseMethod(responseDefault));
     }
 
     @Test
@@ -144,20 +135,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
-                + "  \"cards\" : [ {\n"
-                + "    \"sections\" : [ {\n"
-                + "      \"widgets\" : [ {\n"
-                + "        \"textParagraph\" : {\n"
-                + "          \"text\" : \"" + expectedResponse + "\"\n"
-                + "        }\n"
-                + "      } ]\n"
-                + "    } ]\n"
-                + "  } ],\n"
-                + "  \"thread\" : {\n"
-                + "    \"name\" : \"spaces/SPACE_ID\"\n"
-                + "  }\n"
-                + "}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
 
     }
 
@@ -186,20 +164,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
-                 + "  \"cards\" : [ {\n"
-                 + "    \"sections\" : [ {\n"
-                 + "      \"widgets\" : [ {\n"
-                 + "        \"textParagraph\" : {\n"
-                 + "          \"text\" : \"" + expectedResponse + "\"\n"
-                 + "        }\n"
-                 + "      } ]\n"
-                 + "    } ]\n"
-                 + "  } ],\n"
-                 + "  \"thread\" : {\n"
-                 + "    \"name\" : \"spaces/SPACE_ID\"\n"
-                 + "  }\n"
-                 + "}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
     @Test
@@ -228,20 +193,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
-                + "  \"cards\" : [ {\n"
-                + "    \"sections\" : [ {\n"
-                + "      \"widgets\" : [ {\n"
-                + "        \"textParagraph\" : {\n"
-                + "          \"text\" : \"" + expectedResponse + "\"\n"
-                + "        }\n"
-                + "      } ]\n"
-                + "    } ]\n"
-                + "  } ],\n"
-                + "  \"thread\" : {\n"
-                + "    \"name\" : \"spaces/SPACE_ID\"\n"
-                + "  }\n"
-                + "}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
     @Test
@@ -271,20 +223,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{\n"
-                  + "  \"cards\" : [ {\n"
-                  + "    \"sections\" : [ {\n"
-                  + "      \"widgets\" : [ {\n"
-                  + "        \"textParagraph\" : {\n"
-                  + "          \"text\" : \"" + expectedResponse + "\"\n"
-                  + "        }\n"
-                  + "      } ]\n"
-                  + "    } ]\n"
-                  + "  } ],\n"
-                  + "  \"thread\" : {\n"
-                  + "    \"name\" : \"spaces/SPACE_ID\"\n"
-                  + "  }\n"
-                  + "}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
     @Test
@@ -330,19 +269,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).as("Unexpected response when getting user time zone").isEqualTo("{\n"
-                 + "  \"cards\" : [ {\n"
-                 + "    \"sections\" : [ {\n"
-                 + "      \"widgets\" : [ {\n"
-                 + "        \"textParagraph\" : {\n"
-                 + "          \"text\" : \"" + expectedResponse + "\"\n"
-                 + "        }\n"
-                 + "      } ]\n"
-                 + "    } ]\n"
-                 + "  } ],\n"
-                 + "  \"thread\" : {\n"
-                 + "    \"name\" : \"spaces/SPACE_ID\"\n"
-                 + "  }\n"
-                 + "}");
+        assertThat(resp.readEntity(String.class)).as("Unexpected response when getting user time zone")
+                .isEqualTo(expectedResponseMethod(expectedResponse));
     }
 }

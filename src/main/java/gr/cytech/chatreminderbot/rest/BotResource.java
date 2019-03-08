@@ -85,7 +85,6 @@ public class BotResource {
         return "<html>"
                 + "<head></head>"
                 + "<body>"
-                + "<h1>yoyoyo</h1>"
                 + "<script>"
                 + "window.close();"
                 + "</script>"
