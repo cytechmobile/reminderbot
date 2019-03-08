@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
-    String expectedResponseMethod(String expectedMessage){
+    String expectedResponseMethod(String expectedMessage) {
         return "{\n"
                 + "  \"cards\" : [ {\n"
                 + "    \"sections\" : [ {\n"
