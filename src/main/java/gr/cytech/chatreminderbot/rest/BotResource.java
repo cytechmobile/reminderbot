@@ -80,9 +80,8 @@ public class BotResource {
 
         req.setMessage(message);
 
-        handleReq(req);
-
-        return "<html>"
+        return handleReq(req)
+                + "<html>"
                 + "<head></head>"
                 + "<body>"
                 + "<script>"

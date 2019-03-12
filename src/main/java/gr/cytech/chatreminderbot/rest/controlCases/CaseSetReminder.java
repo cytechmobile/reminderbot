@@ -131,9 +131,9 @@ public class CaseSetReminder {
         Reminder reminder = new Reminder(what, inputDate, who, timeZone, spaceId, threadId);
         saveAndSetReminder(reminder);
 
-        return "Reminder: \"" + what + "\""
-                + "saved successfully and will notify you in: "
-                + calculateRemainingTime(inputDate);
+        return "Reminder with text:\n <b>" + what + "</b>.\n"
+                + "Saved successfully and will notify you in: \n<b>"
+                + calculateRemainingTime(inputDate) + "</b>";
     }
 
     /*

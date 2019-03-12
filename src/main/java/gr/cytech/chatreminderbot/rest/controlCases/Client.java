@@ -40,8 +40,8 @@ public class Client {
 
         Object response = new CardResponseBuilder()
                 .thread("spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId())
-                .textParagraph(reminder.getWhat())
-                .textButton("remind me again in 10", "https://users.cytech.gr/~pavlos/pavlos.php?http://pegasus.cytech.gr:8080/bot/services/button?name=" + reminder.getSenderDisplayName() + "&text=" + reminder.getWhat() + "&timezone=" + reminder.getReminderTimezone() + "&space=" + reminder.getSpaceId() + "&thread=" + reminder.getThreadId())
+                .textParagraph("<b>" + reminder.getWhat() + "</b>")
+                .textButton("remind me again in 10 minutes", "https://test.url.to.redirect.user:8080/bot/services/button?name=" + reminder.getSenderDisplayName() + "&text=" + reminder.getWhat() + "&timezone=" + reminder.getReminderTimezone() + "&space=" + reminder.getSpaceId() + "&thread=" + reminder.getThreadId())
                 .build();
 
         String cardResponse;

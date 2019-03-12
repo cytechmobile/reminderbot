@@ -71,9 +71,9 @@ class ControlIT {
         caseSetReminder.setWhen(expectedWhen);
         caseSetReminder.setTimeZone("Europe/Athens");
 
-        String successMsg = "Reminder: \\\"" + what
-                + "\\\"saved successfully and will notify you in: "
-                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm());
+        String successMsg = "Reminder with text:\\n <b>" + what + "</b>.\\n"
+                + "Saved successfully and will notify you in: \\n<b>"
+                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm()) + "</b>";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
