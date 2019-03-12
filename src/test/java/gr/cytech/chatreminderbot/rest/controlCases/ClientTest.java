@@ -49,7 +49,7 @@ public class ClientTest {
                 + "          \"textButton\" : {\n"
                 + "            \"onClick\" : {\n"
                 + "              \"openLink\" : {\n"
-                + "                \"url\" : \"https://users.cytech.gr/~pavlos/pavlos.php?http://pegasus.cytech.gr:8080/bot/services/button?name=" + reminder.getSenderDisplayName() + "&text=" + reminder.getWhat() + "&timezone=" + reminder.getReminderTimezone() + "&space=" + reminder.getSpaceId() + "&thread=" + reminder.getThreadId() + "\"\n"
+                + "                \"url\" : \"https://test.url.to.redirect.user:8080/bot/services/button?name=" + reminder.getSenderDisplayName() + "&text=" + reminder.getWhat() + "&timezone=" + reminder.getReminderTimezone() + "&space=" + reminder.getSpaceId() + "&thread=" + reminder.getThreadId() + "\"\n"
                 + "              }\n"
                 + "            },\n"
                 + "            \"text\" : \"remind me again in 10 minutes\"\n"
