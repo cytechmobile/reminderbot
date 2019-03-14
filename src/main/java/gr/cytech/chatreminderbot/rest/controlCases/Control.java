@@ -142,16 +142,18 @@ public class Control {
         return "\n ----- Instructions using the reminder bot -----  \n \n"
                 + "1)  Set a reminder  \n \n"
                 + "    a) For you   \n"
-                + "     `@" + BOT_NAME + " remind me 'what' at 16/03/2019 16:33`  \n"
+                + "     `@" + BOT_NAME + " remind me 'what' at 16/03/2020 16:33`  \n"
                 + "    b) For anyone in the current room   \n"
-                + "     `@" + BOT_NAME + " remind @George Papakis 'what' at 16/03/2019 16:33`  \n"
+                + "     `@" + BOT_NAME + " remind @George Papakis 'what' at 16/03/2020 16:33`  \n"
                 + "    c) All in any the current room  \n"
-                + "     `@" + BOT_NAME + " @all 'what' at 16/03/2019 16:33`  \n"
+                + "     `@" + BOT_NAME + " @all 'what' at 16/03/2020 16:33`  \n"
                 + "    d) All in any other room that bot is invited    \n"
-                + "     `@" + BOT_NAME + " remind #roomName 'what' at 16/03/2019 16:33` \n \n"
+                + "     `@" + BOT_NAME + " remind #roomName 'what' at 16/03/2020 16:33` \n \n"
+                + "    e) You  can also set reminder for today if you remove the date part like this \n"
+                + "     `@" + BOT_NAME + " remind me 'what' at 16:33`  \n"
                 + "2) Set timezone  \n \n"
                 + "    a) For each reminder   \n"
-                + "     `@" + BOT_NAME + " remind me 'what' at 16/03/2019 16:33 Athens `  \n"
+                + "     `@" + BOT_NAME + " remind me 'what' at 16/03/2020 16:33 Athens `  \n"
                 + "    b) If previews omitted set timezone for each user in every reminder he sets  \n"
                 + "     `@" + BOT_NAME + " set my timezone to athens`  \n"
                 + "    c) If previews omitted set timezone for every user in the current domain  \n"
@@ -161,10 +163,14 @@ public class Control {
                 + "    a) For each user shows reminders that will notify him.  \n"
                 + "     `@" + BOT_NAME + " list` \n"
                 + "      Example:\n"
-                + "     `1) ID:23 what:' Something to do ' When: 23/01/2019 18:20 Europe/Athens` \n \n  "
+                + "     `1) ID:23 what:' Something to do ' When: 23/01/2020 18:20 Europe/Athens` \n \n  "
                 + "4) Delete a reminder  \n \n"
                 + "    a) For each user, using a reminders id.  \n"
-                + "     `@" + BOT_NAME + " delete 323 ` \n";
+                + "     `@" + BOT_NAME + " delete 323 ` \n"
+                + "5) Show current version of the bot \n \n"
+                + "   a)For each user, using a reminder version. \n"
+                + "     `@" + BOT_NAME + "  version` \n";
+
     }
 
     private String caseSetReminder() {

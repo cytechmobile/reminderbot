@@ -8,12 +8,15 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 
 public class CaseSetReminder {
@@ -154,10 +157,36 @@ public class CaseSetReminder {
      *   get it from global settings
      * */
 
-    public void setInfosForRemind() {
+    public boolean caseOnlyTimeGiven(String strHour) {
+        /*
+         * Set preferred date format,
+         * For example MM-dd-yyyy, MM.dd.yyyy,dd.MM.yyyy etc.
+         */
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+        simpleDateFormat.setLenient(false);
+        /* Create Date object
+         * parse the string into date
+         */
+        try {
+            Date extractHour = simpleDateFormat.parse(strHour);
+            logger.info(strHour + " is valid date format");
+        } catch (ParseException e) {
+            logger.info(strHour + " is Invalid Date format");
+            return false;
+        }
+        /* Return true if date format is valid */
+        return true;
+    }
 
+    public void setInfosForRemind() {
         //what: Something to do
         setWhat(splitMsg.get(1));
+        String[] timeExtract = splitMsg.get(2).split("\\s+");
+        if (caseOnlyTimeGiven(timeExtract[2])) {
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy ");
+            LocalDateTime today = LocalDateTime.now();
+            splitMsg.set(2, "at " + dateTimeFormatter.format(today) + " " + timeExtract[2]);
+        }
         logger.info("set what: {}", what);
 
         //dateParts: at 16/03/2019 15:05 athens
