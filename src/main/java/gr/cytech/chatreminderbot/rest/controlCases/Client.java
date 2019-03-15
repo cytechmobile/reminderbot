@@ -64,7 +64,6 @@ public class Client {
             GenericUrl url2 = new GenericUrl(uri2);
             return send(url2, messageToRoom, "POST");
         } else {
-            //            return send(url, cardResponse, "POST");
             return send(url,message,"POST") + send(url, cardResponse, "POST");
         }
 

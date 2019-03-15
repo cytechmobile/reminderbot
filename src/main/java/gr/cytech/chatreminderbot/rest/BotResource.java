@@ -39,6 +39,11 @@ public class BotResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String handleReq(Request req) {
+        //check if bot is added/removed from room
+        if (req.getType().equals("ADDED_TO_SPACE")) {
+            message = "Thanks for adding me here :D";
+            return responseBuild();
+        }
         control.setRequest(req);
         spaceId = req.getMessage().getThread().getSpaceId();
         try {
@@ -54,8 +59,6 @@ public class BotResource {
     @GET
     @Path("/button")
     public String button(@Context HttpServletRequest request) {
-        Request req = new Request();
-        Message message = new Message();
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
 
@@ -65,7 +68,7 @@ public class BotResource {
         //create reminder and get the when
 
         ZonedDateTime fromNowPlus10 = ZonedDateTime.now(ZoneId.of(request.getParameter("timezone"))).plusMinutes(10);
-
+        //creating the full text for reminder
         String text = "remind me '"
                 + request.getParameter("text")
                 + "' at "
@@ -73,13 +76,17 @@ public class BotResource {
                 + " "
                 + request.getParameter("timezone");
 
-        //create the he Request using the updated text
+        //create the Request using the updated message
+        Message message = new Message();
+
         message.setSender(sender);
         message.setThread(threadM);
         message.setText(text);
 
-        req.setMessage(message);
+        Request req = new Request();
 
+        req.setMessage(message);
+        //open tab to get the requirements then immediately close it and handle the request
         return handleReq(req)
                 + "<html>"
                 + "<head></head>"

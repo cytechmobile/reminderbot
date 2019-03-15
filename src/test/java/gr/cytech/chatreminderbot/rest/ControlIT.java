@@ -40,6 +40,24 @@ class ControlIT {
                 + "}";
     }
 
+    String expectedResponseWhenJoiningRoom(String expectedMessage) {
+        //same method but spaces is null cause bot just join a new space
+        return "{\n"
+                + "  \"cards\" : [ {\n"
+                + "    \"sections\" : [ {\n"
+                + "      \"widgets\" : [ {\n"
+                + "        \"textParagraph\" : {\n"
+                + "          \"text\" : \"" + expectedMessage + "\"\n"
+                + "        }\n"
+                + "      } ]\n"
+                + "    } ]\n"
+                + "  } ],\n"
+                + "  \"thread\" : {\n"
+                + "    \"name\" : \"spaces/null\"\n"
+                + "  }\n"
+                + "}";
+    }
+
     @Test
     void handleRequest() {
         Request req = new Request();
@@ -60,6 +78,7 @@ class ControlIT {
 
         mes.setText("remind me '" + what + "' at " + expectedDate);
         req.setMessage(mes);
+        req.setType("MESSAGE");
         Control control = new Control();
         control.setRequest(req);
 
@@ -99,6 +118,7 @@ class ControlIT {
 
         mes.setText("list");
         req.setMessage(mes);
+        req.setType("MESSAGE");
 
         String responseDefault = "I didnt understand you, type help for instructions \n";
 
@@ -126,6 +146,7 @@ class ControlIT {
 
         mes.setText("@reminder set global timezone to athens");
         req.setMessage(mes);
+        req.setType("MESSAGE");
 
         String expectedResponse = "You successfully set the global timezone at:Europe/Athens";
 
@@ -154,6 +175,7 @@ class ControlIT {
 
         mes.setText("@reminder remind me 'can't save that'at 17/01/2020 13:12");
         req.setMessage(mes);
+        req.setType("MESSAGE");
 
         String expectedResponse = "Use  quotation marks  `'` only two times. "
                 + "One before and one after what, type Help for example.";
@@ -182,6 +204,7 @@ class ControlIT {
 
         mes.setText("@reminder set my timezone to athens");
         req.setMessage(mes);
+        req.setType("MESSAGE");
 
         String expectedResponse = " <"
                 + req.getMessage().getSender().getName()
@@ -211,6 +234,7 @@ class ControlIT {
 
         mes.setText("@reminder version");
         req.setMessage(mes);
+        req.setType("MESSAGE");
 
         final Properties properties = new Properties();
         properties.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
@@ -227,6 +251,24 @@ class ControlIT {
     }
 
     @Test
+    void joinRoom() throws Exception {
+        Request req = new Request();
+        req.setType("ADDED_TO_SPACE");
+
+        String expectedResponseOnJoin = "Thanks for adding me here :D";
+
+        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+
+        assertThat(resp.readEntity(String.class))
+                .isEqualTo(expectedResponseWhenJoiningRoom(expectedResponseOnJoin));
+
+    }
+
+    @Test
     void setAndReturnTimezone() {
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
@@ -240,6 +282,7 @@ class ControlIT {
         mes2.setSender(sender);
         mes2.setText("@reminder set my timezone to athens");
         req2.setMessage(mes2);
+        req2.setType("MESSAGE");
 
         String expectedResponse = "---- Your timezone is  ---- \\n"
                 + "Timezone = 'Europe/Athens'\\n "
@@ -263,6 +306,7 @@ class ControlIT {
         mes.setSender(sender);
         mes.setText("@reminder timezones");
         req.setMessage(mes);
+        req.setType("MESSAGE");
 
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
                 .request()
