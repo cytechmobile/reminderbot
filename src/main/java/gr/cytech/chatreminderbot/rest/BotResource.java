@@ -84,7 +84,7 @@ public class BotResource {
         message.setText(text);
 
         Request req = new Request();
-
+        req.setType("MESSAGE");
         req.setMessage(message);
         //open tab to get the requirements then immediately close it and handle the request
         return handleReq(req)
