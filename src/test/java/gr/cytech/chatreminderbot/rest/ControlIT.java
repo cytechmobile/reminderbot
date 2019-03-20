@@ -16,6 +16,8 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,6 +79,51 @@ class ControlIT {
         String what = "something to do";
 
         mes.setText("remind me '" + what + "' at " + expectedDate);
+        req.setMessage(mes);
+        req.setType("MESSAGE");
+        Control control = new Control();
+        control.setRequest(req);
+
+        CaseSetReminder caseSetReminder = new CaseSetReminder();
+        caseSetReminder.setRequest(req);
+        caseSetReminder.setBotName("reminder");
+
+        //In order to use calculateRemainingTime need to define: timezone, when
+        caseSetReminder.setWhen(expectedWhen);
+        caseSetReminder.setTimeZone("Europe/Athens");
+
+        String successMsg = "Reminder with text:\\n <b>" + what + "</b>.\\n"
+                + "Saved successfully and will notify you in: \\n<b>"
+                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm()) + "</b>";
+
+        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+        assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(successMsg));
+    }
+
+    @Test
+    void reminderNoTimeTaken() {
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("MyName");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        LocalDateTime today = LocalDateTime.now().plusHours(1);
+        String expectedWhen = dateTimeFormatter.format(today);
+        String what = "something to do";
+
+        mes.setText("remind me '" + what + "'");
         req.setMessage(mes);
         req.setType("MESSAGE");
         Control control = new Control();

@@ -24,7 +24,9 @@
 	d) All in any other room that bot is invited    
 		`@bot remind #roomName 'what' at 16/03/2019 16:33`  
 	e) You  can also set reminder for today if you remove the date part like this    
-		`@bot remind me 'what' at 16:33`
+		`@bot remind me 'what' at 16:33`  
+	f) You can set a reminder to 1 hour from now by only providing the message like this  
+     `@bot remind me 'what'`
 
 	
 2) Set timezone  

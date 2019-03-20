@@ -151,6 +151,8 @@ public class Control {
                 + "     `@" + BOT_NAME + " remind #roomName 'what' at 16/03/2020 16:33` \n \n"
                 + "    e) You  can also set reminder for today if you remove the date part like this \n"
                 + "     `@" + BOT_NAME + " remind me 'what' at 16:33`  \n"
+                + "    f) You can set a reminder to 1 hour from now by only providing the message like this \n"
+                + "     `@`"+BOT_NAME + "remind me 'what' \n"
                 + "2) Set timezone  \n \n"
                 + "    a) For each reminder   \n"
                 + "     `@" + BOT_NAME + " remind me 'what' at 16/03/2020 16:33 Athens `  \n"

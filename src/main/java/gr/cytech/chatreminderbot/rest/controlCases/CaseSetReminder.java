@@ -58,6 +58,8 @@ public class CaseSetReminder {
 
     private ZonedDateTime inputDate;
 
+    private ArrayList<String> noTimeTaken;
+
     public void setBotName(String botName) {
         this.botName = botName;
     }
@@ -110,6 +112,16 @@ public class CaseSetReminder {
 
     @Transactional
     public String setReminder() {
+        noTimeTaken = new ArrayList<>(Arrays.asList(request.getMessage().getText().split("\'")));
+        if (noTimeTaken.size() == 2) {
+            removingBotNameWhenNoTimeTaken();
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            LocalDateTime today = LocalDateTime.now().plusHours(1);
+            noTimeTaken.add(2, "at " + dateTimeFormatter.format(today));
+            noTimeTaken.set(1,"'" + noTimeTaken.get(1) + "'");
+            String listToString = String.join("", noTimeTaken);
+            request.getMessage().setText(listToString);
+        }
 
         if (!checkRemindMessageFormat().equals("")) {
             return checkRemindMessageFormat();
@@ -357,12 +369,13 @@ public class CaseSetReminder {
 
     public String checkRemindMessageFormat() {
         splitMsg = new ArrayList<>(Arrays.asList(request.getMessage().getText().split("\'")));
-
+        int count = request.getMessage().getText().length()
+                - request.getMessage().getText().replaceAll("'","").length();
         removingBotName();
 
         if (splitMsg.get(1).length() >= 255) {
             return "Part what can not be more than 255 chars.";
-        } else if (splitMsg.size() != 3) {
+        } else if (count >= 3) {
             return "Use  quotation marks  `'` only two times. One before and one after what, type Help for example.";
         } else if (whoPart.size() < 2) {
             return "You missed add who, type Help for example.";
@@ -377,6 +390,13 @@ public class CaseSetReminder {
 
     private void removingBotName() {
         whoPart = new ArrayList<>(Arrays.asList(splitMsg.get(0).split("\\s+")));
+        if (whoPart.get(0).equals("@" + botName)) {
+            whoPart.remove(0);
+        }
+    }
+
+    private void removingBotNameWhenNoTimeTaken() {
+        whoPart = new ArrayList<>(Arrays.asList(noTimeTaken.get(0).split("\\s+")));
         if (whoPart.get(0).equals("@" + botName)) {
             whoPart.remove(0);
         }
