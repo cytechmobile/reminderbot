@@ -118,9 +118,6 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
 
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        LocalDateTime today = LocalDateTime.now().plusHours(1);
-        String expectedWhen = dateTimeFormatter.format(today);
         String what = "something to do";
 
         mes.setText("remind me '" + what + "'");
@@ -134,7 +131,9 @@ class ControlIT {
         caseSetReminder.setBotName("reminder");
 
         //In order to use calculateRemainingTime need to define: timezone, when
-        caseSetReminder.setWhen(expectedWhen);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        LocalDateTime today = LocalDateTime.now().plusHours(1);
+        caseSetReminder.setWhen(dateTimeFormatter.format(today));
         caseSetReminder.setTimeZone("Europe/Athens");
 
         String successMsg = "Reminder with text:\\n <b>" + what + "</b>.\\n"
