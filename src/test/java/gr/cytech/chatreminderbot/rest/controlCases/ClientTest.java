@@ -7,9 +7,13 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ClientTest {
     private static final Logger logger = LoggerFactory.getLogger(ClientTest.class);
@@ -19,25 +23,28 @@ public class ClientTest {
     @BeforeEach
     public final void beforeEach() throws Exception {
         client = new Client();
+        client.entityManager = mock(EntityManager.class);
+
+        TypedQuery query = mock(TypedQuery.class);
+        when(client.entityManager.createNamedQuery("get.default", ButtonUrl.class)).thenReturn(query);
+        when(query.getSingleResult()).thenReturn(new ButtonUrl("localhost"));
+
     }
 
     @Test
     public void sendAsTest() throws Exception {
         String threadId = "THREAD_ID";
         String spaceId = "SPACE_ID";
-        final Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
-                "DisplayName", spaceId, threadId);
-
-        //Expectations
-        final String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> " + reminder.getWhat()
-                + " \" ,  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
-                + "/threads/" + reminder.getThreadId() + "\" }}";
-
+        Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
+                "DisplayName", "Europe/Athens", spaceId, threadId);
         MockHttpTransport transport = new MockHttpTransport.Builder()
                 .setLowLevelHttpResponse(new MockLowLevelHttpResponse()
                         .setContent("ok")
                         .setStatusCode(200))
                 .build();
+
+        String message = client.cardCreation(reminder.getSpaceId(), reminder.getThreadId(), reminder.getWhat(),
+                reminder.getSenderDisplayName(), reminder.getReminderTimezone(), "localhost");
 
         client.requestFactory = transport.createRequestFactory();
 

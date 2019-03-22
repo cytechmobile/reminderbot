@@ -1,0 +1,1 @@
+ALTER TABLE buttonUrl ADD COLUMN base_url varchar (50);

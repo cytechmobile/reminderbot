@@ -1,16 +1,24 @@
 package gr.cytech.chatreminderbot.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.controlCases.Control;
+import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
+import gr.cytech.chatreminderbot.rest.message.Sender;
+import gr.cytech.chatreminderbot.rest.message.ThreadM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Path("/services")
 public class BotResource {
@@ -43,10 +51,64 @@ public class BotResource {
         }
     }
 
+    @GET
+    @Path("/button")
+    public String button(@Context HttpServletRequest request) {
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+        sender.setName(request.getParameter("name"));
+        threadM.setName("space/" + request.getParameter("space") + "/thread/" + request.getParameter("thread"));
+
+        //create reminder and get the when
+
+        ZonedDateTime fromNowPlus10 = ZonedDateTime.now(ZoneId.of(request.getParameter("timezone"))).plusMinutes(10);
+        //creating the full text for reminder
+        String text = "remind me '"
+                + request.getParameter("text")
+                + "' at "
+                + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(fromNowPlus10)
+                + " "
+                + request.getParameter("timezone");
+
+        //create the Request using the updated message
+        Message message = new Message();
+
+        message.setSender(sender);
+        message.setThread(threadM);
+        message.setText(text);
+
+        Request req = new Request();
+        req.setMessage(message);
+        //open tab to get the requirements then immediately close it and handle the request
+        return handleReq(req)
+                + "<html>"
+                + "<head></head>"
+                + "<body>"
+                + "<script>"
+                + "window.close();"
+                + "</script>"
+                + "</body>"
+                + "</html>";
+    }
+
     private String responseBuild() {
-        return "{ \"text\": \""
-                + message + "\" ,  \"thread\": { \"name\": \"spaces/"
-                + spaceId + "\" }}";
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        Object response = new CardResponseBuilder()
+                .thread("spaces/" + spaceId)
+                .textParagraph(message)
+                .build();
+
+        String cardResponse;
+        try {
+            cardResponse = mapper.writeValueAsString(response);
+        } catch (Exception e) {
+            return "Internal server error";
+        }
+        return cardResponse;
+
     }
 
 }
