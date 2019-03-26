@@ -1,7 +1,5 @@
 package gr.cytech.chatreminderbot.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.controlCases.Control;
 import gr.cytech.chatreminderbot.rest.message.Message;
@@ -53,7 +51,7 @@ public class BotResource {
 
     @GET
     @Path("/button")
-    public String button(@Context HttpServletRequest request) {
+    public String onButtonClick(@Context HttpServletRequest request) {
         Sender sender = new Sender();
         ThreadM threadM = new ThreadM();
 
@@ -81,8 +79,8 @@ public class BotResource {
         Request req = new Request();
         req.setMessage(message);
         //open tab to get the requirements then immediately close it and handle the request
-        return handleReq(req)
-                + "<html>"
+        handleReq(req);
+        return "<html>"
                 + "<head></head>"
                 + "<body>"
                 + "<script>"
@@ -93,21 +91,10 @@ public class BotResource {
     }
 
     private String responseBuild() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        Object response = new CardResponseBuilder()
+        return new CardResponseBuilder()
                 .thread("spaces/" + spaceId)
                 .textParagraph(message)
                 .build();
-
-        String cardResponse;
-        try {
-            cardResponse = mapper.writeValueAsString(response);
-        } catch (Exception e) {
-            return "Internal server error";
-        }
-        return cardResponse;
 
     }
 

@@ -1,7 +1,6 @@
 package gr.cytech.chatreminderbot.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.controlCases.CaseSetReminder;
@@ -26,21 +25,11 @@ class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
     String expectedResponseMethod(String expectedMessage) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        Object response = new CardResponseBuilder()
+        return new CardResponseBuilder()
                 .thread("spaces/SPACE_ID")
                 .textParagraph("" + expectedMessage + "")
                 .build();
 
-        String cardResponse;
-        try {
-            cardResponse = mapper.writeValueAsString(response);
-        } catch (Exception e) {
-            return "Internal server error";
-        }
-        return cardResponse;
     }
 
     @Test

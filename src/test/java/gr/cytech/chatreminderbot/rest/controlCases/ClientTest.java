@@ -26,8 +26,8 @@ public class ClientTest {
         client.entityManager = mock(EntityManager.class);
 
         TypedQuery query = mock(TypedQuery.class);
-        when(client.entityManager.createNamedQuery("get.default", ButtonUrl.class)).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(new ButtonUrl("localhost"));
+        when(client.entityManager.createNamedQuery("get.buttonUrl", Configurations.class)).thenReturn(query);
+        when(query.getSingleResult()).thenReturn(new Configurations("default","localhost"));
 
     }
 

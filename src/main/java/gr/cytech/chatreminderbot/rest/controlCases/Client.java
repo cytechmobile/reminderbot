@@ -1,7 +1,5 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.api.client.http.*;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import org.slf4j.Logger;
@@ -14,15 +12,11 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
-
-    private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
 
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
@@ -32,22 +26,17 @@ public class Client {
 
     public String cardCreation(String spaceId, String threadId, String what,
                                String senderName, String timezone, String url) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-        Object response = new CardResponseBuilder()
+        return new CardResponseBuilder()
                 .thread("spaces/" + spaceId + "/threads/" + threadId)
                 .textParagraph("<b>" + what + "</b>")
-                .textButton("remind me again in 10 minutes", "https://" + url + ":8080/bot/services/button?name=" + senderName + "&text=" + what + "&timezone=" + timezone + "&space=" + spaceId + "&thread=" + threadId)
+                .textButton("remind me again in 10 minutes", url
+                        + "/bot/services/button?name=" + senderName
+                        + "&text=" + what
+                        + "&timezone=" + timezone
+                        + "&space=" + spaceId
+                        + "&thread=" + threadId)
                 .build();
-
-        String cardResponse;
-        try {
-            cardResponse = mapper.writeValueAsString(response);
-        } catch (Exception e) {
-            return "Internal server error";
-        }
-        return cardResponse;
     }
 
     public String sendAsyncResponse(Reminder reminder) {
@@ -64,11 +53,11 @@ public class Client {
             urlNotFoundAddBasedUrl();
         }
 
-        ButtonUrl singleResult = entityManager.createNamedQuery("get.default", ButtonUrl.class)
+        Configurations singleResult = entityManager.createNamedQuery("get.buttonUrl", Configurations.class)
                 .getSingleResult();
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
                 reminder.getWhat(), reminder.getSenderDisplayName(),
-                reminder.getReminderTimezone(), singleResult.getUrl());
+                reminder.getReminderTimezone(), singleResult.getValue());
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
@@ -149,14 +138,14 @@ public class Client {
     }
 
     public boolean doesUrlExist() {
-        return entityManager.createNamedQuery("get.default",ButtonUrl.class)
+        return entityManager.createNamedQuery("get.buttonUrl", Configurations.class)
                 .getResultList().size() == 1;
     }
 
     @Transactional
     public void urlNotFoundAddBasedUrl() {
-        logger.info("created default url with Localhost please consider to change the url");
-        ButtonUrl defaultUrl = new ButtonUrl("localhost");
+        logger.info("created default url with value as localhost");
+        Configurations defaultUrl = new Configurations("buttonUrl", "localhost");
         entityManager.persist(defaultUrl);
     }
 }
