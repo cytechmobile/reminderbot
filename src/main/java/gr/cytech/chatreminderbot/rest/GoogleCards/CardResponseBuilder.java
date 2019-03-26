@@ -1,70 +1,32 @@
 package gr.cytech.chatreminderbot.rest.GoogleCards;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
+/**
+ * Creates a card response to a Hangouts Chat message, in JSON format.
+ *
+ * See the documentation for more details:
+ * https://developers.google.com/hangouts/chat/reference/message-formats/cards
+ */
 public class CardResponseBuilder {
 
-    private interface Builder {
-        Object get();
-    }
-
-    private ObjectBuilder createObjectBuilder() {
-        return new ObjectBuilder();
-    }
-
-    private static class ObjectBuilder implements Builder {
-        Map<String, Object> map = new HashMap<>(5);
-
-        ObjectBuilder add(String key, Object value) {
-            map.put(key, value);
-            return this;
-        }
-
-        ObjectBuilder add(String key, Builder builder) {
-            return add(key, builder.get());
-        }
-
-        @Override
-        public Map<String, Object> get() {
-            return map;
-        }
-    }
-
-    private ArrayBuilder createArrayBuilder() {
-        return new ArrayBuilder();
-    }
-
-    private static class ArrayBuilder implements Builder {
-        List<Object> list = new ArrayList<>(4);
-
-        ArrayBuilder add(Builder builder) {
-            list.add(builder.get());
-            return this;
-        }
-
-        @Override
-        public List<Object> get() {
-            return list;
-        }
-    }
-
-    private ObjectBuilder thread;
-    private ObjectBuilder headerNode;
-    private ObjectBuilder responseNode;
-    private ArrayBuilder widgetsArray;
-    private ArrayBuilder cardsArray;
+    private JsonObject headerNode;
+    private JsonObjectBuilder thread;
+    private JsonObjectBuilder responseNode;
+    private JsonArrayBuilder widgetsArray;
+    private JsonArrayBuilder cardsArray;
 
     /**
      * Default public constructor.
      */
     public CardResponseBuilder() {
-        this.thread = createObjectBuilder();
-        this.responseNode = createObjectBuilder();
-        this.cardsArray = createArrayBuilder();
-        this.widgetsArray = createArrayBuilder();
+        this.thread = Json.createObjectBuilder();
+        this.responseNode = Json.createObjectBuilder();
+        this.cardsArray = Json.createArrayBuilder();
+        this.widgetsArray = Json.createArrayBuilder();
     }
 
     /**
@@ -74,21 +36,29 @@ public class CardResponseBuilder {
      * @return this CardResponseBuilder
      */
     public CardResponseBuilder textParagraph(String message) {
-        this.widgetsArray.add(
-                createObjectBuilder()
-                        .add("textParagraph",
-                                createObjectBuilder().add("text", message)));
+        this.widgetsArray.add(Json.createObjectBuilder()
+                .add("textParagraph", Json.createObjectBuilder()
+                        .add("text", message)));
         return this;
     }
 
+    /**
+     * Adds a Text Button widget to the card response.
+     *
+     * When clicked, the button opens a link in the user's browser.
+     *
+     * @param text the text on the button
+     * @param redirectUrl the link to open
+     * @return this CardResponseBuilder
+     */
     public CardResponseBuilder textButton(String text, String redirectUrl) {
-        this.widgetsArray.add(createObjectBuilder()
-                .add("buttons", createArrayBuilder()
-                        .add(createObjectBuilder()
-                                .add("textButton", createObjectBuilder()
+        this.widgetsArray.add(Json.createObjectBuilder()
+                .add("buttons", Json.createArrayBuilder()
+                        .add(Json.createObjectBuilder()
+                                .add("textButton", Json.createObjectBuilder()
                                         .add("text", text)
-                                        .add("onClick", createObjectBuilder()
-                                                .add("openLink", createObjectBuilder()
+                                        .add("onClick", Json.createObjectBuilder()
+                                                .add("openLink", Json.createObjectBuilder()
                                                         .add("url", redirectUrl)))))));
         return this;
     }
@@ -103,7 +73,8 @@ public class CardResponseBuilder {
      *
      * @return card response as JSON-formatted string
      */
-    public Object build() {
+
+    public String build() {
 
         // If you want your header to appear before all other cards,
         // you must add it to the `cards` array as the first / 0th item.
@@ -111,13 +82,15 @@ public class CardResponseBuilder {
             this.cardsArray.add(this.headerNode);
         }
 
-        return responseNode.add("cards", this.cardsArray
-                .add(createObjectBuilder()
-                        .add("sections", createArrayBuilder()
-                                .add(createObjectBuilder()
-                                        .add("widgets", this.widgetsArray))))).add("thread",this.thread)
-                .get();
+        JsonObject cardsNode =
+                responseNode.add("cards", this.cardsArray
+                        .add(Json.createObjectBuilder()
+                                .add("sections", Json.createArrayBuilder()
+                                        .add(Json.createObjectBuilder()
+                                                .add("widgets", this.widgetsArray)))))
+                        .add("thread",this.thread)
+                        .build();
+        return cardsNode.toString();
     }
 
 }
-
