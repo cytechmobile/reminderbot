@@ -2,6 +2,7 @@ package gr.cytech.chatreminderbot.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.controlCases.CaseSetReminder;
 import gr.cytech.chatreminderbot.rest.controlCases.Control;
 import gr.cytech.chatreminderbot.rest.message.Message;
@@ -22,6 +23,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
+
+    String expectedResponseMethod(String expectedMessage) {
+        return new CardResponseBuilder()
+                .thread("spaces/SPACE_ID")
+                .textParagraph("" + expectedMessage + "")
+                .build();
+
+    }
 
     @Test
     void handleRequest() {
@@ -54,9 +63,9 @@ class ControlIT {
         caseSetReminder.setWhen(expectedWhen);
         caseSetReminder.setTimeZone("Europe/Athens");
 
-        String successMsg = "Reminder: <<" + what
-                + ">> saved successfully and will notify you in: "
-                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm());
+        String successMsg = "Reminder with text:\n <b>" + what
+                + "</b>.\nSaved successfully and will notify you in: \n<b>"
+                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm()) + "</b>";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
@@ -64,8 +73,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + successMsg
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + spaceId + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(successMsg));
     }
 
     @Test
@@ -92,8 +100,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isNotEqualTo("{ \"text\": \"" + responseDefault
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isNotEqualTo(expectedResponseMethod(responseDefault));
     }
 
     @Test
@@ -120,8 +127,8 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
+
     }
 
     @Test
@@ -149,8 +156,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
     @Test
@@ -179,8 +185,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
     @Test
@@ -210,8 +215,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo("{ \"text\": \"" + expectedResponse
-                + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
     @Test
@@ -230,8 +234,8 @@ class ControlIT {
         req2.setMessage(mes2);
 
         String expectedResponse = "---- Your timezone is  ---- \n"
-                + "Timezone = 'Europe/Athens'\n"
-                + " ---- Default timezone is ---- \n"
+                + "Timezone = 'Europe/Athens'\n "
+                + "---- Default timezone is ---- \n"
                 + "Timezone = 'Europe/Athens'";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
@@ -257,9 +261,7 @@ class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class))
-                .as("Unexpected response when getting user time zone")
-                .isEqualTo("{ \"text\": \"" + expectedResponse
-                        + "\" ,  \"thread\": { \"name\": \"spaces/" + "SPACE_ID" + "\" }}");
+        assertThat(resp.readEntity(String.class)).as("Unexpected response when getting user time zone")
+                .isEqualTo(expectedResponseMethod(expectedResponse));
     }
 }

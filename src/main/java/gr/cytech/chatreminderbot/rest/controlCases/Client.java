@@ -1,26 +1,43 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
 import com.google.api.client.http.*;
+import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
-    private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
-    private static final String KEY_FILE_PATH_ENV = "BOT_KEY_FILE_PATH";
+    @PersistenceContext(name = "wa")
+    public EntityManager entityManager;
 
     @Inject
     protected HttpRequestFactory requestFactory;
+
+    public String cardCreation(String spaceId, String threadId, String what,
+                               String senderName, String timezone, String url) {
+
+        return new CardResponseBuilder()
+                .thread("spaces/" + spaceId + "/threads/" + threadId)
+                .textParagraph("<b>" + what + "</b>")
+                .textButton("remind me again in 10 minutes", url
+                        + "/bot/services/button?name=" + senderName
+                        + "&text=" + what
+                        + "&timezone=" + timezone
+                        + "&space=" + spaceId
+                        + "&thread=" + threadId)
+                .build();
+    }
 
     public String sendAsyncResponse(Reminder reminder) {
         //URL request - responses to current thread
@@ -28,9 +45,19 @@ public class Client {
         GenericUrl url = new GenericUrl(uri);
 
         //Construct string in json format
-        String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> " + reminder.getWhat()
-                + " \" ,  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
+        String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> \" "
+                + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
+
+        if (!doesUrlExist()) {
+            urlNotFoundAddBasedUrl();
+        }
+
+        Configurations singleResult = entityManager.createNamedQuery("get.buttonUrl", Configurations.class)
+                .getSingleResult();
+        String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
+                reminder.getWhat(), reminder.getSenderDisplayName(),
+                reminder.getReminderTimezone(), singleResult.getValue());
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
@@ -39,14 +66,13 @@ public class Client {
                     .getOrDefault(reminder.getSenderDisplayName().substring(1),
                             reminder.getSpaceId());
 
-            String messageToRoom = "{ \"text\":\"" + "<" + "users/all" + "> " + reminder.getWhat() + "\" }";
+            String messageToRoom = "{ \"text\":\"" + "<users/all> " + reminder.getWhat() + "\" }";
 
             URI uri2 = URI.create("https://chat.googleapis.com/v1/spaces/" + spaceID + "/messages");
             GenericUrl url2 = new GenericUrl(uri2);
-
             return send(url2, messageToRoom, "POST");
         } else {
-            return send(url, message, "POST");
+            return send(url,message,"POST") + send(url, cardResponse, "POST");
         }
 
     }
@@ -84,7 +110,7 @@ public class Client {
         return spaces;
     }
 
-    private String send(GenericUrl url, String message, String httpMethod) {
+    public String send(GenericUrl url, String message, String httpMethod) {
         HttpContent content = new ByteArrayContent("application/json",
                 message.getBytes(StandardCharsets.UTF_8));
 
@@ -109,5 +135,17 @@ public class Client {
         }
 
         return response;
+    }
+
+    public boolean doesUrlExist() {
+        return entityManager.createNamedQuery("get.buttonUrl", Configurations.class)
+                .getResultList().size() == 1;
+    }
+
+    @Transactional
+    public void urlNotFoundAddBasedUrl() {
+        logger.info("created default url with value as localhost");
+        Configurations defaultUrl = new Configurations("buttonUrl", "localhost");
+        entityManager.persist(defaultUrl);
     }
 }
