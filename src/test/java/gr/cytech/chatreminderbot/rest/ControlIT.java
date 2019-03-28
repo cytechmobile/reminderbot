@@ -85,7 +85,8 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime localTime = LocalTime.now(ZoneId.of("Europe/Athens").getRules().getOffset(Instant.now())).plusHours(1);
+        LocalTime localTime = LocalTime.now(ZoneId.of("Europe/Athens")
+                .getRules().getOffset(Instant.now())).plusHours(1);
         String expectedWhen = dateTimeFormatter.format(localTime);
         String expectedDate = expectedWhen + " athens";
         String spaceId = "SPACE_ID";
