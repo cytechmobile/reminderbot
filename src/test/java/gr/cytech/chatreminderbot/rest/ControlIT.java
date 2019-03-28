@@ -107,7 +107,6 @@ class ControlIT {
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
-        assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(successMsg));
     }
 

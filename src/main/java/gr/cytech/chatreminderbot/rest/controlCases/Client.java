@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -48,10 +47,6 @@ public class Client {
         String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> \" "
                 + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
-
-        if (!doesUrlExist()) {
-            urlNotFoundAddBasedUrl();
-        }
 
         Configurations singleResult = entityManager.createNamedQuery("get.buttonUrl", Configurations.class)
                 .getSingleResult();
@@ -137,15 +132,4 @@ public class Client {
         return response;
     }
 
-    public boolean doesUrlExist() {
-        return entityManager.createNamedQuery("get.buttonUrl", Configurations.class)
-                .getResultList().size() == 1;
-    }
-
-    @Transactional
-    public void urlNotFoundAddBasedUrl() {
-        logger.info("created default url with value as localhost");
-        Configurations defaultUrl = new Configurations("buttonUrl", "localhost");
-        entityManager.persist(defaultUrl);
-    }
 }
