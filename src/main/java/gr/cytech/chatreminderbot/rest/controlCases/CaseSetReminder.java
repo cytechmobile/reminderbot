@@ -110,7 +110,7 @@ public class CaseSetReminder {
 
     @Transactional
     public String setReminder() {
-
+        logger.info("checkRemindMessageFormat equals -> {}",checkRemindMessageFormat());
         if (!checkRemindMessageFormat().equals("")) {
             return checkRemindMessageFormat();
         }
@@ -124,14 +124,17 @@ public class CaseSetReminder {
         }
 
         //pass from string to ZoneDateTime
+        logger.info("dateForm is -> {} ", dateForm());
         setInputDate(dateForm());
         //Check if date has passed
+        logger.info("get timezone from setReminder {} ", getTimeZone());
         if (inputDate.isBefore(ZonedDateTime.now(ZoneId.of(getTimeZone())))) {
             return "This date has passed "
                     + inputDate + ". Check your timezone or insert in the current reminder";
         }
 
         Reminder reminder = new Reminder(what, inputDate, who, timeZone, spaceId, threadId);
+        logger.info("the reminder is -> {} ",reminder);
         saveAndSetReminder(reminder);
 
         return "Reminder with text:\n <b>" + what + "</b>.\n"
@@ -250,6 +253,7 @@ public class CaseSetReminder {
     }
 
     public void saveAndSetReminder(Reminder reminder) {
+        logger.info("inside saveAndSetReminder");
         entityManager.persist(reminder);
         //if there is no next reminder, sets this as next
         if (timerSessionBean.getNextReminderDate() == null) {
@@ -271,7 +275,8 @@ public class CaseSetReminder {
     public ZonedDateTime dateForm() {
         String format = "dd/MM/yyyy HH:mm";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-
+        logger.info("the timezone is: {}", getTimeZone());
+        logger.info("when: {}", when);
         return ZonedDateTime.parse(when, formatter.withZone(ZoneId.of(getTimeZone())));
     }
 
