@@ -82,10 +82,13 @@ class ControlIT {
 
         mes.setThread(threadM);
         mes.setSender(sender);
-
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        String expectedWhen = ZonedDateTime.now().plusHours(1).format(dateTimeFormatter);
+        String expectedDate = expectedWhen + " athens";
+        String spaceId = "SPACE_ID";
         String what = "something to do";
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm ");
-        mes.setText("remind me '" + what + "' at " + ZonedDateTime.now().plusHours(1).format(timeFormatter));
+
+        mes.setText("remind me '" + what + "' at " + expectedDate);
         req.setMessage(mes);
         Control control = new Control();
         control.setRequest(req);
@@ -95,7 +98,7 @@ class ControlIT {
         caseSetReminder.setBotName("reminder");
 
         //In order to use calculateRemainingTime need to define: timezone, when
-        caseSetReminder.setWhen(ZonedDateTime.now().format(timeFormatter));
+        caseSetReminder.setWhen(expectedWhen);
         caseSetReminder.setTimeZone("Europe/Athens");
 
         String successMsg = "Reminder with text:\n <b>" + what
@@ -107,6 +110,7 @@ class ControlIT {
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
+        assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(successMsg));
     }
 
