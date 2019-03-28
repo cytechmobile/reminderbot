@@ -18,6 +18,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
@@ -83,7 +84,7 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime localTime = LocalTime.now().plusHours(1);
+        LocalTime localTime = LocalTime.now(ZoneId.of("Europe/Athens")).plusHours(1);
         String expectedWhen = dateTimeFormatter.format(localTime);
         String expectedDate = expectedWhen + " athens";
         String spaceId = "SPACE_ID";
