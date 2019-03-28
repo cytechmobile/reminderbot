@@ -17,9 +17,8 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-import java.time.Instant;
 import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
@@ -85,8 +84,8 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime localTime = LocalTime.now(ZoneId.of("Europe/Athens")
-                .getRules().getOffset(Instant.now())).plusHours(1);
+        //+2 is greece you can check this link to find yours https://www.timeanddate.com/time/map/
+        LocalTime localTime = LocalTime.now(ZoneOffset.of("+2")).plusHours(1);
         String expectedWhen = dateTimeFormatter.format(localTime);
         String spaceId = "SPACE_ID";
         String what = "something to do";
