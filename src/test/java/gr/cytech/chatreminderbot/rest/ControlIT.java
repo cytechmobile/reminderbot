@@ -88,11 +88,10 @@ class ControlIT {
         LocalTime localTime = LocalTime.now(ZoneId.of("Europe/Athens")
                 .getRules().getOffset(Instant.now())).plusHours(1);
         String expectedWhen = dateTimeFormatter.format(localTime);
-        String expectedDate = expectedWhen + " athens";
         String spaceId = "SPACE_ID";
         String what = "something to do";
 
-        mes.setText("remind me '" + what + "' at " + expectedDate);
+        mes.setText("remind me '" + what + "' at " + expectedWhen);
         req.setMessage(mes);
         Control control = new Control();
         control.setRequest(req);
