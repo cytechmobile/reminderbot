@@ -17,6 +17,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -84,27 +85,29 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime localTime = LocalTime.now(ZoneId.of("Europe/Athens")).plusHours(1);
+        LocalTime localTime = LocalTime.now(ZoneId.of("Europe/Athens")
+                .getRules().getOffset(Instant.now())).plusHours(1);
         String expectedWhen = dateTimeFormatter.format(localTime);
-        String spaceId = "SPACE_ID";
         String what = "something to do";
 
         mes.setText("remind me '" + what + "' at " + expectedWhen);
-        CaseSetReminder caseSetReminder = new CaseSetReminder();
-        caseSetReminder.setBotName("reminder");
-        caseSetReminder.setWhen(expectedWhen);
-        caseSetReminder.setTimeZone("Europe/Athens");
-        caseSetReminder.setRequest(req);
         req.setMessage(mes);
         Control control = new Control();
         control.setRequest(req);
 
-        //In order to use calculateRemainingTime need to define: timezone, when
+        CaseSetReminder caseSetReminder = new CaseSetReminder();
+        caseSetReminder.setRequest(req);
+        caseSetReminder.setBotName("reminder");
 
+        //In order to use calculateRemainingTime need to define: timezone, when
+        DateTimeFormatter dateTimeFormatterToSetWhen = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        LocalTime today = LocalTime.now().plusHours(1);
+        caseSetReminder.setWhen(dateTimeFormatterToSetWhen.format(today));
+        caseSetReminder.setTimeZone("Europe/Athens");
 
         String successMsg = "Reminder with text:\n <b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
-                + "59 Minutes</b>";
+                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm()) + "</b>";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
