@@ -18,7 +18,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
@@ -84,24 +84,23 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        //+2 is greece you can check this link to find yours https://www.timeanddate.com/time/map/
-        LocalTime localTime = LocalTime.now(ZoneOffset.of("+2")).plusHours(1);
+        LocalTime localTime = LocalTime.now(ZoneId.of("Europe/Athens")).plusHours(1);
         String expectedWhen = dateTimeFormatter.format(localTime);
         String spaceId = "SPACE_ID";
         String what = "something to do";
 
         mes.setText("remind me '" + what + "' at " + expectedWhen);
+        CaseSetReminder caseSetReminder = new CaseSetReminder();
+        caseSetReminder.setBotName("reminder");
+        caseSetReminder.setWhen(expectedWhen);
+        caseSetReminder.setTimeZone("Europe/Athens");
+        caseSetReminder.setRequest(req);
         req.setMessage(mes);
         Control control = new Control();
         control.setRequest(req);
 
-        CaseSetReminder caseSetReminder = new CaseSetReminder();
-        caseSetReminder.setRequest(req);
-        caseSetReminder.setBotName("reminder");
-
         //In order to use calculateRemainingTime need to define: timezone, when
-        caseSetReminder.setWhen(expectedWhen);
-        caseSetReminder.setTimeZone("Europe/Athens");
+
 
         String successMsg = "Reminder with text:\n <b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
