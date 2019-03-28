@@ -17,20 +17,14 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
-
-    String expectedResponseMethod(String expectedMessage) {
-        return new CardResponseBuilder()
-                .thread("spaces/SPACE_ID")
-                .textParagraph("" + expectedMessage + "")
-                .build();
-
-    }
 
     @Test
     void handleRequest() {
@@ -66,6 +60,47 @@ class ControlIT {
         String successMsg = "Reminder with text:\n <b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
                 + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm()) + "</b>";
+
+        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+        assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(successMsg));
+    }
+
+    @Test
+    void reminderWithoutDateGiven() {
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("MyName");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+
+        String what = "something to do";
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm ");
+        mes.setText("remind me '" + what + "' at " + ZonedDateTime.now().plusHours(1).format(timeFormatter));
+        req.setMessage(mes);
+        Control control = new Control();
+        control.setRequest(req);
+
+        CaseSetReminder caseSetReminder = new CaseSetReminder();
+        caseSetReminder.setRequest(req);
+        caseSetReminder.setBotName("reminder");
+
+        //In order to use calculateRemainingTime need to define: timezone, when
+        caseSetReminder.setWhen(ZonedDateTime.now().format(timeFormatter));
+        caseSetReminder.setTimeZone("Europe/Athens");
+
+        String successMsg = "Reminder with text:\n <b>" + what
+                + "</b>.\nSaved successfully and will notify you in: \n<b>"
+                + "59 Minutes</b>";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
@@ -172,7 +207,7 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
 
-        mes.setText("@reminder set my timezone to athens");
+        mes.setText("set my timezone to athens");
         req.setMessage(mes);
 
         String expectedResponse = " <"
@@ -263,5 +298,13 @@ class ControlIT {
 
         assertThat(resp.readEntity(String.class)).as("Unexpected response when getting user time zone")
                 .isEqualTo(expectedResponseMethod(expectedResponse));
+    }
+
+    String expectedResponseMethod(String expectedMessage) {
+        return new CardResponseBuilder()
+                .thread("spaces/SPACE_ID")
+                .textParagraph("" + expectedMessage + "")
+                .build();
+
     }
 }

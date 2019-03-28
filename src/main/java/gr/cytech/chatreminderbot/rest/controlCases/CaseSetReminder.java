@@ -8,12 +8,15 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 
 public class CaseSetReminder {
@@ -154,10 +157,32 @@ public class CaseSetReminder {
      *   get it from global settings
      * */
 
+    public boolean caseNoDateGiven(String strHour) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+        simpleDateFormat.setLenient(false);
+        /* Create Date object
+         * parse the string into date
+         */
+        try {
+            Date extractHour = simpleDateFormat.parse(strHour);
+            logger.info(strHour + "no date found use current date as default");
+        } catch (ParseException e) {
+            logger.info(strHour + " date found use specified one");
+            return false;
+        }
+        /* Return true if date format is valid */
+        return true;
+    }
+
     public void setInfosForRemind() {
 
         //what: Something to do
         setWhat(splitMsg.get(1));
+        String[] getTimeFromMessage = splitMsg.get(2).split("\\s+");
+        if (caseNoDateGiven(getTimeFromMessage[2])) {
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            splitMsg.set(2, " at " + ZonedDateTime.now().format(dateFormatter) + " " + getTimeFromMessage[2]);
+        }
         logger.info("set what: {}", what);
 
         //dateParts: at 16/03/2019 15:05 athens
@@ -230,8 +255,8 @@ public class CaseSetReminder {
             logger.info("set NEW reminder to : {}", inputDate);
             timerSessionBean.setNextReminder(reminder, inputDate);
         } else {
-        //ELSE  if the new reminder is before the nextReminder,
-        // changes as next reminder this
+            //ELSE  if the new reminder is before the nextReminder,
+            // changes as next reminder this
 
             if (inputDate.isBefore(timerSessionBean.getNextReminderDate())) {
                 logger.info("CHANGE next reminder to: {}", inputDate);

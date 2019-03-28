@@ -149,6 +149,8 @@ public class Control {
                 + "     `@" + BOT_NAME + " @all 'what' at 16/03/2020 16:33`  \n"
                 + "    d) All in any other room that bot is invited    \n"
                 + "     `@" + BOT_NAME + " remind #roomName 'what' at 16/03/2019 16:33` \n \n"
+                + "    e) You  can also set reminder for today if you remove the date part like this \n"
+                + "     `@" + BOT_NAME + " remind me 'what' at 16:33`  \n"
                 + "2) Set timezone  \n \n"
                 + "    a) For each reminder   \n"
                 + "     `@" + BOT_NAME + " remind me 'what' at 16/03/2020 16:33 Athens `  \n"
