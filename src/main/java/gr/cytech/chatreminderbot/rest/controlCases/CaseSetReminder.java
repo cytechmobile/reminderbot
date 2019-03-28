@@ -181,7 +181,8 @@ public class CaseSetReminder {
         String[] getTimeFromMessage = splitMsg.get(2).split("\\s+");
         if (caseNoDateGiven(getTimeFromMessage[2])) {
             DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            splitMsg.set(2, " at " + ZonedDateTime.now().format(dateFormatter) + " " + getTimeFromMessage[2]);
+            LocalDate localDate = LocalDate.now();
+            splitMsg.set(2, " at " + dateFormatter.format(localDate) + " " + getTimeFromMessage[2]);
         }
         logger.info("set what: {}", what);
 
