@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
@@ -161,6 +162,7 @@ public class CaseSetReminder {
      * */
 
     public boolean caseNoDateGiven(String strHour) {
+        logger.info("joined caseNoDate");
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
         simpleDateFormat.setLenient(false);
         /* Create Date object
@@ -178,14 +180,13 @@ public class CaseSetReminder {
     }
 
     public void setInfosForRemind() {
-
+        logger.info("joined setInfosForRemind");
         //what: Something to do
         setWhat(splitMsg.get(1));
         String[] getTimeFromMessage = splitMsg.get(2).split("\\s+");
         if (caseNoDateGiven(getTimeFromMessage[2])) {
-            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            LocalDate localDate = LocalDate.now();
-            splitMsg.set(2, " at " + dateFormatter.format(localDate) + " " + getTimeFromMessage[2]);
+            DateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy");
+            splitMsg.set(2, " at " + dateFormatter.format(new Date()) + " " + getTimeFromMessage[2]);
         }
         logger.info("set what: {}", what);
 
@@ -273,6 +274,7 @@ public class CaseSetReminder {
     //Returns date from string, based on dd/MM/yyyy HH:mm format,
     //Is called after we ensure this is the current format
     public ZonedDateTime dateForm() {
+
         String format = "dd/MM/yyyy HH:mm";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         logger.info("the timezone is: {}", getTimeZone());

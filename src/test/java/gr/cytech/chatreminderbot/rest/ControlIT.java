@@ -17,8 +17,10 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -82,17 +84,33 @@ class ControlIT {
 
         mes.setThread(threadM);
         mes.setSender(sender);
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalDateTime localTime = LocalDateTime.now().plusHours(1);
-        String expectedWhen = timeFormatter.format(localTime);
+
+        DateFormat timeFormat = new SimpleDateFormat("HH:mm");
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(Calendar.HOUR_OF_DAY, 1);
+        Date time = cal.getTime();
+
+        String expectedDate = timeFormat.format(time) + " athens";
         String what = "something to do";
 
-        mes.setText("@reminder remind me '" + what + "' at " + expectedWhen);
+        mes.setText("remind me '" + what + "' at " + expectedDate);
         req.setMessage(mes);
+        Control control = new Control();
+        control.setRequest(req);
 
-        String successMsg = "Reminder with text:\n <b>" + what + "</b>.\n"
-                + "Saved successfully and will notify you in: \n<b>"
-                + "59 Minutes</b>";
+        CaseSetReminder caseSetReminder = new CaseSetReminder();
+        caseSetReminder.setRequest(req);
+        caseSetReminder.setBotName("reminder");
+
+        //In order to use calculateRemainingTime need to define: timezone, when
+        DateFormat dateTimeFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        caseSetReminder.setWhen(dateTimeFormat.format(time));
+        caseSetReminder.setTimeZone("Europe/Athens");
+
+        String successMsg = "Reminder with text:\n <b>" + what
+                + "</b>.\nSaved successfully and will notify you in: \n<b>"
+                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm()) + "</b>";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
