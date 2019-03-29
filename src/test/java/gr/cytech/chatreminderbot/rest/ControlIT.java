@@ -87,23 +87,12 @@ class ControlIT {
         String expectedWhen = timeFormatter.format(localTime);
         String what = "something to do";
 
-        mes.setText("remind me '" + what + "' at " + expectedWhen);
+        mes.setText("@reminder remind me '" + what + "' at " + expectedWhen);
         req.setMessage(mes);
-        Control control = new Control();
-        control.setRequest(req);
-
-        CaseSetReminder caseSetReminder = new CaseSetReminder();
-        caseSetReminder.setRequest(req);
-        caseSetReminder.setBotName("reminder");
-
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        LocalDateTime today = LocalDateTime.now().plusHours(1);
-        caseSetReminder.setWhen(dateTimeFormatter.format(today));
-        caseSetReminder.setTimeZone("Europe/Athens");
 
         String successMsg = "Reminder with text:\n <b>" + what + "</b>.\n"
                 + "Saved successfully and will notify you in: \n<b>"
-                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm()) + "</b>";
+                + "59 Minutes</b>";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
