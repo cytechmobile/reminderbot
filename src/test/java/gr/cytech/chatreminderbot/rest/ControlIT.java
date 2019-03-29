@@ -24,14 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
-    String expectedResponseMethod(String expectedMessage) {
-        return new CardResponseBuilder()
-                .thread("spaces/SPACE_ID")
-                .textParagraph("" + expectedMessage + "")
-                .build();
-
-    }
-
     @Test
     void handleRequest() {
         Request req = new Request();
@@ -264,4 +256,13 @@ class ControlIT {
         assertThat(resp.readEntity(String.class)).as("Unexpected response when getting user time zone")
                 .isEqualTo(expectedResponseMethod(expectedResponse));
     }
+
+    String expectedResponseMethod(String expectedMessage) {
+        return new CardResponseBuilder()
+                .thread("spaces/SPACE_ID")
+                .textParagraph("" + expectedMessage + "")
+                .build();
+
+    }
+
 }
