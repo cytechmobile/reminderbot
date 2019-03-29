@@ -10,7 +10,7 @@ import javax.persistence.*;
 })
 public class Configurations {
     @Id
-    @Column(name = "key")
+    @Column(name = "key", unique = true, nullable = false)
     private String key;
 
     @Column(name = "value")
