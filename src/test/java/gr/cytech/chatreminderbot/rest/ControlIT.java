@@ -17,10 +17,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-import java.time.Instant;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
@@ -85,10 +82,9 @@ class ControlIT {
 
         mes.setThread(threadM);
         mes.setSender(sender);
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime localTime = LocalTime.now(ZoneId.of("Europe/Athens")
-                .getRules().getOffset(Instant.now())).plusHours(1);
-        String expectedWhen = dateTimeFormatter.format(localTime);
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalDateTime localTime = LocalDateTime.now().plusHours(1);
+        String expectedWhen = timeFormatter.format(localTime);
         String what = "something to do";
 
         mes.setText("remind me '" + what + "' at " + expectedWhen);
@@ -100,14 +96,13 @@ class ControlIT {
         caseSetReminder.setRequest(req);
         caseSetReminder.setBotName("reminder");
 
-        //In order to use calculateRemainingTime need to define: timezone, when
-        ZonedDateTime curr = ZonedDateTime.now().plusHours(1);
-        String inOneHour = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(curr);
-        caseSetReminder.setWhen(inOneHour);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        LocalDateTime today = LocalDateTime.now().plusHours(1);
+        caseSetReminder.setWhen(dateTimeFormatter.format(today));
         caseSetReminder.setTimeZone("Europe/Athens");
 
-        String successMsg = "Reminder with text:\n <b>" + what
-                + "</b>.\nSaved successfully and will notify you in: \n<b>"
+        String successMsg = "Reminder with text:\n <b>" + what + "</b>.\n"
+                + "Saved successfully and will notify you in: \n<b>"
                 + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm()) + "</b>";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
