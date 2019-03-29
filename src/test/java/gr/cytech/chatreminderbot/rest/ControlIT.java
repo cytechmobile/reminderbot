@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
@@ -100,9 +101,9 @@ class ControlIT {
         caseSetReminder.setBotName("reminder");
 
         //In order to use calculateRemainingTime need to define: timezone, when
-        DateTimeFormatter dateTimeFormatterToSetWhen = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        LocalTime today = LocalTime.now().plusHours(1);
-        caseSetReminder.setWhen(dateTimeFormatterToSetWhen.format(today));
+        ZonedDateTime curr = ZonedDateTime.now().plusHours(1);
+        String inOneHour = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(curr);
+        caseSetReminder.setWhen(inOneHour);
         caseSetReminder.setTimeZone("Europe/Athens");
 
         String successMsg = "Reminder with text:\n <b>" + what
