@@ -1,5 +1,4 @@
+delete from configurations where value = 'localhost' and key = 'buttonUrl';
 alter table configurations alter column key set not null;
-
-create unique index configurations_key_uindex
-    on configurations (key);
-
+ALTER TABLE configurations
+    ADD CONSTRAINT UNIQUE_key UNIQUE(key);
