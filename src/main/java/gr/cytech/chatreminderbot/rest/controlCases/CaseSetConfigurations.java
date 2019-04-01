@@ -5,6 +5,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CaseSetConfigurations {
     @PersistenceContext(name = "wa")
@@ -18,8 +19,11 @@ public class CaseSetConfigurations {
 
     @Transactional
     public String configurationController() {
-        if (splitMsg.get(2).equals("button") && splitMsg.get(3).equals("url")
-                && splitMsg.size() == 5) {
+        if (splitMsg.size() == 1) {
+            return helpCommand();
+        }
+
+        if (splitMsg.get(1).equals("buttonUrl") && splitMsg.size() == 3) {
             return caseSetBotUrl();
         }
         return errorMessage();
@@ -28,12 +32,34 @@ public class CaseSetConfigurations {
     public String caseSetBotUrl() {
         Query query = entityManager.createNamedQuery("set.buttonUrl")
                 .setParameter("urlKey", "buttonUrl")
-                .setParameter("urlValue", splitMsg.get(4));
-        query.executeUpdate();
-        return "Updated url to " + splitMsg.get(4);
+                .setParameter("urlValue", splitMsg.get(2));
+        if (doesUrlExist()) {
+            query.executeUpdate();
+
+        } else {
+            Configurations newButtonUrl = new Configurations("buttonUrl", splitMsg.get(2));
+            entityManager.persist(newButtonUrl);
+        }
+
+        return "Updated url to " + splitMsg.get(2);
+    }
+
+    public boolean doesUrlExist() {
+        return entityManager.createNamedQuery("get.buttonUrl", Configurations.class)
+                .getResultList().size() == 1;
+    }
+
+    public String helpCommand() {
+        List<Configurations> test = entityManager
+                .createNamedQuery("get.allConfigurations", Configurations.class).getResultList();
+        StringBuilder allConfigs = new StringBuilder("key                        value \n");
+        for (Configurations k : test) {
+            allConfigs.append(k.getKey()).append(" --> ").append(k.getValue()).append(" \n");
+        }
+        return "the configurations right now are: \n " + allConfigs;
     }
 
     public String errorMessage() {
-        return "no configuration for the specific name";
+        return "no configuration for the specific name check config to see whats available";
     }
 }

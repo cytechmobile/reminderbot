@@ -1,6 +1,7 @@
 package gr.cytech.chatreminderbot.rest;
 
 import gr.cytech.chatreminderbot.rest.controlCases.CaseSetConfigurations;
+import gr.cytech.chatreminderbot.rest.controlCases.Configurations;
 import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
@@ -30,10 +31,14 @@ public class CaseSetConfigurationsTest {
         TypedQuery query = mock(TypedQuery.class);
         when(caseSetConfigurations.entityManager.createNamedQuery("set.buttonUrl")).thenReturn(query);
         when(query.setParameter(anyString(), anyString())).thenReturn(query);
+        when(caseSetConfigurations.entityManager
+                .createNamedQuery("get.buttonUrl", Configurations.class)).thenReturn(query);
+        when(caseSetConfigurations.entityManager
+                .createNamedQuery("get.allConfigurations", Configurations.class)).thenReturn(query);
     }
 
     @Test
-    public void sendAsTest() throws Exception {
+    public void changeButtonUrlTest() throws Exception {
         Request req = new Request();
         Message mes = new Message();
         Sender sender = new Sender();
@@ -44,10 +49,33 @@ public class CaseSetConfigurationsTest {
 
         mes.setThread(threadM);
         mes.setSender(sender);
-        mes.setText("set bot button url localhost");
+        mes.setText("config buttonUrl localhost");
 
         req.setMessage(mes);
         String expectedResponse = "Updated url to localhost";
+        splitMsg = new ArrayList<>(Arrays.asList(req.getMessage().getText().split("\\s+")));
+        caseSetConfigurations.setSplitMsg(splitMsg);
+
+        assertThat(caseSetConfigurations.configurationController()).isEqualTo(expectedResponse);
+
+    }
+
+    @Test
+    public void listOfConfigurations() throws Exception {
+        Request req = new Request();
+        Message mes = new Message();
+        Sender sender = new Sender();
+        ThreadM threadM = new ThreadM();
+
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        sender.setName("MyName");
+
+        mes.setThread(threadM);
+        mes.setSender(sender);
+        mes.setText("config");
+
+        req.setMessage(mes);
+        String expectedResponse = "the configurations right now are: \n key                        value \n";
         splitMsg = new ArrayList<>(Arrays.asList(req.getMessage().getText().split("\\s+")));
         caseSetConfigurations.setSplitMsg(splitMsg);
 

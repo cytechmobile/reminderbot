@@ -8,7 +8,9 @@ import javax.persistence.*;
         @NamedQuery(name = "get.buttonUrl",
                 query = "SELECT t from Configurations t where t.key = 'buttonUrl'"),
         @NamedQuery(name = "set.buttonUrl",
-                query = "UPDATE Configurations t set t.value = :urlValue WHERE t.key LIKE :urlKey")
+                query = "UPDATE Configurations t set t.value = :urlValue WHERE t.key LIKE :urlKey"),
+        @NamedQuery(name = "get.allConfigurations",
+                query = "SELECT t from Configurations t")
 })
 public class Configurations {
     @Id

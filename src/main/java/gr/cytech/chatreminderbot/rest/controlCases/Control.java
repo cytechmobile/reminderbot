@@ -62,7 +62,7 @@ public class Control {
 
     private static final String KEYWORD_SHOW_VERSION = "version";
 
-    private static final String[] KEYWORD_SET_BUTTON_URL = {"set", "bot"};
+    private static final String KEYWORD_CONFIG = "config";
     //-- End of keyWords
 
     //-- Responses
@@ -134,8 +134,7 @@ public class Control {
             logger.info("---- Case Version -----");
             return caseShowVersion();
         }
-        if (splitMsg.size() == 5 && splitMsg.get(0).equals(KEYWORD_SET_BUTTON_URL[0])
-                && splitMsg.get(1).equals(KEYWORD_SET_BUTTON_URL[1])) {
+        if (splitMsg.get(0).equals(KEYWORD_CONFIG)) {
             logger.info("---- Case set Configurations ----");
             return caseSetConfigurations();
 
@@ -181,7 +180,9 @@ public class Control {
                 + "     `@" + BOT_NAME + "  version` \n"
                 + "6) change bot configurations like this. \n"
                 + "   a)For bot redirect url when clicking the button \n"
-                + "     `@" + BOT_NAME + " set bot button url urlToRedirect` \n";
+                + "     `@" + BOT_NAME + " config buttonUrl urlToRedirectUser` \n"
+                + "   b)For listing all configurations \n"
+                + "     `@" + BOT_NAME + " config` \n";
     }
 
     private String caseSetReminder() {
