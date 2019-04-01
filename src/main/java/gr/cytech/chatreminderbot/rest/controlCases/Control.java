@@ -33,6 +33,9 @@ public class Control {
     @Inject
     CaseShowVersion caseShowVersion;
 
+    @Inject
+    CaseSetConfigurations caseSetConfigurations;
+
     private Request request;
     private ArrayList<String> splitMsg;
 
@@ -58,6 +61,8 @@ public class Control {
     private static final String KEYWORD_SHOW_TIMEZONES = "timezones";
 
     private static final String KEYWORD_SHOW_VERSION = "version";
+
+    private static final String[] KEYWORD_SET_BUTTON_URL = {"set", "bot"};
     //-- End of keyWords
 
     //-- Responses
@@ -129,6 +134,12 @@ public class Control {
             logger.info("---- Case Version -----");
             return caseShowVersion();
         }
+        if (splitMsg.size() == 5 && splitMsg.get(0).equals(KEYWORD_SET_BUTTON_URL[0])
+                && splitMsg.get(1).equals(KEYWORD_SET_BUTTON_URL[1])) {
+            logger.info("---- Case set Configurations ----");
+            return caseSetConfigurations();
+
+        }
         ///------------Case Default -------------------
 
         logger.info("----Case default ---- ");
@@ -167,8 +178,10 @@ public class Control {
                 + "     `@" + BOT_NAME + " delete 323 ` \n"
                 + "5) Show current version of the bot \n \n"
                 + "   a)For each user, using a reminder version. \n"
-                + "     `@" + BOT_NAME + "  version` \n";
-
+                + "     `@" + BOT_NAME + "  version` \n"
+                + "6) change bot configurations like this. \n"
+                + "   a)For bot redirect url when clicking the button \n"
+                + "     `@" + BOT_NAME + " set bot button url urlToRedirect` \n";
     }
 
     private String caseSetReminder() {
@@ -197,6 +210,11 @@ public class Control {
 
     private String caseShowVersion() {
         return caseShowVersion.showVersion();
+    }
+
+    private String caseSetConfigurations() {
+        caseSetConfigurations.setSplitMsg(splitMsg);
+        return caseSetConfigurations.configurationController();
     }
 
     private String caseDeleteReminder() {

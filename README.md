@@ -47,4 +47,8 @@ a) For each user shows reminders that will notify him.
 5) Show current version of the bot                                  
     a) For each user, using a reminder version.  
         `@bot version`          
+6) change bot configurations like this      
+    a) For bot redirect url when clicking the button.      
+        `@bot set bot button url urlToRedirect`
+
  
