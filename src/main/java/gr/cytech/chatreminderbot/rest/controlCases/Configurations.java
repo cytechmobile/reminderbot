@@ -6,9 +6,7 @@ import javax.persistence.*;
 @Table(name = "configurations")
 @NamedQueries({
         @NamedQuery(name = "get.configurationByKey",
-                query = "SELECT t from Configurations t where t.key = :config"),
-        @NamedQuery(name = "update.configuration",
-                query = "UPDATE Configurations t set t.value = :urlValue WHERE t.key LIKE :urlKey"),
+                query = "SELECT t from Configurations t where t.key = :configKey"),
         @NamedQuery(name = "get.allConfigurations",
                 query = "SELECT t from Configurations t")
 })

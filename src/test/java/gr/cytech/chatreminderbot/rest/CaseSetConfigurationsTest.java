@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,10 +28,6 @@ public class CaseSetConfigurationsTest {
         caseSetConfigurations = new CaseSetConfigurations();
         caseSetConfigurations.entityManager = mock(EntityManager.class);
         TypedQuery query = mock(TypedQuery.class);
-        when(caseSetConfigurations.entityManager.createNamedQuery("update.configuration")).thenReturn(query);
-        when(query.setParameter(anyString(), anyString())).thenReturn(query);
-        when(caseSetConfigurations.entityManager
-                .createNamedQuery("get.configurationByKey", Configurations.class)).thenReturn(query);
         when(caseSetConfigurations.entityManager
                 .createNamedQuery("get.allConfigurations", Configurations.class)).thenReturn(query);
     }
