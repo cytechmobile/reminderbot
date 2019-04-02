@@ -75,7 +75,9 @@ public class CaseSetConfigurationsTest {
         mes.setText("config");
 
         req.setMessage(mes);
-        String expectedResponse = "the configurations right now are: \n key                        value \n";
+        // adding multiply whitespaces instead of just pressing space in the string
+        String multiplyWhiteSpaces = String.format("%-24s", " ");
+        String expectedResponse = "the configurations right now are: \n key" + multiplyWhiteSpaces + "value \n";
         splitMsg = new ArrayList<>(Arrays.asList(req.getMessage().getText().split("\\s+")));
         caseSetConfigurations.setSplitMsg(splitMsg);
 

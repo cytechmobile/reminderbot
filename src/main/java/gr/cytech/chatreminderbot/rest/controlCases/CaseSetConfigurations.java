@@ -52,7 +52,9 @@ public class CaseSetConfigurations {
     public String helpCommand() {
         List<Configurations> test = entityManager
                 .createNamedQuery("get.allConfigurations", Configurations.class).getResultList();
-        StringBuilder allConfigs = new StringBuilder("key                        value \n");
+        // adding multiply whitespaces instead of just pressing space in the string
+        String multiplyWhiteSpaces = String.format("%-24s", " ");
+        StringBuilder allConfigs = new StringBuilder("key" + multiplyWhiteSpaces + "value \n");
         for (Configurations k : test) {
             allConfigs.append(k.getKey()).append(" --> ").append(k.getValue()).append(" \n");
         }
