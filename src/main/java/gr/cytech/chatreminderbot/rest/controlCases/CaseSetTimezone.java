@@ -8,7 +8,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CaseSetTimezone {
@@ -18,7 +17,7 @@ public class CaseSetTimezone {
     public EntityManager entityManager;
 
     private Request request;
-    private ArrayList<String> splitMsg;
+    private List<String> splitMsg;
     private String keyWordMy;
     private String keyWordGlobal;
     private String response = "I didnt understand whose timezone to set, type help for instructions \n";
@@ -42,7 +41,7 @@ public class CaseSetTimezone {
         this.request = request;
     }
 
-    public void setSplitMsg(ArrayList<String> splitMsg) {
+    public void setSplitMsg(List<String> splitMsg) {
         this.splitMsg = splitMsg;
     }
 

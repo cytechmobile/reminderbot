@@ -48,8 +48,8 @@ a) For each user shows reminders that will notify him.
     a) For each user, using a reminder version.  
         `@bot version`          
 6) change bot configurations like this      
-    a) For bot redirect url when clicking the button.      
-        `@bot config buttonUrl urlToRedirect`         
+    a) For bot configurations.      
+        `@bot config set key value`         
     b) For listing all configurations           
         `@bot config`
 

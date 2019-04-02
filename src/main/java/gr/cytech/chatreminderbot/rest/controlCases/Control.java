@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Control {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
@@ -37,7 +38,7 @@ public class Control {
     CaseSetConfigurations caseSetConfigurations;
 
     private Request request;
-    private ArrayList<String> splitMsg;
+    private List<String> splitMsg;
 
     //--- Key Words
 
@@ -77,7 +78,7 @@ public class Control {
         return request;
     }
 
-    public ArrayList<String> getSplitMsg() {
+    public List<String> getSplitMsg() {
         return splitMsg;
     }
 
@@ -179,8 +180,8 @@ public class Control {
                 + "   a)For each user, using a reminder version. \n"
                 + "     `@" + BOT_NAME + "  version` \n"
                 + "6) change bot configurations like this. \n"
-                + "   a)For bot redirect url when clicking the button \n"
-                + "     `@" + BOT_NAME + " config buttonUrl urlToRedirectUser` \n"
+                + "   a)For bot configurations \n"
+                + "     `@" + BOT_NAME + " config set key value` \n"
                 + "   b)For listing all configurations \n"
                 + "     `@" + BOT_NAME + " config` \n";
     }
@@ -214,8 +215,7 @@ public class Control {
     }
 
     private String caseSetConfigurations() {
-        caseSetConfigurations.setSplitMsg(splitMsg);
-        return caseSetConfigurations.configurationController();
+        return caseSetConfigurations.configurationController(splitMsg);
     }
 
     private String caseDeleteReminder() {

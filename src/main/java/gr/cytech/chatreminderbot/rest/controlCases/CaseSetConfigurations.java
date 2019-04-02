@@ -3,50 +3,48 @@ package gr.cytech.chatreminderbot.rest.controlCases;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CaseSetConfigurations {
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
 
-    private ArrayList<String> splitMsg;
-
-    public void setSplitMsg(ArrayList<String> splitMsg) {
-        this.splitMsg = splitMsg;
-    }
+    private List<String> splitMsg;
 
     @Transactional
-    public String configurationController() {
+    public String configurationController(List<String> splitMsg) {
+        this.splitMsg = splitMsg;
         if (splitMsg.size() == 1) {
             return configCommand();
         }
 
-        if (splitMsg.get(1).equals("buttonUrl") && splitMsg.size() == 3) {
-            return caseSetBotUrl();
+        if (splitMsg.get(1).equals("set") && splitMsg.size() == 4) {
+            return caseSetConfiguration();
         }
         return errorMessage();
     }
 
-    public String caseSetBotUrl() {
-        Configurations newButtonUrl = new Configurations("buttonUrl", splitMsg.get(2));
-        entityManager.merge(newButtonUrl);
-        return "Updated url to " + splitMsg.get(2);
+    public String caseSetConfiguration() {
+        Configurations newConfiguration = new Configurations(splitMsg.get(2), splitMsg.get(3));
+        entityManager.merge(newConfiguration);
+        return "Updated configuration to " + newConfiguration.getValue() + " with key " + newConfiguration.getKey();
     }
 
     public String configCommand() {
-        List<Configurations> test = entityManager
+        List<Configurations> getAllConfigurations = entityManager
                 .createNamedQuery("get.allConfigurations", Configurations.class).getResultList();
         // adding multiply whitespaces instead of just pressing space in the string
         String multiplyWhiteSpaces = String.format("%-24s", " ");
         StringBuilder allConfigs = new StringBuilder("key" + multiplyWhiteSpaces + "value \n");
-        for (Configurations k : test) {
-            allConfigs.append(k.getKey()).append(" --> ").append(k.getValue()).append(" \n");
+        for (Configurations k : getAllConfigurations) {
+            allConfigs.append("<b>").append(k.getKey())
+                    .append("</b> ").append(" --> ").append(k.getValue()).append(" \n");
         }
         return "the configurations right now are: \n " + allConfigs;
     }
 
     public String errorMessage() {
-        return "no configuration for the specific name check config to see whats available";
+        return "use `config set key value` for adding a configuration in database "
+                + "or `config` to list the configurations";
     }
 }
