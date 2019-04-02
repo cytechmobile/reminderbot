@@ -5,9 +5,9 @@ import javax.persistence.*;
 @Entity
 @Table(name = "configurations")
 @NamedQueries({
-        @NamedQuery(name = "get.buttonUrl",
-                query = "SELECT t from Configurations t where t.key = 'buttonUrl'"),
-        @NamedQuery(name = "set.buttonUrl",
+        @NamedQuery(name = "get.configurationByKey",
+                query = "SELECT t from Configurations t where t.key = :config"),
+        @NamedQuery(name = "update.configuration",
                 query = "UPDATE Configurations t set t.value = :urlValue WHERE t.key LIKE :urlKey"),
         @NamedQuery(name = "get.allConfigurations",
                 query = "SELECT t from Configurations t")

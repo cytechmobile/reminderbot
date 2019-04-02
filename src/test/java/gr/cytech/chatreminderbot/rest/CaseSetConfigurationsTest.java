@@ -29,10 +29,10 @@ public class CaseSetConfigurationsTest {
         caseSetConfigurations = new CaseSetConfigurations();
         caseSetConfigurations.entityManager = mock(EntityManager.class);
         TypedQuery query = mock(TypedQuery.class);
-        when(caseSetConfigurations.entityManager.createNamedQuery("set.buttonUrl")).thenReturn(query);
+        when(caseSetConfigurations.entityManager.createNamedQuery("update.configuration")).thenReturn(query);
         when(query.setParameter(anyString(), anyString())).thenReturn(query);
         when(caseSetConfigurations.entityManager
-                .createNamedQuery("get.buttonUrl", Configurations.class)).thenReturn(query);
+                .createNamedQuery("get.configurationByKey", Configurations.class)).thenReturn(query);
         when(caseSetConfigurations.entityManager
                 .createNamedQuery("get.allConfigurations", Configurations.class)).thenReturn(query);
     }

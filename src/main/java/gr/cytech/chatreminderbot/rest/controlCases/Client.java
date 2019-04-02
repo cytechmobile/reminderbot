@@ -48,7 +48,7 @@ public class Client {
                 + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
-        Configurations singleResult = entityManager.createNamedQuery("get.buttonUrl", Configurations.class)
+        Configurations singleResult = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
                 .getSingleResult();
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
                 reminder.getWhat(), reminder.getSenderDisplayName(),
