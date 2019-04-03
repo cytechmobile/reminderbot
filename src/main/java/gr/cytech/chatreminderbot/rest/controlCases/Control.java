@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Control {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
@@ -33,8 +34,11 @@ public class Control {
     @Inject
     CaseShowVersion caseShowVersion;
 
+    @Inject
+    CaseSetConfigurations caseSetConfigurations;
+
     private Request request;
-    private ArrayList<String> splitMsg;
+    private List<String> splitMsg;
 
     //--- Key Words
 
@@ -58,6 +62,8 @@ public class Control {
     private static final String KEYWORD_SHOW_TIMEZONES = "timezones";
 
     private static final String KEYWORD_SHOW_VERSION = "version";
+
+    private static final String KEYWORD_CONFIG = "config";
     //-- End of keyWords
 
     //-- Responses
@@ -72,7 +78,7 @@ public class Control {
         return request;
     }
 
-    public ArrayList<String> getSplitMsg() {
+    public List<String> getSplitMsg() {
         return splitMsg;
     }
 
@@ -129,6 +135,11 @@ public class Control {
             logger.info("---- Case Version -----");
             return caseShowVersion();
         }
+        if (splitMsg.get(0).equals(KEYWORD_CONFIG)) {
+            logger.info("---- Case set Configurations ----");
+            return caseSetConfigurations();
+
+        }
         ///------------Case Default -------------------
 
         logger.info("----Case default ---- ");
@@ -167,8 +178,12 @@ public class Control {
                 + "     `@" + BOT_NAME + " delete 323 ` \n"
                 + "5) Show current version of the bot \n \n"
                 + "   a)For each user, using a reminder version. \n"
-                + "     `@" + BOT_NAME + "  version` \n";
-
+                + "     `@" + BOT_NAME + "  version` \n"
+                + "6) change bot configurations like this. \n \n"
+                + "   a)For bot configurations \n"
+                + "     `@" + BOT_NAME + " config set key value` \n"
+                + "   b)For listing all configurations \n"
+                + "     `@" + BOT_NAME + " config` \n";
     }
 
     private String caseSetReminder() {
@@ -197,6 +212,10 @@ public class Control {
 
     private String caseShowVersion() {
         return caseShowVersion.showVersion();
+    }
+
+    private String caseSetConfigurations() {
+        return caseSetConfigurations.configurationController(splitMsg);
     }
 
     private String caseDeleteReminder() {

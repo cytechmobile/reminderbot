@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CaseDeleteReminder {
@@ -18,7 +17,7 @@ public class CaseDeleteReminder {
 
     private Request request;
 
-    private ArrayList<String> splitMsg;
+    private List<String> splitMsg;
 
     public CaseDeleteReminder() {
     }
@@ -31,7 +30,7 @@ public class CaseDeleteReminder {
         this.request = request;
     }
 
-    public void setSplitMsg(ArrayList<String> splitMsg) {
+    public void setSplitMsg(List<String> splitMsg) {
         this.splitMsg = splitMsg;
     }
 

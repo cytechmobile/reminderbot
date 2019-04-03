@@ -12,7 +12,7 @@
 		a) Bot name  
 		b) Path of the private key	  
 		c) Credentials for the connection with database     
-		d) Add production url to database configuration with key buttonUrl and value your production url so you can redirect user when he clicks the button 
+		d) Add production url to database configuration with key buttonUrl and value your production url so you can redirect user when he clicks the button also you can set that from google chat see help 6
 ## How to use it.  
   The current functionality that this bot supports after you invite it is the following:
 1)  Set a reminder  
@@ -47,4 +47,10 @@ a) For each user shows reminders that will notify him.
 5) Show current version of the bot                                  
     a) For each user, using a reminder version.  
         `@bot version`          
+6) change bot configurations like this      
+    a) For bot configurations.      
+        `@bot config set key value`         
+    b) For listing all configurations           
+        `@bot config`
+
  
