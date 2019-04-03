@@ -49,7 +49,6 @@ public class Client {
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
         Configurations singleResult = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
-                .setParameter("configKey","buttonUrl")
                 .getSingleResult();
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
                 reminder.getWhat(), reminder.getSenderDisplayName(),
