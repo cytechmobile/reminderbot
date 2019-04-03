@@ -12,21 +12,21 @@ import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ClientTest {
     private static final Logger logger = LoggerFactory.getLogger(ClientTest.class);
 
     private Client client;
-
+    private TypedQuery query;
     @BeforeEach
     public final void beforeEach() throws Exception {
         client = new Client();
         client.entityManager = mock(EntityManager.class);
 
-        TypedQuery query = mock(TypedQuery.class);
+        query = mock(TypedQuery.class);
         when(client.entityManager.createNamedQuery("get.configurationByKey", Configurations.class)).thenReturn(query);
+        when(query.setParameter("configKey","buttonUrl")).thenReturn(query);
         when(query.getSingleResult()).thenReturn(new Configurations("default","localhost"));
 
     }
@@ -49,6 +49,8 @@ public class ClientTest {
         client.requestFactory = transport.createRequestFactory();
 
         String result = client.sendAsyncResponse(reminder);
+
+        verify(query, times(1)).setParameter("configKey","buttonUrl");
 
         assertThat(result).as("unexpected result returned").isEqualTo("ok");
 
