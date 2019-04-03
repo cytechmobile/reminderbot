@@ -41,6 +41,7 @@ public class CaseSetConfigurationsTest {
 
         assertThat(caseSetConfigurations.configurationController(splitMsg)).isEqualTo(expectedResponse);
         ArgumentCaptor<Configurations> argumentCaptor = ArgumentCaptor.forClass(Configurations.class);
+        //verify that merge has executed exactly 1 time
         verify(caseSetConfigurations.entityManager, times(1)).merge(argumentCaptor.capture());
         List<Configurations> captureConfigurations = argumentCaptor.getAllValues();
 
@@ -51,20 +52,22 @@ public class CaseSetConfigurationsTest {
 
     @Test
     public void listOfConfigurations() throws Exception {
-
         String message = "config";
 
         // adding multiply whitespaces instead of just pressing space in the string
         String multiplyWhiteSpaces = String.format("%-24s", " ");
-        String expectedResponse = "the configurations right now are: \n";
+
+        //mocked query to get key/value
         Configurations resultList = caseSetConfigurations.entityManager
                 .createNamedQuery("get.allConfigurations", Configurations.class).getSingleResult();
 
         splitMsg = new ArrayList<>(Arrays.asList(message.split("\\s+")));
 
+        String expectedResponse = "the configurations right now are: \n" + " key" + multiplyWhiteSpaces
+                + "value \n" + "<b>" + resultList.getKey()
+                + "</b> " + " --> " + resultList.getValue() + " \n";
+
         assertThat(caseSetConfigurations.configurationController(splitMsg))
-                .isEqualTo(expectedResponse + " key" + multiplyWhiteSpaces
-                        + "value \n" + "<b>" + resultList.getKey()
-                        + "</b> " + " --> " + resultList.getValue() + " \n");
+                .isEqualTo(expectedResponse);
     }
 }

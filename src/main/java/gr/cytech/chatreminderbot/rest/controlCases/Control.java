@@ -179,7 +179,7 @@ public class Control {
                 + "5) Show current version of the bot \n \n"
                 + "   a)For each user, using a reminder version. \n"
                 + "     `@" + BOT_NAME + "  version` \n"
-                + "6) change bot configurations like this. \n"
+                + "6) change bot configurations like this. \n \n"
                 + "   a)For bot configurations \n"
                 + "     `@" + BOT_NAME + " config set key value` \n"
                 + "   b)For listing all configurations \n"
