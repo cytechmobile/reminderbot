@@ -19,6 +19,7 @@ public class ClientTest {
 
     private Client client;
     private TypedQuery query;
+
     @BeforeEach
     public final void beforeEach() throws Exception {
         client = new Client();
