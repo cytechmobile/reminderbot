@@ -1,0 +1,1 @@
+ALTER TABLE configurations ALTER COLUMN value TYPE TEXT;

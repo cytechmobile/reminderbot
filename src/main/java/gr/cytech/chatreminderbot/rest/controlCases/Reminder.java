@@ -97,6 +97,30 @@ public class Reminder {
         this.reminderId = reminderId;
     }
 
+    public void setWhat(String what) {
+        this.what = what;
+    }
+
+    public void setWhen(ZonedDateTime when) {
+        this.when = when;
+    }
+
+    public void setSenderDisplayName(String senderDisplayName) {
+        this.senderDisplayName = senderDisplayName;
+    }
+
+    public void setSpaceId(String spaceId) {
+        this.spaceId = spaceId;
+    }
+
+    public void setThreadId(String threadId) {
+        this.threadId = threadId;
+    }
+
+    public void setReminderTimezone(String reminderTimezone) {
+        this.reminderTimezone = reminderTimezone;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

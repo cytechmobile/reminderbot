@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.controlCases.CaseSetReminder;
-import gr.cytech.chatreminderbot.rest.controlCases.Control;
 import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
@@ -40,24 +39,20 @@ class ControlIT {
         String expectedWhen = "12/12/2019 12:00";
         String expectedDate = expectedWhen + " athens";
         String spaceId = "SPACE_ID";
+        String threadId = "THREAD_ID";
         String what = "something to do";
 
         mes.setText("remind me '" + what + "' at " + expectedDate);
         req.setMessage(mes);
-        Control control = new Control();
-        control.setRequest(req);
 
         CaseSetReminder caseSetReminder = new CaseSetReminder();
-        caseSetReminder.setRequest(req);
-        caseSetReminder.setBotName("reminder");
-
+        final String timezone = "Europe/Athens";
         //In order to use calculateRemainingTime need to define: timezone, when
-        caseSetReminder.setWhen(expectedWhen);
-        caseSetReminder.setTimeZone("Europe/Athens");
 
         String successMsg = "Reminder with text:\n <b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
-                + caseSetReminder.calculateRemainingTime(caseSetReminder.dateForm()) + "</b>";
+                + caseSetReminder.calculateRemainingTime(
+                        caseSetReminder.dateForm(expectedWhen, timezone), timezone) + "</b>";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
@@ -108,7 +103,7 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
 
-        mes.setText("@reminder set global timezone to athens");
+        mes.setText("set global timezone to athens");
         req.setMessage(mes);
 
         String expectedResponse = "You successfully set the global timezone at:Europe/Athens";
@@ -136,7 +131,7 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
 
-        mes.setText("@reminder remind me 'can't save that'at 17/01/2020 13:12");
+        mes.setText("remind me 'can't save that'at 17/01/2020 13:12");
         req.setMessage(mes);
 
         String expectedResponse = "Use  quotation marks  `'` only two times. "
@@ -164,7 +159,7 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
 
-        mes.setText("@reminder set my timezone to athens");
+        mes.setText("set my timezone to athens");
         req.setMessage(mes);
 
         String expectedResponse = " <"
@@ -193,7 +188,7 @@ class ControlIT {
         mes.setThread(threadM);
         mes.setSender(sender);
 
-        mes.setText("@reminder version");
+        mes.setText("version");
         req.setMessage(mes);
 
         final Properties properties = new Properties();
@@ -222,7 +217,7 @@ class ControlIT {
         Request req2 = new Request();
         mes2.setThread(threadM);
         mes2.setSender(sender);
-        mes2.setText("@reminder set my timezone to athens");
+        mes2.setText("set my timezone to athens");
         req2.setMessage(mes2);
 
         String expectedResponse = "---- Your timezone is  ---- \n"
@@ -245,7 +240,7 @@ class ControlIT {
         Message mes = new Message();
         mes.setThread(threadM);
         mes.setSender(sender);
-        mes.setText("@reminder timezones");
+        mes.setText("timezones");
         req.setMessage(mes);
 
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")

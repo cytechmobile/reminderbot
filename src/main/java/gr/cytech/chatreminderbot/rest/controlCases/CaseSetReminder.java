@@ -1,5 +1,6 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import com.google.common.base.Strings;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class CaseSetReminder {
@@ -30,110 +31,36 @@ public class CaseSetReminder {
     @Inject
     CaseSetTimezone caseSetTimezone;
 
-    @Inject
-    public Client client;
-
-    private String botName;
-
-    private String timeZone;
-
-    private String who;
-
-    private String when;
-
-    private String what;
-
-    private Request request;
-
-    private String spaceId;
-
-    private String threadId;
-
-    private ArrayList<String> splitMsg;
-
-    private ArrayList<String> whoPart;
-
-    private ZonedDateTime inputDate;
-
-    public void setBotName(String botName) {
-        this.botName = botName;
-    }
-
-    public String getTimeZone() {
-        return timeZone;
-    }
-
-    public void setTimeZone(String timeZone) {
-        this.timeZone = timeZone;
-    }
-
-    public String getWho() {
-        return who;
-    }
-
-    public void setWho(String who) {
-        this.who = who;
-    }
-
-    public String getWhen() {
-        return when;
-    }
-
-    public void setWhen(String when) {
-        this.when = when;
-    }
-
-    public String getWhat() {
-        return what;
-    }
-
-    public void setWhat(String what) {
-        this.what = what;
-    }
-
-    public Request getRequest() {
-        return request;
-    }
-
-    public void setRequest(Request request) {
-        this.request = request;
-        spaceId = request.getMessage().getThread().getSpaceId();
-        threadId = request.getMessage().getThread().getThreadId();
-    }
-
-    public void setInputDate(ZonedDateTime inputDate) {
-        this.inputDate = inputDate;
-    }
+    protected Client client;
 
     @Transactional
-    public String setReminder() {
+    public String setRequestForReminder(Request request) {
+        Reminder reminder = new Reminder();
+        reminder.setSpaceId(request.getMessage().getThread().getSpaceId());
+        reminder.setThreadId(request.getMessage().getThread().getThreadId());
 
-        if (!checkRemindMessageFormat().equals("")) {
-            return checkRemindMessageFormat();
+        List<String> splitMsg = List.of(request.getMessage().getText().split("\'"));
+        List<String> whoPart = new ArrayList<>(List.of(splitMsg.get(0).split("\\s+")));
+
+        String errorResult = checkRemindMessageFormat(splitMsg, whoPart);
+        if (!Strings.isNullOrEmpty(errorResult)) {
+            return errorResult;
         }
 
-        setInfosForRemind();
-
-        if (!(isValidFormatDate(when))) {
-            return "Wrong date or Timezone format.\n"
-                    + " DateFormat must be: dd/MM/yyyy HH:mm . \n"
-                    + " For a timezone format you can also use GMT";
-        }
-
+        setInfosForRemind(request, reminder, splitMsg, whoPart);
         //pass from string to ZoneDateTime
-        setInputDate(dateForm());
         //Check if date has passed
-        if (inputDate.isBefore(ZonedDateTime.now(ZoneId.of(getTimeZone())))) {
+
+        if (reminder.getWhen().isBefore(ZonedDateTime.now(ZoneId.of(reminder.getReminderTimezone())))) {
             return "This date has passed "
-                    + inputDate + ". Check your timezone or insert in the current reminder";
+                    + reminder.getWhen() + ". Check your timezone or insert in the current reminder";
         }
 
-        Reminder reminder = new Reminder(what, inputDate, who, timeZone, spaceId, threadId);
         saveAndSetReminder(reminder);
 
-        return "Reminder with text:\n <b>" + what + "</b>.\n"
+        return "Reminder with text:\n <b>" + reminder.getWhat() + "</b>.\n"
                 + "Saved successfully and will notify you in: \n<b>"
-                + calculateRemainingTime(inputDate) + "</b>";
+                + calculateRemainingTime(reminder.getWhen(), reminder.getReminderTimezone()) + "</b>";
     }
 
     /*
@@ -154,12 +81,7 @@ public class CaseSetReminder {
      *   get it from global settings
      * */
 
-    public void setInfosForRemind() {
-
-        //what: Something to do
-        setWhat(splitMsg.get(1));
-        logger.info("set what: {}", what);
-
+    public String findDateParts(Request request, Reminder reminder, List<String> splitMsg) {
         //dateParts: at 16/03/2019 15:05 athens
         String[] dateParts = splitMsg.get(2).split("\\s+");
         String when = "";
@@ -171,33 +93,50 @@ public class CaseSetReminder {
                     TimeZone timeZoneFinder = new TimeZone();
                     String zone = timeZoneFinder.findTimeZones(dateParts[i + 3]);
                     if (zone != null) {
-                        setTimeZone(zone);
-                        logger.info("SET timeZone became: {}", zone);
+                        reminder.setReminderTimezone(zone);
+                        logger.info("SET timeZone became: {}", reminder.getReminderTimezone());
                     } else {
                         when += "Make fail date format.";
                     }
                 } else {
                     String userTimezone = caseSetTimezone.getGivenTimeZone(request.getMessage().getSender().getName());
                     if (!(userTimezone.equals(""))) {
-                        logger.info("User timeZone found: {}", userTimezone);
-                        setTimeZone(userTimezone);
+                        logger.info("User timeZone found: {}", reminder.getReminderTimezone());
+                        reminder.setReminderTimezone(userTimezone);
                     } else {
                         logger.info("Global timeZone");
-                        setTimeZone(caseSetTimezone.getGivenTimeZone("default"));
+                        reminder.setReminderTimezone(caseSetTimezone.getGivenTimeZone("default"));
                     }
                 }
             }
         }
-        setWhen(when);
-        logger.info("set when: {}", when);
+
+        if (!(isValidFormatDate(when))) {
+            return "Wrong date or Timezone format.\n"
+                    + " DateFormat must be: dd/MM/yyyy HH:mm . \n"
+                    + " For a timezone format you can also use GMT";
+        }
+
+        return when;
+    }
+
+    public Reminder setInfosForRemind(Request request, Reminder reminder,
+                                      List<String> splitMsg, List<String> whoPart) {
+        //what: Something to do
+        reminder.setWhat(splitMsg.get(1));
+        logger.info("set what: {}", reminder.getWhat());
+
+        reminder.setWhen(dateForm(findDateParts(request, reminder, splitMsg), reminder.getReminderTimezone()));
+
+        logger.info("set when: {}", reminder.getWhen());
 
         if (whoPart.get(0).equals("remind")) {
             // 1) me
             if (whoPart.get(1).equals("me")) {
                 //  ---- takes the ID of the sender ---
-                setWho(request.getMessage().getSender().getName());
+                reminder.setSenderDisplayName(request.getMessage().getSender().getName());
             } else if (whoPart.get(1).equals("@all")) {
-                setWho("users/all");
+                reminder.setSenderDisplayName("users/all");
             } else {
                 String displayName;
                 if (whoPart.get(1).startsWith("#")) {
@@ -216,10 +155,13 @@ public class CaseSetReminder {
                         }
                     }
                 }
-                setWho(findIdUserName(displayName, request.getMessage().getThread().getSpaceId()));
+                reminder.setSenderDisplayName(findIdUserName(displayName,
+                        request.getMessage().getThread().getSpaceId()));
             }
         }
-        logger.info("set who: {}", who);
+        logger.info("set who: {}", reminder.getSenderDisplayName());
+
+        return reminder;
 
     }
 
@@ -227,26 +169,26 @@ public class CaseSetReminder {
         entityManager.persist(reminder);
         //if there is no next reminder, sets this as next
         if (timerSessionBean.getNextReminderDate() == null) {
-            logger.info("set NEW reminder to : {}", inputDate);
-            timerSessionBean.setNextReminder(reminder, inputDate);
+            logger.info("set NEW reminder to : {}", reminder.getWhen());
+            timerSessionBean.setNextReminder(reminder, reminder.getWhen());
         } else {
         //ELSE  if the new reminder is before the nextReminder,
         // changes as next reminder this
 
-            if (inputDate.isBefore(timerSessionBean.getNextReminderDate())) {
-                logger.info("CHANGE next reminder to: {}", inputDate);
-                timerSessionBean.setNextReminder(reminder, inputDate);
+            if (reminder.getWhen().isBefore(timerSessionBean.getNextReminderDate())) {
+                logger.info("CHANGE next reminder to: {}", reminder.getWhen());
+                timerSessionBean.setNextReminder(reminder, reminder.getWhen());
             }
         }
     }
 
     //Returns date from string, based on dd/MM/yyyy HH:mm format,
     //Is called after we ensure this is the current format
-    public ZonedDateTime dateForm() {
+    public ZonedDateTime dateForm(String when, String timezone) {
         String format = "dd/MM/yyyy HH:mm";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
 
-        return ZonedDateTime.parse(when, formatter.withZone(ZoneId.of(getTimeZone())));
+        return ZonedDateTime.parse(when, formatter.withZone(ZoneId.of(timezone)));
     }
 
     //Check if given date in string is in valid format
@@ -277,8 +219,8 @@ public class CaseSetReminder {
     }
 
     //Returns the reminding time after setting a reminder
-    public String calculateRemainingTime(ZonedDateTime inputDate) {
-        ZonedDateTime fromDateTime = ZonedDateTime.now(ZoneId.of(getTimeZone()));
+    public String calculateRemainingTime(ZonedDateTime inputDate, String timezone) {
+        ZonedDateTime fromDateTime = ZonedDateTime.now(ZoneId.of(timezone));
 
         ZonedDateTime tempDateTime = ZonedDateTime.from(fromDateTime);
 
@@ -321,15 +263,22 @@ public class CaseSetReminder {
      * @return user/id if not found given displayName
      * */
     public String findIdUserName(String displayName, String spaceId) {
+        if (client == null) {
+            client = Client.newClient(entityManager);
+        }
         Map<String, String> users = client.getListOfMembersInRoom(spaceId);
         //if displayName not found then just save the name as it is
         return users.getOrDefault(displayName, displayName);
     }
 
-    public String checkRemindMessageFormat() {
-        splitMsg = new ArrayList<>(Arrays.asList(request.getMessage().getText().split("\'")));
+    public String checkRemindMessageFormat(List<String> splitMsg, List<String> whoPart) {
+        String botName = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
+                .setParameter("configKey", "BOT_NAME")
+                .getSingleResult().getValue();
 
-        removingBotName();
+        if (whoPart.get(0).equals("@" + botName)) {
+            whoPart.remove(0);
+        }
 
         if (splitMsg.get(1).length() >= 255) {
             return "Part what can not be more than 255 chars.";
@@ -344,13 +293,6 @@ public class CaseSetReminder {
         }
 
         return "";
-    }
-
-    private void removingBotName() {
-        whoPart = new ArrayList<>(Arrays.asList(splitMsg.get(0).split("\\s+")));
-        if (whoPart.get(0).equals("@" + botName)) {
-            whoPart.remove(0);
-        }
     }
 
 }
