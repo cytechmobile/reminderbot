@@ -1,27 +1,33 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.*;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
+import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
+    private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
 
-    @PersistenceContext(name = "wa")
     public EntityManager entityManager;
-
-    @Inject
-    protected HttpRequestFactory requestFactory;
+    protected static GoogleCredential credential;
+    protected static HttpTransport httpTransport;
+    protected static HttpRequestFactory requestFactory;
 
     public String cardCreation(String spaceId, String threadId, String what,
                                String senderName, String timezone, String url) {
@@ -38,6 +44,14 @@ public class Client {
                 .build();
     }
 
+    public Client() {
+    }
+
+    public Client(EntityManager entityManager, HttpRequestFactory requestFactory) {
+        this.entityManager = entityManager;
+        Client.requestFactory = requestFactory;
+    }
+
     public String sendAsyncResponse(Reminder reminder) {
         //URL request - responses to current thread
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + reminder.getSpaceId() + "/messages");
@@ -48,13 +62,13 @@ public class Client {
                 + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
-        Configurations singleResult = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
+        String buttonUrl = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
                 .setParameter("configKey","buttonUrl")
-                .getSingleResult();
+                .getSingleResult().getValue();
 
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
                 reminder.getWhat(), reminder.getSenderDisplayName(),
-                reminder.getReminderTimezone(), singleResult.getValue());
+                reminder.getReminderTimezone(), buttonUrl);
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
@@ -82,10 +96,10 @@ public class Client {
         String emptyBodyMessage = "";
         //key=displayName Value:user/id
         Map<String, String> users = new HashMap<>();
-        String[] splited = send(url, emptyBodyMessage, "GET").split("\"");
-        for (int i = 0; i < splited.length; i++) {
-            if (splited[i].equals("displayName")) {
-                users.put(splited[i + 2], splited[i - 2]);
+        String[] split = send(url, emptyBodyMessage, "GET").split("\"");
+        for (int i = 0; i < split.length; i++) {
+            if (split[i].equals("displayName")) {
+                users.put(split[i + 2], split[i - 2]);
             }
         }
         return users;
@@ -114,9 +128,9 @@ public class Client {
         HttpRequest request;
         try {
             if (httpMethod.equals("POST")) {
-                request = requestFactory.buildPostRequest(url, content);
+                request = getHttpRequestFactory().buildPostRequest(url, content);
             } else {
-                request = requestFactory.buildGetRequest(url);
+                request = getHttpRequestFactory().buildGetRequest(url);
             }
         } catch (Exception e) {
             logger.error("Error creating request using url: {}", url, e);
@@ -134,4 +148,62 @@ public class Client {
         return response;
     }
 
+    public static Client newClient(EntityManager entityManager) {
+        return new Client(entityManager, requestFactory);
+    }
+
+    public String googlePrivateKey() {
+        Configurations getGooglePrivateKey = entityManager
+                .createNamedQuery("get.configurationByKey", Configurations.class)
+                .setParameter("configKey", "googlePrivateKey")
+                .getSingleResult();
+        if (!getGooglePrivateKey.getKey().equals("")) {
+            return getGooglePrivateKey.getValue();
+        } else {
+            Configurations configurations = new Configurations("googlePrivateKey", "");
+            entityManager.persist(configurations);
+            return configurations.getValue();
+        }
+    }
+
+    @Produces
+    protected GoogleCredential getCredential() {
+        if (credential == null) {
+            String keyFilePath = googlePrivateKey();
+            try {
+                InputStream inputStream = new ByteArrayInputStream(keyFilePath.getBytes(StandardCharsets.UTF_8));
+                credential = GoogleCredential
+                        .fromStream(inputStream)
+                        .createScoped(SCOPE);
+            } catch (IOException e) {
+                logger.error("Error creating GoogleCredential using key file:{}", keyFilePath, e);
+            }
+        }
+
+        return credential;
+    }
+
+    @Produces
+    public HttpRequestFactory getHttpRequestFactory() {
+        if (requestFactory == null) {
+            requestFactory = getHttpTransport().createRequestFactory(getCredential());
+        }
+        return requestFactory;
+    }
+
+    @Produces
+    protected HttpTransport getHttpTransport() {
+        if (httpTransport != null) {
+            return httpTransport;
+        }
+        try {
+            httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        } catch (GeneralSecurityException e) {
+            logger.error("Error -GeneralSecurityException- creating httpTransport ", e);
+        } catch (IOException e) {
+            logger.error("Error -IOException- creating httpTransport ", e);
+        }
+
+        return httpTransport;
+    }
 }

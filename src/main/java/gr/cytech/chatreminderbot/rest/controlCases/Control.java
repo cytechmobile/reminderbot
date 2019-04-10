@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,9 +15,10 @@ import java.util.List;
 public class Control {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
 
-    private static final String BOT_NAME_ENV = "BOT_NAME";
-    private static final String BOT_NAME = System.getProperty(BOT_NAME_ENV, System.getenv()
-                    .getOrDefault(BOT_NAME_ENV, "reminder"));
+    @PersistenceContext(name = "wa")
+    public EntityManager entityManager;
+
+    private String botName = "";
 
     @Inject
     CaseDeleteReminder caseDeleteReminder;
@@ -84,10 +88,18 @@ public class Control {
 
     public void setRequest(Request request) {
         this.request = request;
+        try {
+            botName = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
+                    .setParameter("configKey", "BOT_NAME")
+                    .getSingleResult().getValue();
+        } catch (NoResultException e) {
+            logger.warn("no result found with key BOT_NAME please consider change it");
+            botName = "CHANGE-ME";
+        }
 
         splitMsg = new ArrayList<>(Arrays.asList(request.getMessage().getText().split("\\s+")));
 
-        if (!splitMsg.isEmpty() && splitMsg.get(0).equals("@" + BOT_NAME)) {
+        if (!splitMsg.isEmpty() && splitMsg.get(0).equals("@" + botName)) {
             splitMsg.remove(0);
         }
     }
@@ -136,7 +148,7 @@ public class Control {
             return caseShowVersion();
         }
         if (splitMsg.get(0).equals(KEYWORD_CONFIG)) {
-            logger.info("---- Case set Configurations ----");
+            logger.info("---- Case Configurations ----");
             return caseSetConfigurations();
 
         }
@@ -153,43 +165,41 @@ public class Control {
         return "\n ----- Instructions using the reminder bot -----  \n \n"
                 + "1)  Set a reminder  \n \n"
                 + "    a) For you   \n"
-                + "     `@" + BOT_NAME + " remind me 'what' at 16/03/2020 16:33`  \n"
+                + "     `@" + botName + " remind me 'what' at 16/03/2020 16:33`  \n"
                 + "    b) For anyone in the current room   \n"
-                + "     `@" + BOT_NAME + " remind @George Papakis 'what' at 16/03/2020 16:33`  \n"
+                + "     `@" + botName + " remind @George Papakis 'what' at 16/03/2020 16:33`  \n"
                 + "    c) All in any the current room  \n"
-                + "     `@" + BOT_NAME + " @all 'what' at 16/03/2020 16:33`  \n"
+                + "     `@" + botName + " @all 'what' at 16/03/2020 16:33`  \n"
                 + "    d) All in any other room that bot is invited    \n"
-                + "     `@" + BOT_NAME + " remind #roomName 'what' at 16/03/2019 16:33` \n \n"
+                + "     `@" + botName + " remind #roomName 'what' at 16/03/2019 16:33` \n \n"
                 + "2) Set timezone  \n \n"
                 + "    a) For each reminder   \n"
-                + "     `@" + BOT_NAME + " remind me 'what' at 16/03/2020 16:33 Athens `  \n"
+                + "     `@" + botName + " remind me 'what' at 16/03/2020 16:33 Athens `  \n"
                 + "    b) If previews omitted set timezone for each user in every reminder he sets  \n"
-                + "     `@" + BOT_NAME + " set my timezone to athens`  \n"
+                + "     `@" + botName + " set my timezone to athens`  \n"
                 + "    c) If previews omitted set timezone for every user in the current domain  \n"
-                + "     `@" + BOT_NAME + " set global timezone to Paris`  \n"
+                + "     `@" + botName + " set global timezone to Paris`  \n"
                 + "    d) By default it uses GMT \n \n"
                 + "3) Show my reminders  \n \n"
                 + "    a) For each user shows reminders that will notify him.  \n"
-                + "     `@" + BOT_NAME + " list` \n"
+                + "     `@" + botName + " list` \n"
                 + "      Example:\n"
                 + "     `1) ID:23 what:' Something to do ' When: 23/01/2020 18:20 Europe/Athens` \n \n  "
                 + "4) Delete a reminder  \n \n"
                 + "    a) For each user, using a reminders id.  \n"
-                + "     `@" + BOT_NAME + " delete 323 ` \n"
+                + "     `@" + botName + " delete 323 ` \n"
                 + "5) Show current version of the bot \n \n"
                 + "   a)For each user, using a reminder version. \n"
-                + "     `@" + BOT_NAME + "  version` \n"
+                + "     `@" + botName + "  version` \n"
                 + "6) change bot configurations like this. \n \n"
                 + "   a)For bot configurations \n"
-                + "     `@" + BOT_NAME + " config set key value` \n"
+                + "     `@" + botName + " config set key value` \n"
                 + "   b)For listing all configurations \n"
-                + "     `@" + BOT_NAME + " config` \n";
+                + "     `@" + botName + " config` \n";
     }
 
     private String caseSetReminder() {
-        caseSetReminder.setRequest(request);
-        caseSetReminder.setBotName(BOT_NAME);
-        return caseSetReminder.setReminder();
+        return caseSetReminder.setRequestForReminder(request);
     }
 
     private String caseSetTimezone() {
