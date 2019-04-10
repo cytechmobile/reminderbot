@@ -1,11 +1,16 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.List;
 
 public class CaseSetConfigurations {
+    private static final Logger logger = LoggerFactory.getLogger(Control.class);
+
     @PersistenceContext(name = "wa")
     public EntityManager entityManager;
 
@@ -17,15 +22,22 @@ public class CaseSetConfigurations {
         if (splitMsg.size() == 1) {
             return configCommand();
         }
-
-        if (splitMsg.get(1).equals("set") && splitMsg.size() == 4) {
+        if (splitMsg.get(1).equals("set")) {
             return caseSetConfiguration();
         }
         return errorMessage();
     }
 
     public String caseSetConfiguration() {
-        Configurations newConfiguration = new Configurations(splitMsg.get(2), splitMsg.get(3));
+        StringBuilder valueForConfigurations = new StringBuilder();
+        for (int i = 0; i < splitMsg.size(); i++) {
+            if (i >= 3) {
+                valueForConfigurations.append(splitMsg.get(i)).append(" ");
+            }
+        }
+        valueForConfigurations.deleteCharAt(valueForConfigurations.length() - 1);
+        logger.info("the updated String is {}", valueForConfigurations);
+        Configurations newConfiguration = new Configurations(splitMsg.get(2), valueForConfigurations.toString());
         entityManager.merge(newConfiguration);
         return "Updated configuration to " + newConfiguration.getValue() + " with key " + newConfiguration.getKey();
     }

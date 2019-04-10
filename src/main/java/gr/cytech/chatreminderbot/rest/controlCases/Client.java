@@ -1,26 +1,29 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.*;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
+    private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
 
-    @PersistenceContext(name = "wa")
     public EntityManager entityManager;
-
-    @Inject
     protected HttpRequestFactory requestFactory;
 
     public String cardCreation(String spaceId, String threadId, String what,
@@ -38,6 +41,14 @@ public class Client {
                 .build();
     }
 
+    public Client() {
+    }
+
+    public Client(EntityManager entityManager, HttpRequestFactory requestFactory) {
+        this.entityManager = entityManager;
+        this.requestFactory = requestFactory;
+    }
+
     public String sendAsyncResponse(Reminder reminder) {
         //URL request - responses to current thread
         URI uri = URI.create("https://chat.googleapis.com/v1/spaces/" + reminder.getSpaceId() + "/messages");
@@ -48,13 +59,13 @@ public class Client {
                 + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
-        Configurations singleResult = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
-                .setParameter("configKey","buttonUrl")
-                .getSingleResult();
+        String buttonUrl = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
+                .setParameter("configKey", "buttonUrl")
+                .getSingleResult().getValue();
 
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
                 reminder.getWhat(), reminder.getSenderDisplayName(),
-                reminder.getReminderTimezone(), singleResult.getValue());
+                reminder.getReminderTimezone(), buttonUrl);
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
@@ -69,7 +80,7 @@ public class Client {
             GenericUrl url2 = new GenericUrl(uri2);
             return send(url2, messageToRoom, "POST");
         } else {
-            return send(url,message,"POST") + send(url, cardResponse, "POST");
+            return send(url, message, "POST") + send(url, cardResponse, "POST");
         }
 
     }
@@ -82,10 +93,10 @@ public class Client {
         String emptyBodyMessage = "";
         //key=displayName Value:user/id
         Map<String, String> users = new HashMap<>();
-        String[] splited = send(url, emptyBodyMessage, "GET").split("\"");
-        for (int i = 0; i < splited.length; i++) {
-            if (splited[i].equals("displayName")) {
-                users.put(splited[i + 2], splited[i - 2]);
+        String[] split = send(url, emptyBodyMessage, "GET").split("\"");
+        for (int i = 0; i < split.length; i++) {
+            if (split[i].equals("displayName")) {
+                users.put(split[i + 2], split[i - 2]);
             }
         }
         return users;
@@ -134,4 +145,54 @@ public class Client {
         return response;
     }
 
+    public static Client newClient(EntityManager entityManager) {
+        HttpRequestFactory requestFactory = getHttpRequestFactory(entityManager);
+        return new Client(entityManager, requestFactory);
+    }
+
+    public static String googlePrivateKey(EntityManager entityManager) {
+        Configurations getGooglePrivateKey = entityManager
+                .createNamedQuery("get.configurationByKey", Configurations.class)
+                .setParameter("configKey", "googlePrivateKey")
+                .getSingleResult();
+        if (!getGooglePrivateKey.getKey().equals("")) {
+            return getGooglePrivateKey.getValue();
+        } else {
+            Configurations configurations = new Configurations("googlePrivateKey", "");
+            entityManager.persist(configurations);
+            return configurations.getValue();
+        }
+    }
+
+    protected static GoogleCredential getCredential(EntityManager entityManager) {
+        GoogleCredential credential = null;
+        String googlePrivateKey = null;
+        try {
+            googlePrivateKey = googlePrivateKey(entityManager);
+            InputStream inputStream = new ByteArrayInputStream(googlePrivateKey.getBytes(StandardCharsets.UTF_8));
+            credential = GoogleCredential
+                    .fromStream(inputStream)
+                    .createScoped(SCOPE);
+        } catch (IOException e) {
+            logger.error("Error creating GoogleCredential using key file:{}", googlePrivateKey, e);
+        }
+
+        return credential;
+    }
+
+    protected static HttpTransport getHttpTransport() {
+        try {
+            return GoogleNetHttpTransport.newTrustedTransport();
+        } catch (GeneralSecurityException e) {
+            logger.error("Error -GeneralSecurityException- creating httpTransport ", e);
+        } catch (IOException e) {
+            logger.error("Error -IOException- creating httpTransport ", e);
+        }
+
+        return null;
+    }
+
+    public static HttpRequestFactory getHttpRequestFactory(EntityManager entityManager) {
+        return getHttpTransport().createRequestFactory(getCredential(entityManager));
+    }
 }

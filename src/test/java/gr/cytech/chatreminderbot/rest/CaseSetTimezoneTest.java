@@ -1,9 +1,6 @@
 package gr.cytech.chatreminderbot.rest;
 
-import gr.cytech.chatreminderbot.rest.controlCases.CaseSetTimezone;
-import gr.cytech.chatreminderbot.rest.controlCases.Control;
-import gr.cytech.chatreminderbot.rest.controlCases.Reminder;
-import gr.cytech.chatreminderbot.rest.controlCases.TimeZone;
+import gr.cytech.chatreminderbot.rest.controlCases.*;
 import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
@@ -43,12 +40,16 @@ public class CaseSetTimezoneTest {
         caseSetTimezone.entityManager = entityManager;
 
         control = new Control();
+        control.entityManager = mock(EntityManager.class);
         caseSetTimezone.setKeyWordGlobal("global");
         caseSetTimezone.setKeyWordMy("my");
 
         TypedQuery query = mock(TypedQuery.class);
 
         when(caseSetTimezone.entityManager.createNamedQuery("get.Alltimezone", TimeZone.class)).thenReturn(query);
+        when(control.entityManager.createNamedQuery("get.configurationByKey", Configurations.class)).thenReturn(query);
+        when(query.setParameter("configKey","BOT_NAME")).thenReturn(query);
+        when(query.getSingleResult()).thenReturn(new Configurations("BOT_NAME","TimezoneTest"));
     }
 
     @Test

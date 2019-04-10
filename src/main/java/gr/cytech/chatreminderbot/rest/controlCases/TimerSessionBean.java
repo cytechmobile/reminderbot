@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.*;
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.ZonedDateTime;
@@ -23,8 +22,7 @@ public class TimerSessionBean {
     @Resource
     TimerService timerService;
 
-    @Inject
-    Client client;
+    public Client client;
 
     // get EntityManager
     @PersistenceContext(name = "wa")
@@ -71,10 +69,14 @@ public class TimerSessionBean {
         if (reminders.isEmpty()) {
             logger.info("Empty reminders no -----next reminder");
         } else {
-            //Sends message
-            client.sendAsyncResponse(reminders.get(0));
-            logger.info("Send Message ");
-
+            try {
+                //Sends message
+                client = Client.newClient(entityManager);
+                client.sendAsyncResponse(reminders.get(0));
+                logger.info("Send Message ");
+            } catch (Exception e) {
+                logger.error("consider change the buttonUrl and the googlePrivateKey");
+            }
             //Removes old reminder
             Reminder oldReminder = entityManager.find(Reminder.class, reminders.get(0).getReminderId());
             logger.info("Deleted reminder at: {}", oldReminder.getWhen());
