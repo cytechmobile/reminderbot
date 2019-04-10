@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.time.*;
@@ -272,10 +273,15 @@ public class CaseSetReminder {
     }
 
     public String checkRemindMessageFormat(List<String> splitMsg, List<String> whoPart) {
-        String botName = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
-                .setParameter("configKey", "BOT_NAME")
-                .getSingleResult().getValue();
-
+        String botName = "";
+        try {
+            botName = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
+                    .setParameter("configKey", "BOT_NAME")
+                    .getSingleResult().getValue();
+        } catch (NoResultException e) {
+            logger.warn("please consider change the BOT_NAME key configuration");
+            botName = "CHANGE-ME";
+        }
         if (whoPart.get(0).equals("@" + botName)) {
             whoPart.remove(0);
         }
