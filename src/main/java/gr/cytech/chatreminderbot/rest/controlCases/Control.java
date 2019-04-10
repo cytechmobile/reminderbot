@@ -199,7 +199,7 @@ public class Control {
     }
 
     private String caseSetReminder() {
-        return caseSetReminder.setRequestForReminder(request);
+        return caseSetReminder.buildReminder(request);
     }
 
     private String caseSetTimezone() {

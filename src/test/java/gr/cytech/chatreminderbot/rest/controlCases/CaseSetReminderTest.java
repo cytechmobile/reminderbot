@@ -79,7 +79,7 @@ public class CaseSetReminderTest {
         request.setMessage(message);
         // Already set in mock a nextReminder that is to be in 10 minutes from now()
         //So this should not be set
-        caseSetReminder.setRequestForReminder(request);
+        caseSetReminder.buildReminder(request);
         //Verifies that setNextReminder is called 0 times because Input reminderDate is AFTER the current
         verify(caseSetReminder.timerSessionBean, times(0))
                 .setNextReminder(any(Reminder.class), any(ZonedDateTime.class));
@@ -92,7 +92,7 @@ public class CaseSetReminderTest {
         String expectedDate = "12/12/2019 12:00 GMT-2";
         message.setText("remind me 'persist Reminder Test' at " + expectedDate);
         request.setMessage(message);
-        caseSetReminder.setRequestForReminder(request);
+        caseSetReminder.buildReminder(request);
 
         ArgumentCaptor<Reminder> argumentCaptor = ArgumentCaptor.forClass(Reminder.class);
 
@@ -118,7 +118,7 @@ public class CaseSetReminderTest {
 
         message.setText("remind " + who + " '" + what + "' at " + expectedDate + " athens");
         request.setMessage(message);
-        caseSetReminder.setRequestForReminder(request);
+        caseSetReminder.buildReminder(request);
 
         List<String> splitMsg = List.of(request.getMessage().getText().split("\'"));
         List<String> whoPart = new ArrayList<>(List.of(splitMsg.get(0).split("\\s+")));

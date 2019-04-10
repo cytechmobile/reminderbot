@@ -35,7 +35,7 @@ public class CaseSetReminder {
     protected Client client;
 
     @Transactional
-    public String setRequestForReminder(Request request) {
+    public String buildReminder(Request request) {
         Reminder reminder = new Reminder();
         reminder.setSpaceId(request.getMessage().getThread().getSpaceId());
         reminder.setThreadId(request.getMessage().getThread().getThreadId());
