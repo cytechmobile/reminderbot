@@ -7,7 +7,6 @@ import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,9 +24,7 @@ public class Client {
     private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
 
     public EntityManager entityManager;
-    protected static GoogleCredential credential;
-    protected static HttpTransport httpTransport;
-    protected static HttpRequestFactory requestFactory;
+    protected HttpRequestFactory requestFactory;
 
     public String cardCreation(String spaceId, String threadId, String what,
                                String senderName, String timezone, String url) {
@@ -49,7 +46,7 @@ public class Client {
 
     public Client(EntityManager entityManager, HttpRequestFactory requestFactory) {
         this.entityManager = entityManager;
-        Client.requestFactory = requestFactory;
+        this.requestFactory = requestFactory;
     }
 
     public String sendAsyncResponse(Reminder reminder) {
@@ -63,7 +60,7 @@ public class Client {
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
         String buttonUrl = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
-                .setParameter("configKey","buttonUrl")
+                .setParameter("configKey", "buttonUrl")
                 .getSingleResult().getValue();
 
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
@@ -83,7 +80,7 @@ public class Client {
             GenericUrl url2 = new GenericUrl(uri2);
             return send(url2, messageToRoom, "POST");
         } else {
-            return send(url,message,"POST") + send(url, cardResponse, "POST");
+            return send(url, message, "POST") + send(url, cardResponse, "POST");
         }
 
     }
@@ -128,9 +125,9 @@ public class Client {
         HttpRequest request;
         try {
             if (httpMethod.equals("POST")) {
-                request = getHttpRequestFactory().buildPostRequest(url, content);
+                request = requestFactory.buildPostRequest(url, content);
             } else {
-                request = getHttpRequestFactory().buildGetRequest(url);
+                request = requestFactory.buildGetRequest(url);
             }
         } catch (Exception e) {
             logger.error("Error creating request using url: {}", url, e);
@@ -149,10 +146,11 @@ public class Client {
     }
 
     public static Client newClient(EntityManager entityManager) {
+        HttpRequestFactory requestFactory = getHttpRequestFactory(entityManager);
         return new Client(entityManager, requestFactory);
     }
 
-    public String googlePrivateKey() {
+    public static String googlePrivateKey(EntityManager entityManager) {
         Configurations getGooglePrivateKey = entityManager
                 .createNamedQuery("get.configurationByKey", Configurations.class)
                 .setParameter("configKey", "googlePrivateKey")
@@ -166,44 +164,35 @@ public class Client {
         }
     }
 
-    @Produces
-    protected GoogleCredential getCredential() {
-        if (credential == null) {
-            String keyFilePath = googlePrivateKey();
-            try {
-                InputStream inputStream = new ByteArrayInputStream(keyFilePath.getBytes(StandardCharsets.UTF_8));
-                credential = GoogleCredential
-                        .fromStream(inputStream)
-                        .createScoped(SCOPE);
-            } catch (IOException e) {
-                logger.error("Error creating GoogleCredential using key file:{}", keyFilePath, e);
-            }
+    protected static GoogleCredential getCredential(EntityManager entityManager) {
+        GoogleCredential credential = null;
+        String googlePrivateKey = null;
+        try {
+            googlePrivateKey = googlePrivateKey(entityManager);
+            InputStream inputStream = new ByteArrayInputStream(googlePrivateKey.getBytes(StandardCharsets.UTF_8));
+            credential = GoogleCredential
+                    .fromStream(inputStream)
+                    .createScoped(SCOPE);
+        } catch (IOException e) {
+            logger.error("Error creating GoogleCredential using key file:{}", googlePrivateKey, e);
         }
 
         return credential;
     }
 
-    @Produces
-    public HttpRequestFactory getHttpRequestFactory() {
-        if (requestFactory == null) {
-            requestFactory = getHttpTransport().createRequestFactory(getCredential());
-        }
-        return requestFactory;
-    }
-
-    @Produces
-    protected HttpTransport getHttpTransport() {
-        if (httpTransport != null) {
-            return httpTransport;
-        }
+    protected static HttpTransport getHttpTransport() {
         try {
-            httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+            return GoogleNetHttpTransport.newTrustedTransport();
         } catch (GeneralSecurityException e) {
             logger.error("Error -GeneralSecurityException- creating httpTransport ", e);
         } catch (IOException e) {
             logger.error("Error -IOException- creating httpTransport ", e);
         }
 
-        return httpTransport;
+        return null;
+    }
+
+    public static HttpRequestFactory getHttpRequestFactory(EntityManager entityManager) {
+        return getHttpTransport().createRequestFactory(getCredential(entityManager));
     }
 }
