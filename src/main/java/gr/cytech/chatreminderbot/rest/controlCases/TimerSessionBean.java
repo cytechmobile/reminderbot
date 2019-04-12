@@ -75,7 +75,7 @@ public class TimerSessionBean {
                 client.sendAsyncResponse(reminders.get(0));
                 logger.info("Send Message ");
             } catch (Exception e) {
-                logger.error("consider change the buttonUrl and the googlePrivateKey");
+                logger.error("consider change the buttonUrl and the googlePrivateKey Exception:{}",e);
             }
             //Removes old reminder
             Reminder oldReminder = entityManager.find(Reminder.class, reminders.get(0).getReminderId());

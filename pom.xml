@@ -5,7 +5,7 @@
     <groupId>gr.cytech</groupId>
     <artifactId>chatreminderbot</artifactId>
     <name>Chat Reminder Bot</name>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
     <packaging>war</packaging>
 
     <properties>
@@ -223,6 +223,19 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.ocpsoft.prettytime</groupId>
+            <artifactId>prettytime-nlp</artifactId>
+            <version>4.0.2.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ocpsoft.prettytime</groupId>
+            <artifactId>prettytime</artifactId>
+            <version>4.0.2.Final</version>
+        </dependency>
+
 
         <!--testing libraries-->
         <dependency>

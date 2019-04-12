@@ -14,10 +14,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
@@ -27,7 +24,7 @@ public class Client {
     protected HttpRequestFactory requestFactory;
 
     public String cardCreation(String spaceId, String threadId, String what,
-                               String senderName, String timezone, String url) {
+                               String senderName, String url) {
 
         return new CardResponseBuilder()
                 .thread("spaces/" + spaceId + "/threads/" + threadId)
@@ -35,7 +32,6 @@ public class Client {
                 .textButton("remind me again in 10 minutes", url
                         + "/bot/services/button?name=" + senderName
                         + "&text=" + what
-                        + "&timezone=" + timezone
                         + "&space=" + spaceId
                         + "&thread=" + threadId)
                 .build();
@@ -59,13 +55,10 @@ public class Client {
                 + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
-        String buttonUrl = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
-                .setParameter("configKey", "buttonUrl")
-                .getSingleResult().getValue();
+        Configurations buttonUrl = new DAO().getConfigurationValue("buttonUrl", entityManager);
 
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
-                reminder.getWhat(), reminder.getSenderDisplayName(),
-                reminder.getReminderTimezone(), buttonUrl);
+                reminder.getWhat(), reminder.getSenderDisplayName(), buttonUrl.getValue());
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
@@ -151,12 +144,9 @@ public class Client {
     }
 
     public static String googlePrivateKey(EntityManager entityManager) {
-        Configurations getGooglePrivateKey = entityManager
-                .createNamedQuery("get.configurationByKey", Configurations.class)
-                .setParameter("configKey", "googlePrivateKey")
-                .getSingleResult();
-        if (!getGooglePrivateKey.getKey().equals("")) {
-            return getGooglePrivateKey.getValue();
+        Configurations googlePrivateKey = new DAO().getConfigurationValue("googlePrivateKey", entityManager);
+        if (!googlePrivateKey.getKey().equals("")) {
+            return googlePrivateKey.getValue();
         } else {
             Configurations configurations = new Configurations("googlePrivateKey", "");
             entityManager.persist(configurations);
@@ -193,6 +183,6 @@ public class Client {
     }
 
     public static HttpRequestFactory getHttpRequestFactory(EntityManager entityManager) {
-        return getHttpTransport().createRequestFactory(getCredential(entityManager));
+        return Objects.requireNonNull(getHttpTransport()).createRequestFactory(getCredential(entityManager));
     }
 }

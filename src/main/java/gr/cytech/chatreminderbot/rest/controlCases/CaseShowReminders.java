@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -52,8 +51,8 @@ public class CaseShowReminders {
                     + reminders.get(i).getWhat() + " ' When: "
                     + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
                             .format(reminders.get(i).getWhen()
-                                    .withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone()))) + " "
-                    + reminders.get(i).getReminderTimezone() + "\n";
+                                    .withZoneSameLocal(reminders.get(i).getWhen().getZone())) + " "
+                    + reminders.get(i).getWhen().getZone() + "\n";
         }
         return remindersShow;
     }

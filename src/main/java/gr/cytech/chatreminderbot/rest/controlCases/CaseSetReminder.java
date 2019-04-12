@@ -1,13 +1,13 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
-import com.google.common.base.Strings;
 import gr.cytech.chatreminderbot.rest.message.Request;
+import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
+import org.ocpsoft.prettytime.nlp.parse.DateGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.time.*;
@@ -40,19 +40,16 @@ public class CaseSetReminder {
         reminder.setSpaceId(request.getMessage().getThread().getSpaceId());
         reminder.setThreadId(request.getMessage().getThread().getThreadId());
 
-        List<String> splitMsg = List.of(request.getMessage().getText().split("\'"));
-        List<String> whoPart = new ArrayList<>(List.of(splitMsg.get(0).split("\\s+")));
-
-        String errorResult = checkRemindMessageFormat(splitMsg, whoPart);
-        if (!Strings.isNullOrEmpty(errorResult)) {
-            return errorResult;
+        if (request.getMessage().getText().length() >= 255) {
+            return "Part what can not be more than 255 chars.";
         }
+        List<String> splitMsg = new ArrayList<>(List.of(request.getMessage().getText().split("\\s+")));
 
-        setInfosForRemind(request, reminder, splitMsg, whoPart);
+        setInfosForRemind(request, reminder, splitMsg);
         //pass from string to ZoneDateTime
         //Check if date has passed
 
-        if (reminder.getWhen().isBefore(ZonedDateTime.now(ZoneId.of(reminder.getReminderTimezone())))) {
+        if (reminder.getWhen().isBefore(ZonedDateTime.now())) {
             return "This date has passed "
                     + reminder.getWhen() + ". Check your timezone or insert in the current reminder";
         }
@@ -61,12 +58,12 @@ public class CaseSetReminder {
 
         return "Reminder with text:\n <b>" + reminder.getWhat() + "</b>.\n"
                 + "Saved successfully and will notify you in: \n<b>"
-                + calculateRemainingTime(reminder.getWhen(), reminder.getReminderTimezone()) + "</b>";
+                + calculateRemainingTime(reminder.getWhen()) + "</b>";
     }
 
     /*
      * uses the text message of the user from Request
-     * message:(@reminder) remind me 'Something to do' at 16/03/2019 15:05 athens
+     * message:(@reminder) remind me Something to do in 10 minutes
      *
      * Setting basic infos for the users reminder such us:
      * who
@@ -82,85 +79,89 @@ public class CaseSetReminder {
      *   get it from global settings
      * */
 
-    public String findDateParts(Request request, Reminder reminder, List<String> splitMsg) {
-        //dateParts: at 16/03/2019 15:05 athens
-        String[] dateParts = splitMsg.get(2).split("\\s+");
-        String when = "";
-        for (int i = 0; i < dateParts.length; i++) {
-            if (dateParts[i].equals("at")) {
-                when += dateParts[i + 1];
-                when += " " + dateParts[i + 2];
-                if (dateParts.length == 5) {
-                    TimeZone timeZoneFinder = new TimeZone();
-                    String zone = timeZoneFinder.findTimeZones(dateParts[i + 3]);
-                    if (zone != null) {
-                        reminder.setReminderTimezone(zone);
-                        logger.info("SET timeZone became: {}", reminder.getReminderTimezone());
-                    } else {
-                        when += "Make fail date format.";
-                    }
-                } else {
-                    String userTimezone = caseSetTimezone.getGivenTimeZone(request.getMessage().getSender().getName());
-                    if (!(userTimezone.equals(""))) {
-                        logger.info("User timeZone found: {}", reminder.getReminderTimezone());
-                        reminder.setReminderTimezone(userTimezone);
-                    } else {
-                        logger.info("Global timeZone");
-                        reminder.setReminderTimezone(caseSetTimezone.getGivenTimeZone("default"));
-                    }
-                }
-            }
-        }
 
-        if (!(isValidFormatDate(when))) {
-            return "Wrong date or Timezone format.\n"
-                    + " DateFormat must be: dd/MM/yyyy HH:mm . \n"
-                    + " For a timezone format you can also use GMT";
-        }
-
-        return when;
-    }
-
-    public Reminder setInfosForRemind(Request request, Reminder reminder,
-                                      List<String> splitMsg, List<String> whoPart) {
+    public Reminder setInfosForRemind(Request request, Reminder reminder,List<String> splitMsg) {
         //what: Something to do
-        reminder.setWhat(splitMsg.get(1));
-        logger.info("set what: {}", reminder.getWhat());
+        String botName = new DAO().getBotName(entityManager);
+        String timezone = new DAO().getUserTimezone(request.getMessage().getSender().getName(), entityManager);
 
-        reminder.setWhen(dateForm(findDateParts(request, reminder, splitMsg), reminder.getReminderTimezone()));
+        if (splitMsg.get(0).equals("@" + botName)) {
+            splitMsg.remove(0);
+        }
+
+        String text = String.join(" ", splitMsg);
+        List<DateGroup> parse = new PrettyTimeParser().parseSyntax(text);
+        DateGroup dg = parse.get(0);
+        int pos = dg.getPosition();
+        String upTo = text.substring(0, pos).trim();
+
+        if (upTo.endsWith(" every")) {
+            upTo = upTo.substring(0, upTo.length() - " every".length());
+        }
+        if (upTo.endsWith(" at")) {
+            upTo = upTo.substring(0, upTo.length() - " at".length());
+        }
+        if (upTo.endsWith(" in")) {
+            upTo = upTo.substring(0, upTo.length() - " in".length());
+        }
+        //todo: fix timezone to correct one
+        ZoneId zoneId = ZoneId.of(timezone);
+        Instant when = Instant.ofEpochMilli(dg.getDates().get(0).getTime());
+        logger.info("timezone: {}",timezone);
+        ZonedDateTime zdt = ZonedDateTime.ofInstant(when, zoneId);
+        logger.info("hi {}",zoneId);
+        logger.info("hi zdt {} ");
+        reminder.setWhen(zdt);
 
         logger.info("set when: {}", reminder.getWhen());
 
-        if (whoPart.get(0).equals("remind")) {
+        if (splitMsg.get(0).equals("remind")) {
             // 1) me
-            if (whoPart.get(1).equals("me")) {
+            if (splitMsg.get(1).equals("me")) {
                 //  ---- takes the ID of the sender ---
                 reminder.setSenderDisplayName(request.getMessage().getSender().getName());
-            } else if (whoPart.get(1).equals("@all")) {
+            } else if (splitMsg.get(1).equals("@all")) {
                 reminder.setSenderDisplayName("users/all");
             } else {
-                String displayName;
-                if (whoPart.get(1).startsWith("#")) {
+                String displayName = "";
+                if (splitMsg.get(1).startsWith("#")) {
                     // 2)#RoomName
-                    displayName = whoPart.get(1);
-                } else {
-                    // 3) @Firstname Lastname
-                    if (whoPart.size() == 3) {
-                        displayName = whoPart.get(1).substring(1)
-                                + " " + whoPart.get(2);
-                    } else {
-                        // A name that is not 2 parts
-                        displayName = "";
-                        for (int i = 1; i < whoPart.size(); i++) {
-                            displayName += whoPart.get(i) + " ";
-                        }
-                    }
+                    displayName = splitMsg.get(1);
                 }
                 reminder.setSenderDisplayName(findIdUserName(displayName,
                         request.getMessage().getThread().getSpaceId()));
             }
         }
-        logger.info("set who: {}", reminder.getSenderDisplayName());
+
+        if (upTo.startsWith("remind ")) {
+            upTo = upTo.replace("remind ", "");
+        }
+        if (upTo.startsWith("me ")) {
+            upTo = upTo.replace("me ", "");
+        }
+        if (upTo.startsWith(reminder.getSenderDisplayName())) {
+            upTo = upTo.replace(reminder.getSenderDisplayName(), "");
+        }
+        if (upTo.startsWith("@all")) {
+            upTo = upTo.replace("@all", "");
+        }
+        logger.info("updated text {}", upTo);
+        if (client == null) {
+            client = Client.newClient(entityManager);
+        }
+        Map<String, String> listOfMembersInRoom = client.getListOfMembersInRoom(request.getMessage().getThread().getSpaceId());
+        List<String> memberNames = new ArrayList<>(listOfMembersInRoom.keySet());
+        List<String> memberID = new ArrayList<>(listOfMembersInRoom.values());
+
+        for (int i = 0 ; i < memberNames.size(); i++) {
+            if (upTo.startsWith("@" + memberNames.get(i))) {
+                reminder.setSenderDisplayName(memberID.get(i));
+                upTo = upTo.replace("@" + memberNames.get(i) , "");
+            }
+        }
+
+        reminder.setWhat(upTo);
+        logger.info("set what: {}", reminder.getWhat());
 
         return reminder;
 
@@ -173,8 +174,8 @@ public class CaseSetReminder {
             logger.info("set NEW reminder to : {}", reminder.getWhen());
             timerSessionBean.setNextReminder(reminder, reminder.getWhen());
         } else {
-        //ELSE  if the new reminder is before the nextReminder,
-        // changes as next reminder this
+            //ELSE  if the new reminder is before the nextReminder,
+            // changes as next reminder this
 
             if (reminder.getWhen().isBefore(timerSessionBean.getNextReminderDate())) {
                 logger.info("CHANGE next reminder to: {}", reminder.getWhen());
@@ -220,8 +221,8 @@ public class CaseSetReminder {
     }
 
     //Returns the reminding time after setting a reminder
-    public String calculateRemainingTime(ZonedDateTime inputDate, String timezone) {
-        ZonedDateTime fromDateTime = ZonedDateTime.now(ZoneId.of(timezone));
+    public String calculateRemainingTime(ZonedDateTime inputDate) {
+        ZonedDateTime fromDateTime = ZonedDateTime.now(inputDate.getZone());
 
         ZonedDateTime tempDateTime = ZonedDateTime.from(fromDateTime);
 
@@ -270,35 +271,6 @@ public class CaseSetReminder {
         Map<String, String> users = client.getListOfMembersInRoom(spaceId);
         //if displayName not found then just save the name as it is
         return users.getOrDefault(displayName, displayName);
-    }
-
-    public String checkRemindMessageFormat(List<String> splitMsg, List<String> whoPart) {
-        String botName = "";
-        try {
-            botName = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
-                    .setParameter("configKey", "BOT_NAME")
-                    .getSingleResult().getValue();
-        } catch (NoResultException e) {
-            logger.warn("please consider change the BOT_NAME key configuration");
-            botName = "CHANGE-ME";
-        }
-        if (whoPart.get(0).equals("@" + botName)) {
-            whoPart.remove(0);
-        }
-
-        if (splitMsg.get(1).length() >= 255) {
-            return "Part what can not be more than 255 chars.";
-        } else if (splitMsg.size() != 3) {
-            return "Use  quotation marks  `'` only two times. One before and one after what, type Help for example.";
-        } else if (whoPart.size() < 2) {
-            return "You missed add who, type Help for example.";
-        } else if (whoPart.size() > 3) {
-            return "Valid names must be two parts, type Help for example.";
-        } else if (!splitMsg.get(2).contains("at")) {
-            return "You missed `at` before date, type Help for example.";
-        }
-
-        return "";
     }
 
 }

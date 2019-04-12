@@ -42,7 +42,7 @@ class ControlIT {
         String threadId = "THREAD_ID";
         String what = "something to do";
 
-        mes.setText("remind me '" + what + "' at " + expectedDate);
+        mes.setText("remind me " + what + " at " + expectedDate);
         req.setMessage(mes);
 
         CaseSetReminder caseSetReminder = new CaseSetReminder();
@@ -52,7 +52,7 @@ class ControlIT {
         String successMsg = "Reminder with text:\n <b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
                 + caseSetReminder.calculateRemainingTime(
-                        caseSetReminder.dateForm(expectedWhen, timezone), timezone) + "</b>";
+                        caseSetReminder.dateForm(expectedWhen, timezone)) + "</b>";
 
         Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
         Response resp = c.target("http://localhost:8080/bot/services/handleReq")
@@ -116,34 +116,6 @@ class ControlIT {
         //Verify that i didn't get the default wrong message
         assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
 
-    }
-
-    @Test
-    void checkRemindFormatTest() {
-        Request req = new Request();
-        Message mes = new Message();
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
-
-        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
-        sender.setName("MyName");
-
-        mes.setThread(threadM);
-        mes.setSender(sender);
-
-        mes.setText("remind me 'can't save that'at 17/01/2020 13:12");
-        req.setMessage(mes);
-
-        String expectedResponse = "Use  quotation marks  `'` only two times. "
-                + "One before and one after what, type Help for example.";
-
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
-                .request()
-                .post(Entity.json(req));
-        resp.bufferEntity();
-
-        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
     @Test

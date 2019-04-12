@@ -13,6 +13,8 @@ import java.util.List;
 @NamedQueries({
         @NamedQuery(name = "get.Alltimezone",
                 query = "SELECT t from TimeZone t"),
+        @NamedQuery(name = "get.spesificTimezone",
+                query = "SELECT t from TimeZone t where t.userid = :userid"),
         @NamedQuery(name = "set.timezone",
                 query = "UPDATE TimeZone t set t.timezone = :timezone WHERE t.userid LIKE :userid "),
         @NamedQuery(name = "show.timezones",

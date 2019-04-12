@@ -37,7 +37,7 @@ public class ClientTest {
         String threadId = "THREAD_ID";
         String spaceId = "SPACE_ID";
         Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
-                "DisplayName", "Europe/Athens", spaceId, threadId);
+                "DisplayName", spaceId, threadId);
         MockHttpTransport transport = new MockHttpTransport.Builder()
                 .setLowLevelHttpResponse(new MockLowLevelHttpResponse()
                         .setContent("ok")
@@ -45,7 +45,7 @@ public class ClientTest {
                 .build();
 
         String message = client.cardCreation(reminder.getSpaceId(), reminder.getThreadId(), reminder.getWhat(),
-                reminder.getSenderDisplayName(), reminder.getReminderTimezone(), "localhost");
+                reminder.getSenderDisplayName(), "localhost");
 
         client.requestFactory = transport.createRequestFactory();
 

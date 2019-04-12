@@ -33,7 +33,7 @@ public class CaseSetTimezoneTest {
         String spaceId = "SPACE_ID";
         caseSetTimezone = new CaseSetTimezone();
         Reminder reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", spaceId, threadId);
+                "DisplayName", spaceId, threadId);
 
         reminder.setReminderId(1);
         EntityManager entityManager = mock(EntityManager.class);
