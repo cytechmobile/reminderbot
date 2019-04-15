@@ -230,13 +230,6 @@
             <version>4.0.2.Final</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.ocpsoft.prettytime</groupId>
-            <artifactId>prettytime</artifactId>
-            <version>4.0.2.Final</version>
-        </dependency>
-
-
         <!--testing libraries-->
         <dependency>
             <groupId>org.mockito</groupId>

@@ -55,10 +55,10 @@ public class Client {
                 + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
-        Configurations buttonUrl = new DAO().getConfigurationValue("buttonUrl", entityManager);
+        String buttonUrl = new Dao().getConfigurationValue("buttonUrl", entityManager);
 
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
-                reminder.getWhat(), reminder.getSenderDisplayName(), buttonUrl.getValue());
+                reminder.getWhat(), reminder.getSenderDisplayName(), buttonUrl);
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
@@ -144,9 +144,9 @@ public class Client {
     }
 
     public static String googlePrivateKey(EntityManager entityManager) {
-        Configurations googlePrivateKey = new DAO().getConfigurationValue("googlePrivateKey", entityManager);
-        if (!googlePrivateKey.getKey().equals("")) {
-            return googlePrivateKey.getValue();
+        String googlePrivateKey = new Dao().getConfigurationValue("googlePrivateKey", entityManager);
+        if (!googlePrivateKey.equals("NO RESULT FOUND")) {
+            return googlePrivateKey;
         } else {
             Configurations configurations = new Configurations("googlePrivateKey", "");
             entityManager.persist(configurations);

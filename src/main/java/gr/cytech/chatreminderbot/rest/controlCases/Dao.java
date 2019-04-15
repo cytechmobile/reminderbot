@@ -7,10 +7,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 
-public class DAO {
-    private final static Logger logger = LoggerFactory.getLogger(DAO.class);
+public class Dao {
 
-    public String getBotName(EntityManager entityManager){
+    private static final Logger logger = LoggerFactory.getLogger(Dao.class);
+
+    public String getBotName(EntityManager entityManager) {
         String botName = "";
         try {
             botName = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
@@ -32,7 +33,7 @@ public class DAO {
                     .getSingleResult().getTimezone();
             logger.info("timezone found: {}",timezone);
         } catch (NoResultException e) {
-            try{
+            try {
                 timezone = entityManager.createNamedQuery("get.spesificTimezone", TimeZone.class)
                         .setParameter("userid", "default")
                         .getSingleResult().getTimezone();
@@ -47,11 +48,18 @@ public class DAO {
         return timezone;
     }
 
-    public Configurations getConfigurationValue(String config, EntityManager entityManager){
-        Configurations getConfigurationValue = entityManager
-                .createNamedQuery("get.configurationByKey", Configurations.class)
-                .setParameter("configKey", config)
-                .getSingleResult();
+    public String getConfigurationValue(String config, EntityManager entityManager) {
+        String getConfigurationValue;
+        try {
+            getConfigurationValue = entityManager
+                    .createNamedQuery("get.configurationByKey", Configurations.class)
+                    .setParameter("configKey", config)
+                    .getSingleResult().getValue();
+        } catch (NoResultException e) {
+            logger.error("the configuration you choose with value: {} doesnt not exist", config);
+            getConfigurationValue = "NO RESULT FOUND";
+        }
         return getConfigurationValue;
+
     }
 }

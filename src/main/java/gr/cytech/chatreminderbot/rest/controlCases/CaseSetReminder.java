@@ -17,6 +17,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class CaseSetReminder {
     private static final Logger logger = LoggerFactory.getLogger(CaseSetReminder.class);
@@ -49,7 +50,7 @@ public class CaseSetReminder {
         //pass from string to ZoneDateTime
         //Check if date has passed
 
-        if (reminder.getWhen().isBefore(ZonedDateTime.now())) {
+        if (reminder.getWhen().isBefore(ZonedDateTime.now(ZoneId.of(reminder.getWhen().getZone().getId())))) {
             return "This date has passed "
                     + reminder.getWhen() + ". Check your timezone or insert in the current reminder";
         }
@@ -79,39 +80,36 @@ public class CaseSetReminder {
      *   get it from global settings
      * */
 
-
     public Reminder setInfosForRemind(Request request, Reminder reminder,List<String> splitMsg) {
-        //what: Something to do
-        String botName = new DAO().getBotName(entityManager);
-        String timezone = new DAO().getUserTimezone(request.getMessage().getSender().getName(), entityManager);
+        String botName = new Dao().getBotName(entityManager);
+        String timezone = new Dao().getUserTimezone(request.getMessage().getSender().getName(), entityManager);
 
         if (splitMsg.get(0).equals("@" + botName)) {
             splitMsg.remove(0);
         }
 
         String text = String.join(" ", splitMsg);
-        List<DateGroup> parse = new PrettyTimeParser().parseSyntax(text);
-        DateGroup dg = parse.get(0);
-        int pos = dg.getPosition();
+
+        ZoneId zoneId = ZoneId.of(timezone);
+        TimeZone setTimeZone = TimeZone.getTimeZone(timezone);
+
+        PrettyTimeParser prettyTimeParser = new PrettyTimeParser(setTimeZone);
+        List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
+        DateGroup dateGroup = parse.get(0);
+        int pos = dateGroup.getPosition();
         String upTo = text.substring(0, pos).trim();
 
+        //removing ending words that PrettyTimeParser doesn't remove
         if (upTo.endsWith(" every")) {
             upTo = upTo.substring(0, upTo.length() - " every".length());
         }
-        if (upTo.endsWith(" at")) {
+        if (upTo.endsWith(" at") || upTo.endsWith(" in")) {
             upTo = upTo.substring(0, upTo.length() - " at".length());
         }
-        if (upTo.endsWith(" in")) {
-            upTo = upTo.substring(0, upTo.length() - " in".length());
-        }
-        //todo: fix timezone to correct one
-        ZoneId zoneId = ZoneId.of(timezone);
-        Instant when = Instant.ofEpochMilli(dg.getDates().get(0).getTime());
-        logger.info("timezone: {}",timezone);
-        ZonedDateTime zdt = ZonedDateTime.ofInstant(when, zoneId);
-        logger.info("hi {}",zoneId);
-        logger.info("hi zdt {} ");
-        reminder.setWhen(zdt);
+
+        Instant when = Instant.ofEpochMilli(dateGroup.getDates().get(0).getTime());
+
+        reminder.setWhen(when.atZone(zoneId));
 
         logger.info("set when: {}", reminder.getWhen());
 
@@ -149,17 +147,18 @@ public class CaseSetReminder {
         if (client == null) {
             client = Client.newClient(entityManager);
         }
-        Map<String, String> listOfMembersInRoom = client.getListOfMembersInRoom(request.getMessage().getThread().getSpaceId());
+        Map<String, String> listOfMembersInRoom = client
+                .getListOfMembersInRoom(request.getMessage().getThread().getSpaceId());
         List<String> memberNames = new ArrayList<>(listOfMembersInRoom.keySet());
         List<String> memberID = new ArrayList<>(listOfMembersInRoom.values());
 
-        for (int i = 0 ; i < memberNames.size(); i++) {
+        for (int i = 0; i < memberNames.size(); i++) {
             if (upTo.startsWith("@" + memberNames.get(i))) {
                 reminder.setSenderDisplayName(memberID.get(i));
-                upTo = upTo.replace("@" + memberNames.get(i) , "");
+                upTo = upTo.replace("@" + memberNames.get(i), "");
             }
         }
-
+        //what: Something to do
         reminder.setWhat(upTo);
         logger.info("set what: {}", reminder.getWhat());
 

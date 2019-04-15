@@ -7,14 +7,9 @@ import gr.cytech.chatreminderbot.rest.message.ThreadM;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
-import org.ocpsoft.prettytime.nlp.parse.DateGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,8 +22,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-public class CaseSetReminderTest {//todo: provide one more better test to test timezone
-    Logger logger = LoggerFactory.getLogger(CaseSetReminderTest.class);
+public class CaseSetReminderTest {
     public CaseSetReminder caseSetReminder;
 
     private Request request;
@@ -92,6 +86,7 @@ public class CaseSetReminderTest {//todo: provide one more better test to test t
                 .setNextReminder(any(Reminder.class), any(ZonedDateTime.class));
 
     }
+
     @Test
     void dateFormTest() throws Exception {
         ZonedDateTime curr = ZonedDateTime.now(ZoneId.of("Europe/Athens")).truncatedTo(ChronoUnit.MINUTES);
@@ -100,8 +95,6 @@ public class CaseSetReminderTest {//todo: provide one more better test to test t
 
         assertThat(result).as("parsed date is not the expected").isEqualTo(curr);
     }
-
-
 
     @Test
     void persistReminder() throws Exception {
@@ -134,7 +127,7 @@ public class CaseSetReminderTest {//todo: provide one more better test to test t
         final String expectedDate = "12/12/2020 12:00";
 
         Map<String,String> hashMap = new HashMap<>();
-        hashMap.put("Ntina trol" , "Ntina trol");
+        hashMap.put("Ntina trol", "Ntina trol");
         when(caseSetReminder.client.getListOfMembersInRoom("SPACE_ID")).thenReturn(hashMap);
 
         message.setText("remind " + who + " " + what + " at " + expectedDate + " athens");
@@ -192,27 +185,4 @@ public class CaseSetReminderTest {//todo: provide one more better test to test t
         assertThat(caseSetReminder.isValidFormatDate(when8)).as("not Valid  reminder date").isEqualTo(false);
 
     }
-    @Test
-    public void testCenturiesAgo() throws Exception {
-        String text = "remind me to eat fish every 3 days at 10:00";
-        List<DateGroup> parse = new PrettyTimeParser().parseSyntax(text);
-        DateGroup dg = parse.get(0);
-        int pos = dg.getPosition();
-        String upTo = text.substring(0, pos).trim();
-        if (upTo.endsWith(" every")) {
-            upTo = upTo.substring(0, upTo.length() - " every".length());
-        }
-//        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        String s = format.format(dg.getDates().get(0));
-
-        logger.info("FORMAT {}", s);//todo fix that
-        reminder.setWhen(caseSetReminder.dateForm(s, "Europe/Athens"));
-        logger.info("reminder {}",reminder.getWhen());
-        logger.info("reminder what {} ",reminder.getWhat());
-
-        logger.info("parse position is: {} up to there:{} text:{}", pos, upTo, dg.getText());
-
-    }
-
 }
