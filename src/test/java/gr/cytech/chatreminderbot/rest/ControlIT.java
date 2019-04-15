@@ -37,12 +37,9 @@ class ControlIT {
         mes.setSender(sender);
 
         String expectedWhen = "12/12/2019 12:00";
-        String expectedDate = expectedWhen + " athens";
-        String spaceId = "SPACE_ID";
-        String threadId = "THREAD_ID";
         String what = "something to do";
 
-        mes.setText("remind me " + what + " at " + expectedDate);
+        mes.setText("remind me " + what + " at " + expectedWhen);
         req.setMessage(mes);
 
         CaseSetReminder caseSetReminder = new CaseSetReminder();
