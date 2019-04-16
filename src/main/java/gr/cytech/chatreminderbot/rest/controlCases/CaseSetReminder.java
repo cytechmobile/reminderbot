@@ -1,5 +1,6 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
 import org.ocpsoft.prettytime.nlp.parse.DateGroup;
@@ -98,13 +99,12 @@ public class CaseSetReminder {
         }
         if (upTo.startsWith("me ")) {
             upTo = upTo.substring("me ".length());
-        }
-        if (upTo.startsWith(reminder.getSenderDisplayName())) {
+        } else if (upTo.startsWith(reminder.getSenderDisplayName())) {
             upTo = upTo.substring(reminder.getSenderDisplayName().length());
-        }
-        if (upTo.startsWith("@all ")) {
+        } else if (upTo.startsWith("@all ")) {
             upTo = upTo.substring("@all ".length());
         }
+
         return upTo;
     }
 
@@ -143,18 +143,20 @@ public class CaseSetReminder {
 
         upTo = updateUpToString(upTo, reminder, splitMsg, request);
 
-        if (client == null) {
-            client = Client.newClient(dao);
-        }
-        Map<String, String> listOfMembersInRoom = client
-                .getListOfMembersInRoom(request.getMessage().getThread().getSpaceId());
-        List<String> memberNames = new ArrayList<>(listOfMembersInRoom.keySet());
-        List<String> memberID = new ArrayList<>(listOfMembersInRoom.values());
+        if (upTo.startsWith("@")) {
+            if (client == null) {
+                client = Client.newClient(dao);
+            }
+            Map<String, String> listOfMembersInRoom = client
+                    .getListOfMembersInRoom(request.getMessage().getThread().getSpaceId());
+            List<String> memberNames = new ArrayList<>(listOfMembersInRoom.keySet());
+            List<String> memberID = new ArrayList<>(listOfMembersInRoom.values());
 
-        for (int i = 0; i < memberNames.size(); i++) {
-            if (upTo.startsWith("@" + memberNames.get(i))) {
-                reminder.setSenderDisplayName(memberID.get(i));
-                upTo = upTo.replace("@" + memberNames.get(i), "");
+            for (int i = 0; i < memberNames.size(); i++) {
+                if (upTo.startsWith("@" + memberNames.get(i))) {
+                    reminder.setSenderDisplayName(memberID.get(i));
+                    upTo = upTo.replace("@" + memberNames.get(i), "");
+                }
             }
         }
         //what: Something to do
@@ -166,7 +168,7 @@ public class CaseSetReminder {
     }
 
     public void saveAndSetReminder(Reminder reminder) {
-        dao.entityManager.persist(reminder);
+        dao.persist(reminder);
         //if there is no next reminder, sets this as next
         if (timerSessionBean.getNextReminderDate() == null) {
             logger.info("set NEW reminder to : {}", reminder.getWhen());

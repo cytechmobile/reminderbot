@@ -4,6 +4,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.*;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,7 +149,7 @@ public class Client {
             return googlePrivateKey;
         } else {
             Configurations configurations = new Configurations("googlePrivateKey", "");
-            dao.entityManager.persist(configurations);
+            dao.persist(configurations);
             return configurations.getValue();
         }
     }

@@ -1,5 +1,8 @@
-package gr.cytech.chatreminderbot.rest.controlCases;
+package gr.cytech.chatreminderbot.rest.db;
 
+import gr.cytech.chatreminderbot.rest.controlCases.Configurations;
+import gr.cytech.chatreminderbot.rest.controlCases.Reminder;
+import gr.cytech.chatreminderbot.rest.controlCases.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,13 +10,15 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
+import java.util.Collections;
+import java.util.List;
 
 public class Dao {
 
     private static final Logger logger = LoggerFactory.getLogger(Dao.class);
 
     @PersistenceContext(name = "wa")
-    public EntityManager entityManager;
+    EntityManager entityManager;
 
     public String getBotName() {
         String botName = "";
@@ -65,5 +70,67 @@ public class Dao {
         }
         return getConfigurationValue;
 
+    }
+
+    public void persist(Object entity) {
+        entityManager.persist(entity);
+    }
+
+    public void remove(Object entity) {
+        entityManager.remove(entity);
+    }
+
+    public <T> T merge(T entity) {
+        return entityManager.merge(entity);
+    }
+
+    public List<Reminder> findReminders(String userId, int reminderId) {
+        try {
+            return entityManager
+                    .createNamedQuery("reminder.findByUserAndReminderId", Reminder.class)
+                    .setParameter("userId", userId)
+                    .setParameter("reminderId", reminderId)
+                    .getResultList();
+        } catch (Exception e) {
+            logger.warn("error finding reminder for user:{} with id: {}", userId, reminderId, e);
+            return Collections.emptyList();
+        }
+    }
+
+    public Reminder deleteReminder(int reminderId) {
+        Reminder r = entityManager.find(Reminder.class, reminderId);
+        entityManager.remove(r);
+        return r;
+    }
+
+    public List<Configurations> getAllConfigurations() {
+        try {
+            return entityManager
+                    .createNamedQuery("get.allConfigurations", Configurations.class).getResultList();
+        } catch (Exception e) {
+            logger.warn("error getting configurations", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public List<Reminder> showReminder(String name) {
+        return entityManager
+                .createNamedQuery("reminder.showReminders", Reminder.class)
+                .setParameter("userid", name)
+                .getResultList();
+    }
+
+    public Reminder findOldReminder(int reminderId) {
+        return entityManager.find(Reminder.class, reminderId);
+    }
+
+    public List<Reminder> findNextReminder() {
+        return entityManager.createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
+    }
+
+    public boolean defaultTimezoneExists() {
+        return entityManager.createQuery("SELECT t from TimeZone t where t.userid = :default")
+                .setParameter("default", "default")
+                .getResultList().size() == 1;
     }
 }

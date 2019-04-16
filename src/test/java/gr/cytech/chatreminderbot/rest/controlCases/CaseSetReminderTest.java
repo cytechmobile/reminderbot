@@ -1,5 +1,6 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
@@ -8,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.persistence.EntityManager;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,6 +28,7 @@ public class CaseSetReminderTest {
     private Message message;
     private Client client;
     private Reminder reminder;
+    private Dao dao;
 
     @BeforeEach
     final void beforeEach() {
@@ -39,9 +40,9 @@ public class CaseSetReminderTest {
 
         TimerSessionBean timerSessionBean = mock(TimerSessionBean.class);
         client = mock(Client.class);
+        dao = mock(Dao.class);
         caseSetReminder = new CaseSetReminder();
         caseSetReminder.dao = mock(Dao.class);
-        caseSetReminder.dao.entityManager = mock(EntityManager.class);
         caseSetReminder.timerSessionBean = timerSessionBean;
         caseSetReminder.client = client;
         ThreadM thread = new ThreadM();
@@ -95,7 +96,7 @@ public class CaseSetReminderTest {
 
         ArgumentCaptor<Reminder> argumentCaptor = ArgumentCaptor.forClass(Reminder.class);
 
-        verify(caseSetReminder.dao.entityManager, times(1)).persist(argumentCaptor.capture());
+        verify(caseSetReminder.dao, times(1)).persist(argumentCaptor.capture());
 
         List<Reminder> capturedReminders = argumentCaptor.getAllValues();
         assertThat(capturedReminders).as("no reminders persisted").hasSize(1);

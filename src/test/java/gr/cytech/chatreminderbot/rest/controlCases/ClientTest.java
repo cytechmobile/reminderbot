@@ -2,12 +2,12 @@ package gr.cytech.chatreminderbot.rest.controlCases;
 
 import com.google.api.client.testing.http.MockHttpTransport;
 import com.google.api.client.testing.http.MockLowLevelHttpResponse;
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 
@@ -24,13 +24,9 @@ public class ClientTest {
     public final void beforeEach() throws Exception {
         client = new Client();
         client.dao = mock(Dao.class);
-        client.dao.entityManager = mock(EntityManager.class);
 
         query = mock(TypedQuery.class);
-        when(client.dao.entityManager.createNamedQuery("get.configurationByKey", Configurations.class))
-                .thenReturn(query);
-        when(query.setParameter("configKey","buttonUrl")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(new Configurations("default","localhost"));
+        when(client.dao.getConfigurationValue("buttonUrl")).thenReturn("localhost");
 
     }
 
@@ -47,7 +43,7 @@ public class ClientTest {
                 .build();
 
         String message = client.cardCreation(reminder.getSpaceId(), reminder.getThreadId(), reminder.getWhat(),
-                reminder.getSenderDisplayName(), null);
+                reminder.getSenderDisplayName(), "localhost");
 
         client.requestFactory = transport.createRequestFactory();
 

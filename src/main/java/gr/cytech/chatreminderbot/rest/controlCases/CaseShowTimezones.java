@@ -1,20 +1,19 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
+import javax.inject.Inject;
 import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
 public class CaseShowTimezones {
     private static final Logger logger = LoggerFactory.getLogger(CaseShowReminders.class);
 
-    @PersistenceContext(name = "wa")
-    public EntityManager entityManager;
-
+    @Inject
+    Dao dao;
     private Request request;
 
     public Request getRequest() {
@@ -25,12 +24,6 @@ public class CaseShowTimezones {
 
     }
 
-    public boolean defaultTimezoneExists() {
-        return entityManager.createQuery("SELECT t from TimeZone t where t.userid = :default")
-                .setParameter("default", "default")
-                .getResultList().size() == 1;
-    }
-
     @Transactional
     public String showTimezones(Request request) {
         this.request = request;
@@ -38,29 +31,24 @@ public class CaseShowTimezones {
         String noTimezoneFound = "---- No Timezone found default timezone is ---- \n";
         String defaultTimezone = "---- Default timezone is ---- \n";
 
-        if (!defaultTimezoneExists()) {
+        if (!dao.defaultTimezoneExists()) {
             logger.info("created default timezone");
             TimeZone timeZone = new TimeZone("Europe/Athens", "default");
-            entityManager.persist(timeZone);
+            dao.persist(timeZone);
 
         }
 
-        TimeZone defaultTimezoneQuery = (TimeZone) entityManager.createNamedQuery("show.timezones")
-                .setParameter("id", "default")
-                .getSingleResult();
+        String defaultTimezoneQuery = dao.getUserTimezone("default");
         try {
 
-            TimeZone myTimezone = (TimeZone) entityManager
-                    .createNamedQuery("show.timezones")
-                    .setParameter("id", request.getMessage().getSender().getName())
-                    .getSingleResult();
+            String myTimezone = dao.getUserTimezone(request.getMessage().getSender().getName());
 
-            return showTimezone + "Timezone = " + myTimezone.toString() + "\n " + defaultTimezone
-                    + "Timezone = " + defaultTimezoneQuery.toString();
+            return showTimezone + "Timezone = " + myTimezone + "\n " + defaultTimezone
+                    + "Timezone = " + defaultTimezoneQuery;
 
         } catch (NoResultException e) {
             logger.info("in case no timezone found for the user");
-            return noTimezoneFound + "Timezone = " + defaultTimezoneQuery.toString();
+            return noTimezoneFound + "Timezone = " + defaultTimezoneQuery;
 
         }
 

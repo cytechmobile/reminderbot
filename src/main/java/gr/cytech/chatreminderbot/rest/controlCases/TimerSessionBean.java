@@ -1,5 +1,6 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,8 +8,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
@@ -25,10 +24,6 @@ public class TimerSessionBean {
 
     public Client client;
 
-    // get EntityManager
-    @PersistenceContext(name = "wa")
-    protected EntityManager entityManager;
-
     @Inject
     protected Dao dao;
 
@@ -38,8 +33,7 @@ public class TimerSessionBean {
     void reset() {
         logger.info("Run from start set next reminder");
         try {
-            List<Reminder> reminders = entityManager
-                    .createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
+            List<Reminder> reminders = dao.findNextReminder();
             if (!reminders.isEmpty()) {
                 logger.info("Sets next reminder from db");
                 this.setNextReminder(reminders.get(0), reminders.get(0).getWhen());
@@ -67,8 +61,7 @@ public class TimerSessionBean {
 
     @Timeout
     public void programmaticTimeout(Timer timer) {
-        List<Reminder> reminders = entityManager
-                .createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
+        List<Reminder> reminders = dao.findNextReminder();
 
         if (reminders.isEmpty()) {
             logger.info("Empty reminders no -----next reminder");
@@ -82,9 +75,10 @@ public class TimerSessionBean {
                 logger.error("consider change the buttonUrl and the googlePrivateKey",e);
             }
             //Removes old reminder
-            Reminder oldReminder = entityManager.find(Reminder.class, reminders.get(0).getReminderId());
+
+            Reminder oldReminder = dao.findOldReminder(reminders.get(0).getReminderId());
             logger.info("Deleted reminder at: {}", oldReminder.getWhen());
-            entityManager.remove(oldReminder);
+            dao.remove(oldReminder);
 
             //Gets next reminder if exists
             if (reminders.size() > 1) {

@@ -1,21 +1,17 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Control {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
-
-    @PersistenceContext(name = "wa")
-    public EntityManager entityManager;
 
     private String botName = "";
 

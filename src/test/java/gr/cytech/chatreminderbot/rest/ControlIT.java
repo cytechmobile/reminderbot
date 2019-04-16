@@ -8,6 +8,8 @@ import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
 import gr.cytech.chatreminderbot.rest.message.ThreadM;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,24 +25,41 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
+    private static Client client;
+
+    @BeforeAll
+    public static void beforeAll() throws Exception {
+        client = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        //TODO check if needed
+        Request req = getSampleRequest();
+        req.getMessage().setText("config set googlePrivateKey {\"type\": \"service_account\"}");
+        try (Response resp = client.target("http://localhost:8080/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req))) {
+            logger.info("received response to request: {}", resp.getStatus());
+            assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+            assertThat(resp.readEntity(String.class))
+                    .as("unexpected set config key response")
+                    .contains("Updated configuration to ");
+        }
+    }
+
+    @AfterAll
+    public static void afterAll() throws Exception {
+        if (client != null) {
+            client.close();
+            client = null;
+        }
+    }
+
     @Test
-    void handleRequest() {
-        Request req = new Request();
-        Message mes = new Message();
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
-
-        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
-        sender.setName("MyName");
-
-        mes.setThread(threadM);
-        mes.setSender(sender);
+    void handleRequest() throws Exception {
+        Request req = getSampleRequest();
 
         String expectedWhen = "12/12/2019 12:00";
         String what = "something to do";
 
-        mes.setText("remind me " + what + " at " + expectedWhen);
-        req.setMessage(mes);
+        req.getMessage().setText("remind me " + what + " at " + expectedWhen);
 
         CaseSetReminder caseSetReminder = new CaseSetReminder();
         final String timezone = "Europe/Athens";
@@ -51,8 +70,7 @@ class ControlIT {
                 + caseSetReminder.calculateRemainingTime(
                         caseSetReminder.dateForm(expectedWhen, timezone)) + "</b>";
 
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -62,24 +80,12 @@ class ControlIT {
 
     @Test
     void listReminderTest() {
-        Request req = new Request();
-        Message mes = new Message();
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
-
-        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
-        sender.setName("MyName");
-
-        mes.setThread(threadM);
-        mes.setSender(sender);
-
-        mes.setText("list");
-        req.setMessage(mes);
+        Request req = getSampleRequest();
+        req.getMessage().setText("list");
 
         String responseDefault = "I didnt understand you, type help for instructions \n";
 
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -89,24 +95,12 @@ class ControlIT {
 
     @Test
     void setGlobalTimezoneTest() {
-        Request req = new Request();
-        Message mes = new Message();
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
-
-        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
-        sender.setName("MyName");
-
-        mes.setThread(threadM);
-        mes.setSender(sender);
-
-        mes.setText("set global timezone to athens");
-        req.setMessage(mes);
+        Request req = getSampleRequest();
+        req.getMessage().setText("set global timezone to athens");
 
         String expectedResponse = "You successfully set the global timezone at:Europe/Athens";
 
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -117,26 +111,14 @@ class ControlIT {
 
     @Test
     void setMyTimezone() {
-        Request req = new Request();
-        Message mes = new Message();
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
-
-        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
-        sender.setName("MyName");
-
-        mes.setThread(threadM);
-        mes.setSender(sender);
-
-        mes.setText("set my timezone to athens");
-        req.setMessage(mes);
+        Request req = getSampleRequest();
+        req.getMessage().setText("set my timezone to athens");
 
         String expectedResponse = " <"
                 + req.getMessage().getSender().getName()
                 + "> successfully set your timezone at:Europe/Athens";
 
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -146,27 +128,15 @@ class ControlIT {
 
     @Test
     void showVersion() throws Exception {
-        Request req = new Request();
-        Message mes = new Message();
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
-
-        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
-        sender.setName("MyName");
-
-        mes.setThread(threadM);
-        mes.setSender(sender);
-
-        mes.setText("version");
-        req.setMessage(mes);
+        Request req = getSampleRequest();
+        req.getMessage().setText("version");
 
         final Properties properties = new Properties();
         properties.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
 
         String expectedResponse = "Hi my version right now is: " + properties.getProperty("version");
 
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -176,26 +146,15 @@ class ControlIT {
 
     @Test
     void setAndReturnTimezone() {
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
-
-        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
-        sender.setName("MyName");
-
-        Message mes2 = new Message();
-        Request req2 = new Request();
-        mes2.setThread(threadM);
-        mes2.setSender(sender);
-        mes2.setText("set my timezone to athens");
-        req2.setMessage(mes2);
+        Request req2 = getSampleRequest();
+        req2.getMessage().setText("set my timezone to athens");
 
         String expectedResponse = "---- Your timezone is  ---- \n"
-                + "Timezone = 'Europe/Athens'\n "
+                + "Timezone = Europe/Athens\n "
                 + "---- Default timezone is ---- \n"
-                + "Timezone = 'Europe/Athens'";
+                + "Timezone = Europe/Athens";
 
-        Client c = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        Response respForReq2 = c.target("http://localhost:8080/bot/services/handleReq")
+        Response respForReq2 = client.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req2));
         respForReq2.bufferEntity();
@@ -205,14 +164,10 @@ class ControlIT {
                 .as("received error response when setting user time zone")
                 .isEqualTo(200);
 
-        Request req = new Request();
-        Message mes = new Message();
-        mes.setThread(threadM);
-        mes.setSender(sender);
-        mes.setText("timezones");
-        req.setMessage(mes);
+        Request req = getSampleRequest();
+        req.getMessage().setText("timezones");
 
-        Response resp = c.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -227,6 +182,23 @@ class ControlIT {
                 .textParagraph("" + expectedMessage + "")
                 .build();
 
+    }
+
+    public static Request getSampleRequest() {
+        Message mes = new Message();
+
+        Sender sender = new Sender();
+        sender.setName("MyName");
+        mes.setSender(sender);
+
+        ThreadM threadM = new ThreadM();
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        mes.setThread(threadM);
+
+        Request req = new Request();
+        req.setMessage(mes);
+
+        return req;
     }
 
 }

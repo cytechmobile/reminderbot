@@ -1,20 +1,19 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
 public class CaseSetTimezone {
     private static final Logger logger = LoggerFactory.getLogger(CaseSetTimezone.class);
 
-    @PersistenceContext(name = "wa")
-    public EntityManager entityManager;
+    @Inject
+    Dao dao;
 
     private Request request;
     private List<String> splitMsg;
@@ -57,14 +56,7 @@ public class CaseSetTimezone {
             logger.info("---Case Set global timezone---");
 
             TimeZone defaultTimeZone = new TimeZone(givenTimezone, "default");
-            if (getGivenTimeZone("default").equals("")) {
-                entityManager.persist(defaultTimeZone);
-            } else {
-                Query query = entityManager.createNamedQuery("set.timezone")
-                        .setParameter("timezone", defaultTimeZone.getTimezone())
-                        .setParameter("userid", "default");
-                query.executeUpdate();
-            }
+            defaultTimeZone = dao.merge(defaultTimeZone);
             response = "You successfully set the global timezone at:" + defaultTimeZone.getTimezone();
             return response;
 
@@ -74,14 +66,7 @@ public class CaseSetTimezone {
                 logger.info("---Case Set user timezone---");
                 String who = request.getMessage().getSender().getName();
                 TimeZone timeZone = new TimeZone(givenTimezone, who);
-                if (getGivenTimeZone(who).equals("")) {
-                    entityManager.persist(timeZone);
-                } else {
-                    Query query = entityManager.createNamedQuery("set.timezone")
-                            .setParameter("timezone", timeZone.getTimezone())
-                            .setParameter("userid", who);
-                    query.executeUpdate();
-                }
+                timeZone = dao.merge(timeZone);
                 response = " <" + who + "> successfully set your timezone at:" + timeZone.getTimezone();
                 return response;
             }
@@ -99,24 +84,5 @@ public class CaseSetTimezone {
             }
         }
         return timeZone;
-    }
-
-    public String getGivenTimeZone(String user) {
-        List<TimeZone> timeZones = entityManager
-                .createNamedQuery("get.Alltimezone", TimeZone.class).getResultList();
-
-        if (timeZones.isEmpty()) {
-            logger.debug("timezones not found return - ");
-            return "";
-        } else {
-            for (TimeZone z : timeZones) {
-                if (z.getUserid().equals(user)) {
-                    logger.debug("found zone: {}", z.getTimezone());
-                    return z.getTimezone();
-                }
-            }
-            logger.debug("Didnt find zone for this user");
-            return "";
-        }
     }
 }
