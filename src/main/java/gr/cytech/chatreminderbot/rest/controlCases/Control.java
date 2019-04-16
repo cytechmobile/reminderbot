@@ -40,6 +40,9 @@ public class Control {
     @Inject
     CaseSetConfigurations caseSetConfigurations;
 
+    @Inject
+    public Dao dao;
+
     private Request request;
     private List<String> splitMsg;
 
@@ -87,7 +90,7 @@ public class Control {
 
     public void setRequest(Request request) {
         this.request = request;
-        botName = new Dao().getConfigurationValue("BOT_NAME", entityManager);
+        botName = dao.getBotName();
 
         splitMsg = new ArrayList<>(Arrays.asList(request.getMessage().getText().split("\\s+")));
 

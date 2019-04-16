@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,7 +40,8 @@ public class CaseSetReminderTest {
         TimerSessionBean timerSessionBean = mock(TimerSessionBean.class);
         client = mock(Client.class);
         caseSetReminder = new CaseSetReminder();
-        caseSetReminder.entityManager = mock(EntityManager.class);
+        caseSetReminder.dao = mock(Dao.class);
+        caseSetReminder.dao.entityManager = mock(EntityManager.class);
         caseSetReminder.timerSessionBean = timerSessionBean;
         caseSetReminder.client = client;
         ThreadM thread = new ThreadM();
@@ -58,18 +58,8 @@ public class CaseSetReminderTest {
         reminder.setReminderId(1);
         when(timerSessionBean.getNextReminderDate()).thenReturn(reminder.getWhen());
 
-        TypedQuery query = mock(TypedQuery.class);
-        TypedQuery query1 = mock(TypedQuery.class);
-
-        when(caseSetReminder.entityManager.createNamedQuery("get.configurationByKey",
-                Configurations.class)).thenReturn(query);
-        when(query.setParameter("configKey","BOT_NAME")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(new Configurations("BOT_NAME", "botName"));
-
-        when(caseSetReminder.entityManager.createNamedQuery("get.spesificTimezone",
-                TimeZone.class)).thenReturn(query1);
-        when(query1.setParameter("userid","MyName")).thenReturn(query1);
-        when(query1.getSingleResult()).thenReturn(new TimeZone("Europe/Athens", "MyName"));
+        when(caseSetReminder.dao.getBotName()).thenReturn("botName");
+        when(caseSetReminder.dao.getUserTimezone("MyName")).thenReturn("Europe/Athens");
 
     }
 
@@ -98,7 +88,6 @@ public class CaseSetReminderTest {
 
     @Test
     void persistReminder() throws Exception {
-
         String expectedDate = "12/12/2019 12:00";
         message.setText("remind me 'persist Reminder Test' at " + expectedDate);
         request.setMessage(message);
@@ -106,7 +95,7 @@ public class CaseSetReminderTest {
 
         ArgumentCaptor<Reminder> argumentCaptor = ArgumentCaptor.forClass(Reminder.class);
 
-        verify(caseSetReminder.entityManager, times(1)).persist(argumentCaptor.capture());
+        verify(caseSetReminder.dao.entityManager, times(1)).persist(argumentCaptor.capture());
 
         List<Reminder> capturedReminders = argumentCaptor.getAllValues();
         assertThat(capturedReminders).as("no reminders persisted").hasSize(1);

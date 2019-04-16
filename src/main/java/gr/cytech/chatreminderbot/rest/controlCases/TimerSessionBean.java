@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.*;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.ZonedDateTime;
@@ -27,6 +28,9 @@ public class TimerSessionBean {
     // get EntityManager
     @PersistenceContext(name = "wa")
     protected EntityManager entityManager;
+
+    @Inject
+    protected Dao dao;
 
     public ZonedDateTime nextReminderDate;
 
@@ -71,11 +75,11 @@ public class TimerSessionBean {
         } else {
             try {
                 //Sends message
-                client = Client.newClient(entityManager);
+                client = Client.newClient(dao);
                 client.sendAsyncResponse(reminders.get(0));
                 logger.info("Send Message ");
             } catch (Exception e) {
-                logger.error("consider change the buttonUrl and the googlePrivateKey Exception:{}",e);
+                logger.error("consider change the buttonUrl and the googlePrivateKey",e);
             }
             //Removes old reminder
             Reminder oldReminder = entityManager.find(Reminder.class, reminders.get(0).getReminderId());

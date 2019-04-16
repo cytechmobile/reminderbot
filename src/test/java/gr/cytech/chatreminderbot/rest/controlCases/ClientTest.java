@@ -23,10 +23,12 @@ public class ClientTest {
     @BeforeEach
     public final void beforeEach() throws Exception {
         client = new Client();
-        client.entityManager = mock(EntityManager.class);
+        client.dao = mock(Dao.class);
+        client.dao.entityManager = mock(EntityManager.class);
 
         query = mock(TypedQuery.class);
-        when(client.entityManager.createNamedQuery("get.configurationByKey", Configurations.class)).thenReturn(query);
+        when(client.dao.entityManager.createNamedQuery("get.configurationByKey", Configurations.class))
+                .thenReturn(query);
         when(query.setParameter("configKey","buttonUrl")).thenReturn(query);
         when(query.getSingleResult()).thenReturn(new Configurations("default","localhost"));
 
@@ -45,13 +47,13 @@ public class ClientTest {
                 .build();
 
         String message = client.cardCreation(reminder.getSpaceId(), reminder.getThreadId(), reminder.getWhat(),
-                reminder.getSenderDisplayName(), "localhost");
+                reminder.getSenderDisplayName(), null);
 
         client.requestFactory = transport.createRequestFactory();
 
         String result = client.sendAsyncResponse(reminder);
 
-        verify(query, times(1)).setParameter("configKey","buttonUrl");
+        verify(client.dao, times(1)).getConfigurationValue("buttonUrl");
 
         assertThat(result).as("unexpected result returned").isEqualTo("ok");
 

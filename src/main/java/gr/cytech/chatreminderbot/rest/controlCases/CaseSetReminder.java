@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -22,16 +20,12 @@ import java.util.TimeZone;
 public class CaseSetReminder {
     private static final Logger logger = LoggerFactory.getLogger(CaseSetReminder.class);
 
-    @PersistenceContext(name = "wa")
-    public EntityManager entityManager;
-
     //Needs to set timer
     @Inject
     public TimerSessionBean timerSessionBean;
 
-    //needs to use function extractTimeZone
     @Inject
-    CaseSetTimezone caseSetTimezone;
+    protected Dao dao;
 
     protected Client client;
 
@@ -50,7 +44,7 @@ public class CaseSetReminder {
         //pass from string to ZoneDateTime
         //Check if date has passed
 
-        if (reminder.getWhen().isBefore(ZonedDateTime.now(ZoneId.of(reminder.getWhen().getZone().getId())))) {
+        if (reminder.getWhen().isBefore(ZonedDateTime.now())) {
             return "This date has passed "
                     + reminder.getWhen() + ". Check your timezone or insert in the current reminder";
         }
@@ -79,10 +73,44 @@ public class CaseSetReminder {
      *   get it from users settings
      *   get it from global settings
      * */
+    public String updateUpToString(String upTo, Reminder reminder, List<String> splitMsg, Request request) {
+        //add reminder display name and remove remind and who part of the upTo string to
+        //display only the given text
+        if (splitMsg.get(0).equals("remind")) {
+            // 1) me
+            if (splitMsg.get(1).equals("me")) {
+                //  ---- takes the ID of the sender ---
+                reminder.setSenderDisplayName(request.getMessage().getSender().getName());
+            } else if (splitMsg.get(1).equals("@all")) {
+                reminder.setSenderDisplayName("users/all");
+            } else {
+                String displayName = "";
+                if (splitMsg.get(1).startsWith("#")) {
+                    // 2)#RoomName
+                    displayName = splitMsg.get(1);
+                }
+                reminder.setSenderDisplayName(findIdUserName(displayName,
+                        request.getMessage().getThread().getSpaceId()));
+            }
+        }
+        if (upTo.startsWith("remind ")) {
+            upTo = upTo.substring("remind ".length());
+        }
+        if (upTo.startsWith("me ")) {
+            upTo = upTo.substring("me ".length());
+        }
+        if (upTo.startsWith(reminder.getSenderDisplayName())) {
+            upTo = upTo.substring(reminder.getSenderDisplayName().length());
+        }
+        if (upTo.startsWith("@all ")) {
+            upTo = upTo.substring("@all ".length());
+        }
+        return upTo;
+    }
 
-    public Reminder setInfosForRemind(Request request, Reminder reminder,List<String> splitMsg) {
-        String botName = new Dao().getBotName(entityManager);
-        String timezone = new Dao().getUserTimezone(request.getMessage().getSender().getName(), entityManager);
+    public Reminder setInfosForRemind(Request request, Reminder reminder, List<String> splitMsg) {
+        String botName = dao.getBotName();
+        String timezone = dao.getUserTimezone(request.getMessage().getSender().getName());
 
         if (splitMsg.get(0).equals("@" + botName)) {
             splitMsg.remove(0);
@@ -113,39 +141,10 @@ public class CaseSetReminder {
 
         logger.info("set when: {}", reminder.getWhen());
 
-        if (splitMsg.get(0).equals("remind")) {
-            // 1) me
-            if (splitMsg.get(1).equals("me")) {
-                //  ---- takes the ID of the sender ---
-                reminder.setSenderDisplayName(request.getMessage().getSender().getName());
-            } else if (splitMsg.get(1).equals("@all")) {
-                reminder.setSenderDisplayName("users/all");
-            } else {
-                String displayName = "";
-                if (splitMsg.get(1).startsWith("#")) {
-                    // 2)#RoomName
-                    displayName = splitMsg.get(1);
-                }
-                reminder.setSenderDisplayName(findIdUserName(displayName,
-                        request.getMessage().getThread().getSpaceId()));
-            }
-        }
+        upTo = updateUpToString(upTo, reminder, splitMsg, request);
 
-        if (upTo.startsWith("remind ")) {
-            upTo = upTo.replace("remind ", "");
-        }
-        if (upTo.startsWith("me ")) {
-            upTo = upTo.replace("me ", "");
-        }
-        if (upTo.startsWith(reminder.getSenderDisplayName())) {
-            upTo = upTo.replace(reminder.getSenderDisplayName(), "");
-        }
-        if (upTo.startsWith("@all")) {
-            upTo = upTo.replace("@all", "");
-        }
-        logger.info("updated text {}", upTo);
         if (client == null) {
-            client = Client.newClient(entityManager);
+            client = Client.newClient(dao);
         }
         Map<String, String> listOfMembersInRoom = client
                 .getListOfMembersInRoom(request.getMessage().getThread().getSpaceId());
@@ -167,7 +166,7 @@ public class CaseSetReminder {
     }
 
     public void saveAndSetReminder(Reminder reminder) {
-        entityManager.persist(reminder);
+        dao.entityManager.persist(reminder);
         //if there is no next reminder, sets this as next
         if (timerSessionBean.getNextReminderDate() == null) {
             logger.info("set NEW reminder to : {}", reminder.getWhen());
@@ -265,7 +264,7 @@ public class CaseSetReminder {
      * */
     public String findIdUserName(String displayName, String spaceId) {
         if (client == null) {
-            client = Client.newClient(entityManager);
+            client = Client.newClient(dao);
         }
         Map<String, String> users = client.getListOfMembersInRoom(spaceId);
         //if displayName not found then just save the name as it is

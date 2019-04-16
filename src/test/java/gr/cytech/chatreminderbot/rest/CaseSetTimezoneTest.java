@@ -36,10 +36,11 @@ public class CaseSetTimezoneTest {
                 "DisplayName", spaceId, threadId);
 
         reminder.setReminderId(1);
-        EntityManager entityManager = mock(EntityManager.class);
-        caseSetTimezone.entityManager = entityManager;
+        caseSetTimezone.entityManager = mock(EntityManager.class);
 
         control = new Control();
+        control.dao = mock(Dao.class);
+        control.dao.entityManager = mock(EntityManager.class);
         control.entityManager = mock(EntityManager.class);
         caseSetTimezone.setKeyWordGlobal("global");
         caseSetTimezone.setKeyWordMy("my");
@@ -47,8 +48,9 @@ public class CaseSetTimezoneTest {
         TypedQuery query = mock(TypedQuery.class);
 
         when(caseSetTimezone.entityManager.createNamedQuery("get.Alltimezone", TimeZone.class)).thenReturn(query);
-        when(control.entityManager.createNamedQuery("get.configurationByKey", Configurations.class)).thenReturn(query);
-        when(query.setParameter("configKey","BOT_NAME")).thenReturn(query);
+        when(control.dao.entityManager.createNamedQuery("get.configurationByKey", Configurations.class))
+                .thenReturn(query);
+        when(query.setParameter("configKey", "BOT_NAME")).thenReturn(query);
         when(query.getSingleResult()).thenReturn(new Configurations("BOT_NAME","TimezoneTest"));
     }
 

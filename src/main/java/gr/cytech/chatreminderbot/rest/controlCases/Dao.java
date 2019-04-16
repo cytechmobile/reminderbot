@@ -5,13 +5,17 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
 public class Dao {
 
     private static final Logger logger = LoggerFactory.getLogger(Dao.class);
 
-    public String getBotName(EntityManager entityManager) {
+    @PersistenceContext(name = "wa")
+    public EntityManager entityManager;
+
+    public String getBotName() {
         String botName = "";
         try {
             botName = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
@@ -25,7 +29,7 @@ public class Dao {
     }
 
     @Transactional
-    public String getUserTimezone(String userId, EntityManager entityManager) {
+    public String getUserTimezone(String userId) {
         String timezone = "";
         try {
             timezone = entityManager.createNamedQuery("get.spesificTimezone", TimeZone.class)
@@ -48,7 +52,7 @@ public class Dao {
         return timezone;
     }
 
-    public String getConfigurationValue(String config, EntityManager entityManager) {
+    public String getConfigurationValue(String config) {
         String getConfigurationValue;
         try {
             getConfigurationValue = entityManager

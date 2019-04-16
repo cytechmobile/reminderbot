@@ -7,7 +7,6 @@ import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,8 +19,8 @@ public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
 
-    public EntityManager entityManager;
     protected HttpRequestFactory requestFactory;
+    protected Dao dao;
 
     public String cardCreation(String spaceId, String threadId, String what,
                                String senderName, String url) {
@@ -40,8 +39,8 @@ public class Client {
     public Client() {
     }
 
-    public Client(EntityManager entityManager, HttpRequestFactory requestFactory) {
-        this.entityManager = entityManager;
+    public Client(Dao dao, HttpRequestFactory requestFactory) {
+        this.dao = dao;
         this.requestFactory = requestFactory;
     }
 
@@ -55,7 +54,7 @@ public class Client {
                 + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
-        String buttonUrl = new Dao().getConfigurationValue("buttonUrl", entityManager);
+        String buttonUrl = dao.getConfigurationValue("buttonUrl");
 
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
                 reminder.getWhat(), reminder.getSenderDisplayName(), buttonUrl);
@@ -138,27 +137,27 @@ public class Client {
         return response;
     }
 
-    public static Client newClient(EntityManager entityManager) {
-        HttpRequestFactory requestFactory = getHttpRequestFactory(entityManager);
-        return new Client(entityManager, requestFactory);
+    public static Client newClient(Dao dao) {
+        HttpRequestFactory requestFactory = getHttpRequestFactory(dao);
+        return new Client(dao, requestFactory);
     }
 
-    public static String googlePrivateKey(EntityManager entityManager) {
-        String googlePrivateKey = new Dao().getConfigurationValue("googlePrivateKey", entityManager);
+    public static String googlePrivateKey(Dao dao) {
+        String googlePrivateKey = dao.getConfigurationValue("googlePrivateKey");
         if (!googlePrivateKey.equals("NO RESULT FOUND")) {
             return googlePrivateKey;
         } else {
             Configurations configurations = new Configurations("googlePrivateKey", "");
-            entityManager.persist(configurations);
+            dao.entityManager.persist(configurations);
             return configurations.getValue();
         }
     }
 
-    protected static GoogleCredential getCredential(EntityManager entityManager) {
+    protected static GoogleCredential getCredential(Dao dao) {
         GoogleCredential credential = null;
         String googlePrivateKey = null;
         try {
-            googlePrivateKey = googlePrivateKey(entityManager);
+            googlePrivateKey = googlePrivateKey(dao);
             InputStream inputStream = new ByteArrayInputStream(googlePrivateKey.getBytes(StandardCharsets.UTF_8));
             credential = GoogleCredential
                     .fromStream(inputStream)
@@ -182,7 +181,7 @@ public class Client {
         return null;
     }
 
-    public static HttpRequestFactory getHttpRequestFactory(EntityManager entityManager) {
-        return Objects.requireNonNull(getHttpTransport()).createRequestFactory(getCredential(entityManager));
+    public static HttpRequestFactory getHttpRequestFactory(Dao dao) {
+        return Objects.requireNonNull(getHttpTransport()).createRequestFactory(getCredential(dao));
     }
 }
