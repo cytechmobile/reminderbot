@@ -17,13 +17,14 @@
   The current functionality that this bot supports after you invite it is the following:
 1)  Set a reminder  
 	a) For you   
-		`@bot remind me 'what' at 16/03/2019 16:33`  
+		`@bot remind me what at 16/3/2019 16:33`        
+		`@bot remind me what in 1 minute`       
 	b) For anyone in the current room   
-		`@bot remind @George Papakis 'what' at 16/03/2019 16:33`  
+		`@bot remind @George Papakis what at 16/3/2019 16:33`  
 	c) All in the current room  
-		`@bot remind @all 'what' at 16/03/2019 16:33`  
+		`@bot remind @all what at 16/3/2019 16:33`  
 	d) All in any other room that bot is invited    
-		`@bot remind #roomName 'what' at 16/03/2019 16:33`  
+		`@bot remind #roomName what at 16/3/2019 16:33`  
 		
 2) Set timezone  
 	a) For each reminder   

@@ -40,9 +40,6 @@ public class Reminder {
     @Column(name = "thread_id", nullable = false)
     private String threadId;
 
-    @Column(name = "reminder_timezone", nullable = false)
-    private String reminderTimezone;
-
     public Reminder() {
     }
 
@@ -52,17 +49,6 @@ public class Reminder {
         this.senderDisplayName = senderDisplayName;
         this.spaceId = spaceId;
         this.threadId = threadId;
-    }
-
-    public Reminder(String what, ZonedDateTime when, String senderDisplayName,
-                    String reminderTimezone, String spaceId, String threadId) {
-        this.what = what;
-        this.when = when;
-        this.senderDisplayName = senderDisplayName;
-        this.reminderTimezone = reminderTimezone;
-        this.spaceId = spaceId;
-        this.threadId = threadId;
-
     }
 
     public int getReminderId() {
@@ -89,10 +75,6 @@ public class Reminder {
         return when;
     }
 
-    public String getReminderTimezone() {
-        return reminderTimezone;
-    }
-
     public void setReminderId(int reminderId) {
         this.reminderId = reminderId;
     }
@@ -117,10 +99,6 @@ public class Reminder {
         this.threadId = threadId;
     }
 
-    public void setReminderTimezone(String reminderTimezone) {
-        this.reminderTimezone = reminderTimezone;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -135,12 +113,11 @@ public class Reminder {
                 && Objects.equals(when, reminder.when)
                 && Objects.equals(senderDisplayName, reminder.senderDisplayName)
                 && Objects.equals(spaceId, reminder.spaceId)
-                && Objects.equals(threadId, reminder.threadId)
-                && Objects.equals(reminderTimezone, reminder.reminderTimezone);
+                && Objects.equals(threadId, reminder.threadId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(reminderId, what, when, senderDisplayName, spaceId, threadId, reminderTimezone);
+        return Objects.hash(reminderId, what, when, senderDisplayName, spaceId, threadId);
     }
 }

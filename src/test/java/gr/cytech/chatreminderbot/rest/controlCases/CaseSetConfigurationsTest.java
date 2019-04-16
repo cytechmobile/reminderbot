@@ -1,16 +1,13 @@
-package gr.cytech.chatreminderbot.rest;
+package gr.cytech.chatreminderbot.rest.controlCases;
 
-import gr.cytech.chatreminderbot.rest.controlCases.CaseSetConfigurations;
-import gr.cytech.chatreminderbot.rest.controlCases.Configurations;
+import com.google.common.collect.Lists;
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,18 +15,14 @@ import static org.mockito.Mockito.*;
 
 public class CaseSetConfigurationsTest {
 
-    public CaseSetConfigurations caseSetConfigurations;
-    private List<String> splitMsg;
+    CaseSetConfigurations caseSetConfigurations;
+    Dao dao;
 
     @BeforeEach
     public void beforeEach() throws Exception {
+        dao = mock(Dao.class);
         caseSetConfigurations = new CaseSetConfigurations();
-        caseSetConfigurations.entityManager = mock(EntityManager.class);
-        TypedQuery query = mock(TypedQuery.class);
-        when(caseSetConfigurations.entityManager
-                .createNamedQuery("get.allConfigurations", Configurations.class)).thenReturn(query);
-        when(query.getResultList()).thenReturn(Collections.singletonList(new Configurations("buttonUrl", "localhost")));
-        when(query.getSingleResult()).thenReturn(new Configurations("buttonUrl", "localhost"));
+        caseSetConfigurations.dao = dao;
     }
 
     @Test
@@ -37,17 +30,18 @@ public class CaseSetConfigurationsTest {
         String message = "config set buttonUrl localhost";
 
         String expectedResponse = "Updated configuration to localhost with key buttonUrl";
-        splitMsg = new ArrayList<>(Arrays.asList(message.split("\\s+")));
+        List<String> splitMsg = Lists.newArrayList(message.split("\\s+"));
+
+        when(dao.merge(any(Configurations.class))).thenAnswer(inv -> inv.getArguments()[0]);
 
         assertThat(caseSetConfigurations.configurationController(splitMsg)).isEqualTo(expectedResponse);
         ArgumentCaptor<Configurations> argumentCaptor = ArgumentCaptor.forClass(Configurations.class);
         //verify that merge has executed exactly 1 time
-        verify(caseSetConfigurations.entityManager, times(1)).merge(argumentCaptor.capture());
+        verify(dao, times(1)).merge(argumentCaptor.capture());
         List<Configurations> captureConfigurations = argumentCaptor.getAllValues();
 
         assertThat(captureConfigurations.get(0).getValue()).isEqualTo("localhost");
         assertThat(captureConfigurations.get(0).getKey()).isEqualTo("buttonUrl");
-
     }
 
     @Test
@@ -58,14 +52,14 @@ public class CaseSetConfigurationsTest {
         String multiplyWhiteSpaces = String.format("%-24s", " ");
 
         //mocked query to get key/value
-        Configurations resultList = caseSetConfigurations.entityManager
-                .createNamedQuery("get.allConfigurations", Configurations.class).getSingleResult();
+        List<Configurations> resultList = List.of(new Configurations("test", "tost"));
+        when(dao.getAllConfigurations()).thenReturn(resultList);
 
-        splitMsg = new ArrayList<>(Arrays.asList(message.split("\\s+")));
+        List<String> splitMsg = new ArrayList<>(Arrays.asList(message.split("\\s+")));
 
         String expectedResponse = "the configurations right now are: \n" + " key" + multiplyWhiteSpaces
-                + "value \n" + "<b>" + resultList.getKey()
-                + "</b> " + " --> " + resultList.getValue() + " \n";
+                + "value \n" + "<b>" + resultList.get(0).getKey()
+                + "</b> " + " --> " + resultList.get(0).getValue() + " \n";
 
         assertThat(caseSetConfigurations.configurationController(splitMsg))
                 .isEqualTo(expectedResponse);

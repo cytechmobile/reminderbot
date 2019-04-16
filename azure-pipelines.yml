@@ -14,11 +14,13 @@ steps:
   - task: Maven@3
     inputs:
       mavenPomFile: 'pom.xml'
+      # according to: https://github.com/MicrosoftDocs/vsts-docs/issues/3845, 
+      # maven options should go to goals instead, as mavenOptions is for jvm options
       mavenOptions: '-Xmx3072m'
       javaHomeOption: 'JDKVersion'
       jdkVersionOption: '1.11'
       jdkArchitectureOption: 'x64'
       publishJUnitResults: true
       testResultsFiles: '**/surefire-reports/TEST-*.xml'
-      goals: 'verify'
+      goals: 'verify -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true --batch-mode --show-version'
 

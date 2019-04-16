@@ -27,7 +27,7 @@ public class CaseShowRemindersTest {
         String threadId = "THREAD_ID";
         caseShowReminders = new CaseShowReminders();
         reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens")).plusMinutes(10),
-                "DisplayName", "Europe/Athens", spaceId, threadId);
+                "DisplayName", spaceId, threadId);
 
         reminder.setReminderId(1);
     }

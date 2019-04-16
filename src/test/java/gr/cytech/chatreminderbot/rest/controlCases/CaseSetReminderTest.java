@@ -1,5 +1,6 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
@@ -8,14 +9,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -27,6 +28,7 @@ public class CaseSetReminderTest {
     private Message message;
     private Client client;
     private Reminder reminder;
+    private Dao dao;
 
     @BeforeEach
     final void beforeEach() {
@@ -38,8 +40,9 @@ public class CaseSetReminderTest {
 
         TimerSessionBean timerSessionBean = mock(TimerSessionBean.class);
         client = mock(Client.class);
+        dao = mock(Dao.class);
         caseSetReminder = new CaseSetReminder();
-        caseSetReminder.entityManager = mock(EntityManager.class);
+        caseSetReminder.dao = mock(Dao.class);
         caseSetReminder.timerSessionBean = timerSessionBean;
         caseSetReminder.client = client;
         ThreadM thread = new ThreadM();
@@ -51,25 +54,14 @@ public class CaseSetReminderTest {
         message.setThread(thread);
 
         reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens"))
-                .plusMinutes(10), "DisplayName", "Europe/Athens", spaceId, threadId);
+                .plusMinutes(10), "DisplayName", spaceId, threadId);
 
         reminder.setReminderId(1);
         when(timerSessionBean.getNextReminderDate()).thenReturn(reminder.getWhen());
-        TypedQuery query = mock(TypedQuery.class);
-        when(caseSetReminder.entityManager.createNamedQuery("get.configurationByKey",
-                Configurations.class)).thenReturn(query);
 
-        when(query.setParameter("configKey","BOT_NAME")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(new Configurations("BOT_NAME", "botName"));
-    }
+        when(caseSetReminder.dao.getBotName()).thenReturn("botName");
+        when(caseSetReminder.dao.getUserTimezone("MyName")).thenReturn("Europe/Athens");
 
-    @Test
-    void dateFormTest() throws Exception {
-        ZonedDateTime curr = ZonedDateTime.now(ZoneId.of("Europe/Athens")).truncatedTo(ChronoUnit.MINUTES);
-        String inOneHour = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(curr);
-        ZonedDateTime result = caseSetReminder.dateForm(inOneHour, reminder.getReminderTimezone());
-
-        assertThat(result).as("parsed date is not the expected").isEqualTo(curr);
     }
 
     @Test
@@ -87,16 +79,24 @@ public class CaseSetReminderTest {
     }
 
     @Test
-    void persistReminder() throws Exception {
+    void dateFormTest() throws Exception {
+        ZonedDateTime curr = ZonedDateTime.now(ZoneId.of("Europe/Athens")).truncatedTo(ChronoUnit.MINUTES);
+        String inOneHour = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(curr);
+        ZonedDateTime result = caseSetReminder.dateForm(inOneHour, String.valueOf(ZoneId.of("Europe/Athens")));
 
-        String expectedDate = "12/12/2019 12:00 GMT-2";
+        assertThat(result).as("parsed date is not the expected").isEqualTo(curr);
+    }
+
+    @Test
+    void persistReminder() throws Exception {
+        String expectedDate = "12/12/2019 12:00";
         message.setText("remind me 'persist Reminder Test' at " + expectedDate);
         request.setMessage(message);
         caseSetReminder.buildReminder(request);
 
         ArgumentCaptor<Reminder> argumentCaptor = ArgumentCaptor.forClass(Reminder.class);
 
-        verify(caseSetReminder.entityManager, times(1)).persist(argumentCaptor.capture());
+        verify(caseSetReminder.dao, times(1)).persist(argumentCaptor.capture());
 
         List<Reminder> capturedReminders = argumentCaptor.getAllValues();
         assertThat(capturedReminders).as("no reminders persisted").hasSize(1);
@@ -112,20 +112,22 @@ public class CaseSetReminderTest {
 
     @Test
     void setInfosTest() throws Exception {
-        String what = "something to do";
+        String what = " something to do";
         String who = "@Ntina trol";
-        final String expectedDate = "12/12/2018 12:00";
+        final String expectedDate = "12/12/2020 12:00";
 
-        message.setText("remind " + who + " '" + what + "' at " + expectedDate + " athens");
+        Map<String,String> hashMap = new HashMap<>();
+        hashMap.put("Ntina trol", "Ntina trol");
+        when(caseSetReminder.client.getListOfMembersInRoom("SPACE_ID")).thenReturn(hashMap);
+
+        message.setText("remind " + who + " " + what + " at " + expectedDate + " athens");
         request.setMessage(message);
         caseSetReminder.buildReminder(request);
 
-        List<String> splitMsg = List.of(request.getMessage().getText().split("\'"));
-        List<String> whoPart = new ArrayList<>(List.of(splitMsg.get(0).split("\\s+")));
+        List<String> splitMsg = new ArrayList<>(List.of(request.getMessage().getText().split("\\s+")));
 
-        caseSetReminder.checkRemindMessageFormat(splitMsg, whoPart);
         caseSetReminder.client = client;
-        Reminder reminder = caseSetReminder.setInfosForRemind(request, this.reminder, splitMsg, whoPart);
+        Reminder reminder = caseSetReminder.setInfosForRemind(request, this.reminder, splitMsg);
 
         String reminderWhenFormated = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(reminder.getWhen());
 

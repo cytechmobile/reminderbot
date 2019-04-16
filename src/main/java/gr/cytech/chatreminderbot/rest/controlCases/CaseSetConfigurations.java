@@ -1,18 +1,18 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
 public class CaseSetConfigurations {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
 
-    @PersistenceContext(name = "wa")
-    public EntityManager entityManager;
+    @Inject
+    Dao dao;
 
     private List<String> splitMsg;
 
@@ -38,19 +38,22 @@ public class CaseSetConfigurations {
         valueForConfigurations.deleteCharAt(valueForConfigurations.length() - 1);
         logger.info("the updated String is {}", valueForConfigurations);
         Configurations newConfiguration = new Configurations(splitMsg.get(2), valueForConfigurations.toString());
-        entityManager.merge(newConfiguration);
+        newConfiguration = dao.merge(newConfiguration);
         return "Updated configuration to " + newConfiguration.getValue() + " with key " + newConfiguration.getKey();
     }
 
     public String configCommand() {
-        List<Configurations> getAllConfigurations = entityManager
-                .createNamedQuery("get.allConfigurations", Configurations.class).getResultList();
+        List<Configurations> configs = dao.getAllConfigurations();
         // adding multiply whitespaces instead of just pressing space in the string
         String multiplyWhiteSpaces = String.format("%-24s", " ");
         StringBuilder allConfigs = new StringBuilder("key" + multiplyWhiteSpaces + "value \n");
-        for (Configurations k : getAllConfigurations) {
+        for (Configurations k : configs) {
+            String val = k.getValue();
+            if (k.getKey().toLowerCase().contains("key")) {
+                val = "***";
+            }
             allConfigs.append("<b>").append(k.getKey())
-                    .append("</b> ").append(" --> ").append(k.getValue()).append(" \n");
+                    .append("</b> ").append(" --> ").append(val).append(" \n");
         }
         return "the configurations right now are: \n " + allConfigs;
     }

@@ -1,22 +1,17 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Control {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
-
-    @PersistenceContext(name = "wa")
-    public EntityManager entityManager;
 
     private String botName = "";
 
@@ -40,6 +35,9 @@ public class Control {
 
     @Inject
     CaseSetConfigurations caseSetConfigurations;
+
+    @Inject
+    public Dao dao;
 
     private Request request;
     private List<String> splitMsg;
@@ -88,14 +86,7 @@ public class Control {
 
     public void setRequest(Request request) {
         this.request = request;
-        try {
-            botName = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
-                    .setParameter("configKey", "BOT_NAME")
-                    .getSingleResult().getValue();
-        } catch (NoResultException e) {
-            logger.warn("no result found with key BOT_NAME please consider change it");
-            botName = "CHANGE-ME";
-        }
+        botName = dao.getBotName();
 
         splitMsg = new ArrayList<>(Arrays.asList(request.getMessage().getText().split("\\s+")));
 
@@ -166,6 +157,7 @@ public class Control {
                 + "1)  Set a reminder  \n \n"
                 + "    a) For you   \n"
                 + "     `@" + botName + " remind me 'what' at 16/03/2020 16:33`  \n"
+                + "     `@" + botName + " remind me what in 1 minute \n"
                 + "    b) For anyone in the current room   \n"
                 + "     `@" + botName + " remind @George Papakis 'what' at 16/03/2020 16:33`  \n"
                 + "    c) All in any the current room  \n"

@@ -4,30 +4,27 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.*;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
 
-    public EntityManager entityManager;
     protected HttpRequestFactory requestFactory;
+    protected Dao dao;
 
     public String cardCreation(String spaceId, String threadId, String what,
-                               String senderName, String timezone, String url) {
+                               String senderName, String url) {
 
         return new CardResponseBuilder()
                 .thread("spaces/" + spaceId + "/threads/" + threadId)
@@ -35,7 +32,6 @@ public class Client {
                 .textButton("remind me again in 10 minutes", url
                         + "/bot/services/button?name=" + senderName
                         + "&text=" + what
-                        + "&timezone=" + timezone
                         + "&space=" + spaceId
                         + "&thread=" + threadId)
                 .build();
@@ -44,8 +40,8 @@ public class Client {
     public Client() {
     }
 
-    public Client(EntityManager entityManager, HttpRequestFactory requestFactory) {
-        this.entityManager = entityManager;
+    public Client(Dao dao, HttpRequestFactory requestFactory) {
+        this.dao = dao;
         this.requestFactory = requestFactory;
     }
 
@@ -59,13 +55,10 @@ public class Client {
                 + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
                 + "/threads/" + reminder.getThreadId() + "\" }}";
 
-        String buttonUrl = entityManager.createNamedQuery("get.configurationByKey", Configurations.class)
-                .setParameter("configKey", "buttonUrl")
-                .getSingleResult().getValue();
+        String buttonUrl = dao.getConfigurationValue("buttonUrl");
 
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
-                reminder.getWhat(), reminder.getSenderDisplayName(),
-                reminder.getReminderTimezone(), buttonUrl);
+                reminder.getWhat(), reminder.getSenderDisplayName(), buttonUrl);
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {
@@ -145,30 +138,27 @@ public class Client {
         return response;
     }
 
-    public static Client newClient(EntityManager entityManager) {
-        HttpRequestFactory requestFactory = getHttpRequestFactory(entityManager);
-        return new Client(entityManager, requestFactory);
+    public static Client newClient(Dao dao) {
+        HttpRequestFactory requestFactory = getHttpRequestFactory(dao);
+        return new Client(dao, requestFactory);
     }
 
-    public static String googlePrivateKey(EntityManager entityManager) {
-        Configurations getGooglePrivateKey = entityManager
-                .createNamedQuery("get.configurationByKey", Configurations.class)
-                .setParameter("configKey", "googlePrivateKey")
-                .getSingleResult();
-        if (!getGooglePrivateKey.getKey().equals("")) {
-            return getGooglePrivateKey.getValue();
+    public static String googlePrivateKey(Dao dao) {
+        String googlePrivateKey = dao.getConfigurationValue("googlePrivateKey");
+        if (!googlePrivateKey.equals("NO RESULT FOUND")) {
+            return googlePrivateKey;
         } else {
             Configurations configurations = new Configurations("googlePrivateKey", "");
-            entityManager.persist(configurations);
+            dao.persist(configurations);
             return configurations.getValue();
         }
     }
 
-    protected static GoogleCredential getCredential(EntityManager entityManager) {
+    protected static GoogleCredential getCredential(Dao dao) {
         GoogleCredential credential = null;
         String googlePrivateKey = null;
         try {
-            googlePrivateKey = googlePrivateKey(entityManager);
+            googlePrivateKey = googlePrivateKey(dao);
             InputStream inputStream = new ByteArrayInputStream(googlePrivateKey.getBytes(StandardCharsets.UTF_8));
             credential = GoogleCredential
                     .fromStream(inputStream)
@@ -192,7 +182,7 @@ public class Client {
         return null;
     }
 
-    public static HttpRequestFactory getHttpRequestFactory(EntityManager entityManager) {
-        return getHttpTransport().createRequestFactory(getCredential(entityManager));
+    public static HttpRequestFactory getHttpRequestFactory(Dao dao) {
+        return Objects.requireNonNull(getHttpTransport()).createRequestFactory(getCredential(dao));
     }
 }

@@ -1,20 +1,19 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.time.ZoneId;
+import javax.inject.Inject;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class CaseShowReminders {
     private static final Logger logger = LoggerFactory.getLogger(CaseShowReminders.class);
 
-    @PersistenceContext(name = "wa")
-    public EntityManager entityManager;
+    @Inject
+    Dao dao;
 
     private Request request;
 
@@ -30,10 +29,7 @@ public class CaseShowReminders {
     }
 
     public String showReminders() {
-        List<Reminder> reminders = entityManager
-                .createNamedQuery("reminder.showReminders", Reminder.class)
-                .setParameter("userid", request.getMessage().getSender().getName())
-                .getResultList();
+        List<Reminder> reminders = dao.showReminder(request.getMessage().getSender().getName());
 
         String remindersShow = "---- Reminders that will notify you ---- \n";
         if (reminders.isEmpty()) {
@@ -52,8 +48,8 @@ public class CaseShowReminders {
                     + reminders.get(i).getWhat() + " ' When: "
                     + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
                             .format(reminders.get(i).getWhen()
-                                    .withZoneSameLocal(ZoneId.of(reminders.get(i).getReminderTimezone()))) + " "
-                    + reminders.get(i).getReminderTimezone() + "\n";
+                                    .withZoneSameLocal(reminders.get(i).getWhen().getZone())) + " "
+                    + reminders.get(i).getWhen().getZone() + "\n";
         }
         return remindersShow;
     }

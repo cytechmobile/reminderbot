@@ -2,12 +2,12 @@ package gr.cytech.chatreminderbot.rest.controlCases;
 
 import com.google.api.client.testing.http.MockHttpTransport;
 import com.google.api.client.testing.http.MockLowLevelHttpResponse;
+import gr.cytech.chatreminderbot.rest.db.Dao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 
@@ -23,12 +23,10 @@ public class ClientTest {
     @BeforeEach
     public final void beforeEach() throws Exception {
         client = new Client();
-        client.entityManager = mock(EntityManager.class);
+        client.dao = mock(Dao.class);
 
         query = mock(TypedQuery.class);
-        when(client.entityManager.createNamedQuery("get.configurationByKey", Configurations.class)).thenReturn(query);
-        when(query.setParameter("configKey","buttonUrl")).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(new Configurations("default","localhost"));
+        when(client.dao.getConfigurationValue("buttonUrl")).thenReturn("localhost");
 
     }
 
@@ -37,7 +35,7 @@ public class ClientTest {
         String threadId = "THREAD_ID";
         String spaceId = "SPACE_ID";
         Reminder reminder = new Reminder("'what'", ZonedDateTime.now().plusMinutes(10),
-                "DisplayName", "Europe/Athens", spaceId, threadId);
+                "DisplayName", spaceId, threadId);
         MockHttpTransport transport = new MockHttpTransport.Builder()
                 .setLowLevelHttpResponse(new MockLowLevelHttpResponse()
                         .setContent("ok")
@@ -45,13 +43,13 @@ public class ClientTest {
                 .build();
 
         String message = client.cardCreation(reminder.getSpaceId(), reminder.getThreadId(), reminder.getWhat(),
-                reminder.getSenderDisplayName(), reminder.getReminderTimezone(), "localhost");
+                reminder.getSenderDisplayName(), "localhost");
 
         client.requestFactory = transport.createRequestFactory();
 
         String result = client.sendAsyncResponse(reminder);
 
-        verify(query, times(1)).setParameter("configKey","buttonUrl");
+        verify(client.dao, times(1)).getConfigurationValue("buttonUrl");
 
         assertThat(result).as("unexpected result returned").isEqualTo("ok");
 
