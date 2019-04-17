@@ -8,15 +8,15 @@ import gr.cytech.chatreminderbot.rest.message.ThreadM;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
+import org.ocpsoft.prettytime.nlp.parse.DateGroup;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.TimeZone;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -28,7 +28,6 @@ public class CaseSetReminderTest {
     private Message message;
     private Client client;
     private Reminder reminder;
-    private Dao dao;
 
     @BeforeEach
     final void beforeEach() {
@@ -40,9 +39,9 @@ public class CaseSetReminderTest {
 
         TimerSessionBean timerSessionBean = mock(TimerSessionBean.class);
         client = mock(Client.class);
-        dao = mock(Dao.class);
+        Dao dao = mock(Dao.class);
         caseSetReminder = new CaseSetReminder();
-        caseSetReminder.dao = mock(Dao.class);
+        caseSetReminder.dao = dao;
         caseSetReminder.timerSessionBean = timerSessionBean;
         caseSetReminder.client = client;
         ThreadM thread = new ThreadM();
@@ -111,6 +110,16 @@ public class CaseSetReminderTest {
     }
 
     @Test
+    void reminderException() throws Exception {
+        String expectedDate = "1'";
+        message.setText("remind me 'persist Reminder Test' at " + expectedDate);
+        request.setMessage(message);
+        String buildReminder = caseSetReminder.buildReminder(request);
+
+        assertThat(buildReminder).isEqualTo("I didnt understand you, type help for instructions");
+    }
+
+    @Test
     void setInfosTest() throws Exception {
         String what = " something to do";
         String who = "@Ntina trol";
@@ -127,7 +136,15 @@ public class CaseSetReminderTest {
         List<String> splitMsg = new ArrayList<>(List.of(request.getMessage().getText().split("\\s+")));
 
         caseSetReminder.client = client;
-        Reminder reminder = caseSetReminder.setInfosForRemind(request, this.reminder, splitMsg);
+
+        String text = String.join(" ", splitMsg);
+
+        ZoneId zoneId = ZoneId.of("Europe/Athens");
+
+        PrettyTimeParser prettyTimeParser = new PrettyTimeParser(TimeZone.getTimeZone("Europe/Athens"));
+        List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
+
+        Reminder reminder = caseSetReminder.setInfosForRemind(request, this.reminder, splitMsg, parse, text, zoneId);
 
         String reminderWhenFormated = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(reminder.getWhen());
 

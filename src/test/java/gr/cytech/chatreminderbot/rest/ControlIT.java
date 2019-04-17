@@ -18,6 +18,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import java.util.Objects;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,18 +31,6 @@ class ControlIT {
     @BeforeAll
     public static void beforeAll() throws Exception {
         client = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
-        //TODO check if needed
-        Request req = getSampleRequest();
-        req.getMessage().setText("config set googlePrivateKey {\"type\": \"service_account\"}");
-        try (Response resp = client.target("http://localhost:8080/bot/services/handleReq")
-                .request()
-                .post(Entity.json(req))) {
-            logger.info("received response to request: {}", resp.getStatus());
-            assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-            assertThat(resp.readEntity(String.class))
-                    .as("unexpected set config key response")
-                    .contains("Updated configuration to ");
-        }
     }
 
     @AfterAll
@@ -67,8 +56,7 @@ class ControlIT {
 
         String successMsg = "Reminder with text:\n <b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
-                + caseSetReminder.calculateRemainingTime(
-                        caseSetReminder.dateForm(expectedWhen, timezone)) + "</b>";
+                + "12/12/2019 12:00" + "</b>";
 
         Response resp = client.target("http://localhost:8080/bot/services/handleReq")
                 .request()
@@ -132,7 +120,8 @@ class ControlIT {
         req.getMessage().setText("version");
 
         final Properties properties = new Properties();
-        properties.load(this.getClass().getClassLoader().getResourceAsStream("project.properties"));
+        properties.load(Objects.requireNonNull(this.getClass().getClassLoader()
+                .getResourceAsStream("project.properties")));
 
         String expectedResponse = "Hi my version right now is: " + properties.getProperty("version");
 
