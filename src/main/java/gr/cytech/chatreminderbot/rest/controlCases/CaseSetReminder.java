@@ -54,7 +54,7 @@ public class CaseSetReminder {
         List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
 
         if (parse == null || parse.isEmpty()) {
-            return "i couldn't extract the time check for misspelled word or use help command";
+            return "i couldn't extract the time. \nCheck for misspelled word or use help command";
         }
         String timeToNotify = parse.get(0).getText();
 

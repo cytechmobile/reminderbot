@@ -14,9 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Path("/services")
 public class BotResource {
@@ -59,15 +56,10 @@ public class BotResource {
         threadM.setName("space/" + request.getParameter("space") + "/thread/" + request.getParameter("thread"));
 
         //create reminder and get the when
-
-        ZonedDateTime fromNowPlus10 = ZonedDateTime.now(ZoneId.of(request.getParameter("timezone"))).plusMinutes(10);
         //creating the full text for reminder
-        String text = "remind me '"
+        String text = "remind me "
                 + request.getParameter("text")
-                + "' at "
-                + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(fromNowPlus10)
-                + " "
-                + request.getParameter("timezone");
+                + " in 10 minutes";
 
         //create the Request using the updated message
         Message message = new Message();
