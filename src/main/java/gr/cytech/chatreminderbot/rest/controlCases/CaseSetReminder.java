@@ -12,15 +12,12 @@ import javax.transaction.Transactional;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.TimeZone;
+import java.util.*;
 
 public class CaseSetReminder {
     private static final Logger logger = LoggerFactory.getLogger(CaseSetReminder.class);
-
+    private static final Collection<String> WORDS_TO_IGNORE = Set.of("in", "on", "at", "every");
     //Needs to set timer
     @Inject
     public TimerSessionBean timerSessionBean;
@@ -41,7 +38,34 @@ public class CaseSetReminder {
         }
         List<String> splitMsg = new ArrayList<>(List.of(request.getMessage().getText().split("\\s+")));
 
-        setInfosForRemind(request, reminder, splitMsg);
+        String botName = dao.getBotName();
+        String timezone = dao.getUserTimezone(request.getMessage().getSender().getName());
+
+        if (splitMsg.get(0).equals("@" + botName)) {
+            splitMsg.remove(0);
+        }
+
+        String text = String.join(" ", splitMsg);
+
+        ZoneId zoneId = ZoneId.of(timezone);
+        TimeZone setTimeZone = TimeZone.getTimeZone(timezone);
+
+        PrettyTimeParser prettyTimeParser = new PrettyTimeParser(setTimeZone);
+        List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
+
+        if (parse == null || parse.isEmpty()) {
+            return "i couldn't extract the time. \nCheck for misspelled word or use help command";
+        }
+        String timeToNotify = parse.get(0).getText();
+
+        for (String check : WORDS_TO_IGNORE) {
+            if (timeToNotify.startsWith(check + " ")) {
+                timeToNotify = timeToNotify.substring(check.length() + 1);
+            }
+        }
+
+        setInfosForRemind(request, reminder, splitMsg, parse, text, zoneId);
+
         //pass from string to ZoneDateTime
         //Check if date has passed
 
@@ -54,7 +78,7 @@ public class CaseSetReminder {
 
         return "Reminder with text:\n <b>" + reminder.getWhat() + "</b>.\n"
                 + "Saved successfully and will notify you in: \n<b>"
-                + calculateRemainingTime(reminder.getWhen()) + "</b>";
+                + timeToNotify + "</b>";
     }
 
     /*
@@ -74,6 +98,7 @@ public class CaseSetReminder {
      *   get it from users settings
      *   get it from global settings
      * */
+
     public String updateUpToString(String upTo, Reminder reminder, List<String> splitMsg, Request request) {
         //add reminder display name and remove remind and who part of the upTo string to
         //display only the given text
@@ -94,6 +119,7 @@ public class CaseSetReminder {
                         request.getMessage().getThread().getSpaceId()));
             }
         }
+
         if (upTo.startsWith("remind ")) {
             upTo = upTo.substring("remind ".length());
         }
@@ -105,34 +131,25 @@ public class CaseSetReminder {
             upTo = upTo.substring("@all ".length());
         }
 
+        if (upTo.startsWith("to ")) {
+            upTo = upTo.substring("to ".length());
+        }
+
         return upTo;
     }
 
-    public Reminder setInfosForRemind(Request request, Reminder reminder, List<String> splitMsg) {
-        String botName = dao.getBotName();
-        String timezone = dao.getUserTimezone(request.getMessage().getSender().getName());
+    public Reminder setInfosForRemind(Request request, Reminder reminder, List<String> splitMsg,
+                                      List<DateGroup> parse, String text, ZoneId zoneId) {
 
-        if (splitMsg.get(0).equals("@" + botName)) {
-            splitMsg.remove(0);
-        }
-
-        String text = String.join(" ", splitMsg);
-
-        ZoneId zoneId = ZoneId.of(timezone);
-        TimeZone setTimeZone = TimeZone.getTimeZone(timezone);
-
-        PrettyTimeParser prettyTimeParser = new PrettyTimeParser(setTimeZone);
-        List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
         DateGroup dateGroup = parse.get(0);
         int pos = dateGroup.getPosition();
         String upTo = text.substring(0, pos).trim();
 
         //removing ending words that PrettyTimeParser doesn't remove
-        if (upTo.endsWith(" every")) {
-            upTo = upTo.substring(0, upTo.length() - " every".length());
-        }
-        if (upTo.endsWith(" at") || upTo.endsWith(" in")) {
-            upTo = upTo.substring(0, upTo.length() - " at".length());
+        for (String check : WORDS_TO_IGNORE) {
+            if (upTo.endsWith(" " + check)) {
+                upTo = upTo.substring(0, upTo.length() - (" " + check).length());
+            }
         }
 
         Instant when = Instant.ofEpochMilli(dateGroup.getDates().get(0).getTime());
@@ -158,6 +175,11 @@ public class CaseSetReminder {
                     upTo = upTo.replace("@" + memberNames.get(i), "");
                 }
             }
+
+        }
+
+        if (upTo.startsWith(" to ")) {
+            upTo = upTo.substring(" to ".length());
         }
         //what: Something to do
         reminder.setWhat(upTo);
@@ -218,45 +240,6 @@ public class CaseSetReminder {
             }
         }
         return false;
-    }
-
-    //Returns the reminding time after setting a reminder
-    public String calculateRemainingTime(ZonedDateTime inputDate) {
-        ZonedDateTime fromDateTime = ZonedDateTime.now(inputDate.getZone());
-
-        ZonedDateTime tempDateTime = ZonedDateTime.from(fromDateTime);
-
-        long years = tempDateTime.until(inputDate, ChronoUnit.YEARS);
-        tempDateTime = tempDateTime.plusYears(years);
-
-        long months = tempDateTime.until(inputDate, ChronoUnit.MONTHS);
-        tempDateTime = tempDateTime.plusMonths(months);
-
-        long days = tempDateTime.until(inputDate, ChronoUnit.DAYS);
-        tempDateTime = tempDateTime.plusDays(days);
-
-        long hours = tempDateTime.until(inputDate, ChronoUnit.HOURS);
-        tempDateTime = tempDateTime.plusHours(hours);
-
-        long minutes = tempDateTime.until(inputDate, ChronoUnit.MINUTES);
-
-        if (months > 0) {
-            return months + " Months,  "
-                    + days + " Days, "
-                    + hours + " Hours, "
-                    + minutes + " Minutes";
-        }
-        if (days > 0) {
-            return days + " Days, "
-                    + hours + " Hours, "
-                    + minutes + " Minutes";
-        }
-        if (hours > 0) {
-            return hours + " Hours, "
-                    + minutes + " Minutes";
-        }
-
-        return minutes + " Minutes";
     }
 
     /*
