@@ -17,8 +17,7 @@ import java.util.*;
 
 public class CaseSetReminder {
     private static final Logger logger = LoggerFactory.getLogger(CaseSetReminder.class);
-    private static final Collection<String> WORDS_TO_IGNORE =
-            List.of("remind", "me", "@all", "in", "on", "at", "every", "to");
+    private static final Collection<String> WORDS_TO_IGNORE = Set.of("in", "on", "at", "every");
     //Needs to set timer
     @Inject
     public TimerSessionBean timerSessionBean;
@@ -53,13 +52,11 @@ public class CaseSetReminder {
 
         PrettyTimeParser prettyTimeParser = new PrettyTimeParser(setTimeZone);
         List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
-        String timeToNotify;
-        try {
-            timeToNotify = parse.get(0).getText();
 
-        } catch (IndexOutOfBoundsException e) {
-            return "I didnt understand you, type help for instructions";
+        if (parse == null || parse.isEmpty()) {
+            return "i couldn't extract the time check for misspelled word or use help command";
         }
+        String timeToNotify = parse.get(0).getText();
 
         for (String check : WORDS_TO_IGNORE) {
             if (timeToNotify.startsWith(check + " ")) {
@@ -101,6 +98,7 @@ public class CaseSetReminder {
      *   get it from users settings
      *   get it from global settings
      * */
+
     public String updateUpToString(String upTo, Reminder reminder, List<String> splitMsg, Request request) {
         //add reminder display name and remove remind and who part of the upTo string to
         //display only the given text
@@ -122,10 +120,19 @@ public class CaseSetReminder {
             }
         }
 
-        for (String test : WORDS_TO_IGNORE) {
-            if (upTo.startsWith(test + " ")) {
-                upTo = upTo.substring(test.length() + 1);
-            }
+        if (upTo.startsWith("remind ")) {
+            upTo = upTo.substring("remind ".length());
+        }
+        if (upTo.startsWith("me ")) {
+            upTo = upTo.substring("me ".length());
+        } else if (upTo.startsWith(reminder.getSenderDisplayName())) {
+            upTo = upTo.substring(reminder.getSenderDisplayName().length());
+        } else if (upTo.startsWith("@all ")) {
+            upTo = upTo.substring("@all ".length());
+        }
+
+        if (upTo.startsWith("to ")) {
+            upTo = upTo.substring("to ".length());
         }
 
         return upTo;

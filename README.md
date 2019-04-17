@@ -36,7 +36,7 @@
 	d) By default it uses GMT
 	
 3) Show my reminders and timezone                                                                              
-a) For eac  h user shows reminders that will notify him.  
+a) For each user shows reminders that will notify him.  
         `@bot list`       
           Example:  
          `1) ID:23 what:' Something to do ' When: 23/01/2019 18:20 Europe/Athens`  

@@ -116,7 +116,8 @@ public class CaseSetReminderTest {
         request.setMessage(message);
         String buildReminder = caseSetReminder.buildReminder(request);
 
-        assertThat(buildReminder).isEqualTo("I didnt understand you, type help for instructions");
+        assertThat(buildReminder)
+                .isEqualTo("i couldn't extract the time check for misspelled word or use help command");
     }
 
     @Test
