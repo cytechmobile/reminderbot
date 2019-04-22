@@ -1,13 +1,11 @@
 package gr.cytech.chatreminderbot.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
-import gr.cytech.chatreminderbot.rest.controlCases.CaseSetReminder;
 import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
 import gr.cytech.chatreminderbot.rest.message.ThreadM;
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -23,6 +21,7 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@QuarkusTest
 class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
@@ -30,7 +29,8 @@ class ControlIT {
 
     @BeforeAll
     public static void beforeAll() throws Exception {
-        client = ClientBuilder.newBuilder().register(new JacksonJsonProvider(new ObjectMapper())).build();
+        client = ClientBuilder.newBuilder().build();
+
     }
 
     @AfterAll
@@ -50,15 +50,13 @@ class ControlIT {
 
         req.getMessage().setText("remind me " + what + " at " + expectedWhen);
 
-        CaseSetReminder caseSetReminder = new CaseSetReminder();
-        final String timezone = "Europe/Athens";
         //In order to use calculateRemainingTime need to define: timezone, when
 
         String successMsg = "Reminder with text:\n <b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
                 + "12/12/2019 12:00" + "</b>";
 
-        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -73,7 +71,7 @@ class ControlIT {
 
         String responseDefault = "I didnt understand you, type help for instructions \n";
 
-        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -88,7 +86,7 @@ class ControlIT {
 
         String expectedResponse = "You successfully set the global timezone at:Europe/Athens";
 
-        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -106,7 +104,7 @@ class ControlIT {
                 + req.getMessage().getSender().getName()
                 + "> successfully set your timezone at:Europe/Athens";
 
-        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -121,11 +119,11 @@ class ControlIT {
 
         final Properties properties = new Properties();
         properties.load(Objects.requireNonNull(this.getClass().getClassLoader()
-                .getResourceAsStream("project.properties")));
+                .getResourceAsStream("application.properties")));
 
         String expectedResponse = "Hi my version right now is: " + properties.getProperty("version");
 
-        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -143,7 +141,7 @@ class ControlIT {
                 + "---- Default timezone is ---- \n"
                 + "Timezone = Europe/Athens";
 
-        Response respForReq2 = client.target("http://localhost:8080/bot/services/handleReq")
+        Response respForReq2 = client.target("http://localhost:8081/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req2));
         respForReq2.bufferEntity();
@@ -156,7 +154,7 @@ class ControlIT {
         Request req = getSampleRequest();
         req.getMessage().setText("timezones");
 
-        Response resp = client.target("http://localhost:8080/bot/services/handleReq")
+        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();

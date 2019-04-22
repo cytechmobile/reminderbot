@@ -1,6 +1,5 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
-import com.google.common.collect.Lists;
 import gr.cytech.chatreminderbot.rest.db.Dao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +29,7 @@ public class CaseSetConfigurationsTest {
         String message = "config set buttonUrl localhost";
 
         String expectedResponse = "Updated configuration to localhost with key buttonUrl";
-        List<String> splitMsg = Lists.newArrayList(message.split("\\s+"));
+        List<String> splitMsg = List.of(message.split("\\s+"));
 
         when(dao.merge(any(Configurations.class))).thenAnswer(inv -> inv.getArguments()[0]);
 
@@ -52,7 +51,7 @@ public class CaseSetConfigurationsTest {
         String multiplyWhiteSpaces = String.format("%-24s", " ");
 
         //mocked query to get key/value
-        List<Configurations> resultList = List.of(new Configurations("test", "tost"));
+        List<Configurations> resultList = List.of((new Configurations("test", "tost")));
         when(dao.getAllConfigurations()).thenReturn(resultList);
 
         List<String> splitMsg = new ArrayList<>(Arrays.asList(message.split("\\s+")));

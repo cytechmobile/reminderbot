@@ -18,10 +18,9 @@ import javax.ws.rs.core.MediaType;
 @Path("/services")
 public class BotResource {
     private static final Logger logger = LoggerFactory.getLogger(BotResource.class);
-    private String spaceId;
-    private String message;
+
     @Inject
-    private Control control;
+    Control control;
 
     /*
      * Handles requests from google chat which are assign to this path
@@ -35,15 +34,15 @@ public class BotResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String handleReq(Request req) {
         control.setRequest(req);
-        spaceId = req.getMessage().getThread().getSpaceId();
+        String spaceId = req.getMessage().getThread().getSpaceId();
+        String message;
         try {
             message = control.controlResponse();
-            return responseBuild();
         } catch (Exception e) {
             logger.warn("Error from message:{}", req.getMessage().getText(), e);
             message = "Not even a clue what you just said";
-            return responseBuild();
         }
+        return responseBuild(spaceId, message);
     }
 
     @GET
@@ -82,7 +81,7 @@ public class BotResource {
                 + "</html>";
     }
 
-    private String responseBuild() {
+    private String responseBuild(String spaceId, String message) {
         return new CardResponseBuilder()
                 .thread("spaces/" + spaceId)
                 .textParagraph(message)

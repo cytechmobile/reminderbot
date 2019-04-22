@@ -7,6 +7,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "reminder")
 @NamedQueries({
+        @NamedQuery(name = "reminder.findNextPendingReminder",
+                query = "SELECT r FROM Reminder r WHERE r.when <= CURRENT_TIMESTAMP order by r.when"),
         @NamedQuery(name = "reminder.findNextReminder",
                 query = "SELECT r FROM Reminder r order by r.when"),
         @NamedQuery(name = "reminder.findAll",

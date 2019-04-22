@@ -6,13 +6,16 @@ import gr.cytech.chatreminderbot.rest.controlCases.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
+@ApplicationScoped
 public class Dao {
 
     private static final Logger logger = LoggerFactory.getLogger(Dao.class);
@@ -40,7 +43,7 @@ public class Dao {
             timezone = entityManager.createNamedQuery("get.spesificTimezone", TimeZone.class)
                     .setParameter("userid", userId)
                     .getSingleResult().getTimezone();
-            logger.info("timezone found: {}",timezone);
+            logger.info("timezone found: {}", timezone);
         } catch (NoResultException e) {
             try {
                 timezone = entityManager.createNamedQuery("get.spesificTimezone", TimeZone.class)
@@ -74,6 +77,7 @@ public class Dao {
 
     public void persist(Object entity) {
         entityManager.persist(entity);
+
     }
 
     public void remove(Object entity) {
@@ -124,8 +128,24 @@ public class Dao {
         return entityManager.find(Reminder.class, reminderId);
     }
 
-    public List<Reminder> findNextReminder() {
-        return entityManager.createNamedQuery("reminder.findNextReminder", Reminder.class).getResultList();
+    public Optional<Reminder> findNextPendingReminder() {
+        List<Reminder> rs = entityManager.createNamedQuery("reminder.findNextPendingReminder", Reminder.class)
+                .setMaxResults(1)
+                .getResultList();
+        if (rs != null && !rs.isEmpty()) {
+            return Optional.of(rs.get(0));
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Reminder> findNextReminder() {
+        List<Reminder> rs = entityManager.createNamedQuery("reminder.findNextReminder", Reminder.class)
+                .setMaxResults(1)
+                .getResultList();
+        if (rs != null && !rs.isEmpty()) {
+            return Optional.of(rs.get(0));
+        }
+        return Optional.empty();
     }
 
     public boolean defaultTimezoneExists() {
