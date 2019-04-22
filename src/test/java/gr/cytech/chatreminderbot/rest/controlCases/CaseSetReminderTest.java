@@ -1,5 +1,6 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.beans.TimerSessionBean;
 import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
@@ -11,12 +12,15 @@ import org.mockito.ArgumentCaptor;
 import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
 import org.ocpsoft.prettytime.nlp.parse.DateGroup;
 
+import javax.transaction.UserTransaction;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
-import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -42,6 +46,7 @@ public class CaseSetReminderTest {
         Dao dao = mock(Dao.class);
         caseSetReminder = new CaseSetReminder();
         caseSetReminder.dao = dao;
+        caseSetReminder.transaction = mock(UserTransaction.class);
         caseSetReminder.timerSessionBean = timerSessionBean;
         caseSetReminder.client = client;
         ThreadM thread = new ThreadM();
@@ -56,7 +61,6 @@ public class CaseSetReminderTest {
                 .plusMinutes(10), "DisplayName", spaceId, threadId);
 
         reminder.setReminderId(1);
-        when(timerSessionBean.getNextReminderDate()).thenReturn(reminder.getWhen());
 
         when(caseSetReminder.dao.getBotName()).thenReturn("botName");
         when(caseSetReminder.dao.getUserTimezone("MyName")).thenReturn("Europe/Athens");
@@ -70,18 +74,17 @@ public class CaseSetReminderTest {
         request.setMessage(message);
         // Already set in mock a nextReminder that is to be in 10 minutes from now()
         //So this should not be set
-        caseSetReminder.buildReminder(request);
-        //Verifies that setNextReminder is called 0 times because Input reminderDate is AFTER the current
-        verify(caseSetReminder.timerSessionBean, times(0))
-                .setNextReminder(any(Reminder.class), any(ZonedDateTime.class));
-
+        caseSetReminder.buildAndPersistReminder(request);
+        //Verifies that setNextReminder is called 1 times because Input reminderDate is AFTER the current
+        verify(caseSetReminder.timerSessionBean, times(1))
+                .setTimerForReminder(any(Reminder.class));
     }
 
     @Test
     void dateFormTest() throws Exception {
         ZonedDateTime curr = ZonedDateTime.now(ZoneId.of("Europe/Athens")).truncatedTo(ChronoUnit.MINUTES);
         String inOneHour = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(curr);
-        ZonedDateTime result = caseSetReminder.dateForm(inOneHour, String.valueOf(ZoneId.of("Europe/Athens")));
+        ZonedDateTime result = CaseSetReminder.dateForm(inOneHour, String.valueOf(ZoneId.of("Europe/Athens")));
 
         assertThat(result).as("parsed date is not the expected").isEqualTo(curr);
     }
@@ -91,9 +94,11 @@ public class CaseSetReminderTest {
         String expectedDate = "12/12/2019 12:00";
         message.setText("remind me 'persist Reminder Test' at " + expectedDate);
         request.setMessage(message);
-        caseSetReminder.buildReminder(request);
+        caseSetReminder.buildAndPersistReminder(request);
 
         ArgumentCaptor<Reminder> argumentCaptor = ArgumentCaptor.forClass(Reminder.class);
+        when(caseSetReminder.dao.getBotName()).thenReturn("botName");
+        when(caseSetReminder.dao.getUserTimezone("MyName")).thenReturn("Europe/Athens");
 
         verify(caseSetReminder.dao, times(1)).persist(argumentCaptor.capture());
 
@@ -114,10 +119,10 @@ public class CaseSetReminderTest {
         String expectedDate = "1'";
         message.setText("remind me 'persist Reminder Test' at " + expectedDate);
         request.setMessage(message);
-        String buildReminder = caseSetReminder.buildReminder(request);
+        String buildReminder = caseSetReminder.buildAndPersistReminder(request);
 
         assertThat(buildReminder)
-                .isEqualTo("i couldn't extract the time. \nCheck for misspelled word or use help command");
+                .isEqualTo("i couldn't extract the time.\nCheck for misspelled word or use help command");
     }
 
     @Test
@@ -132,9 +137,9 @@ public class CaseSetReminderTest {
 
         message.setText("remind " + who + " " + what + " at " + expectedDate + " athens");
         request.setMessage(message);
-        caseSetReminder.buildReminder(request);
+        caseSetReminder.buildAndPersistReminder(request);
 
-        List<String> splitMsg = new ArrayList<>(List.of(request.getMessage().getText().split("\\s+")));
+        List<String> splitMsg = List.of(request.getMessage().getText().split("\\s+"));
 
         caseSetReminder.client = client;
 
@@ -174,23 +179,23 @@ public class CaseSetReminderTest {
         String when7 = "16/12/2018 2166";
         String when8 = "16.12.2018 21.66";
 
-        assertThat(caseSetReminder.isValidFormatDate(when)).as("not Valid  reminder date").isEqualTo(true);
+        assertThat(CaseSetReminder.isValidFormatDate(when)).as("not Valid  reminder date").isEqualTo(true);
 
-        assertThat(caseSetReminder.isValidFormatDate(when1)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(CaseSetReminder.isValidFormatDate(when1)).as("not Valid  reminder date").isEqualTo(false);
 
-        assertThat(caseSetReminder.isValidFormatDate(when2)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(CaseSetReminder.isValidFormatDate(when2)).as("not Valid  reminder date").isEqualTo(false);
 
-        assertThat(caseSetReminder.isValidFormatDate(when3)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(CaseSetReminder.isValidFormatDate(when3)).as("not Valid  reminder date").isEqualTo(false);
 
-        assertThat(caseSetReminder.isValidFormatDate(when4)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(CaseSetReminder.isValidFormatDate(when4)).as("not Valid  reminder date").isEqualTo(false);
 
-        assertThat(caseSetReminder.isValidFormatDate(when5)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(CaseSetReminder.isValidFormatDate(when5)).as("not Valid  reminder date").isEqualTo(false);
 
-        assertThat(caseSetReminder.isValidFormatDate(when6)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(CaseSetReminder.isValidFormatDate(when6)).as("not Valid  reminder date").isEqualTo(false);
 
-        assertThat(caseSetReminder.isValidFormatDate(when7)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(CaseSetReminder.isValidFormatDate(when7)).as("not Valid  reminder date").isEqualTo(false);
 
-        assertThat(caseSetReminder.isValidFormatDate(when8)).as("not Valid  reminder date").isEqualTo(false);
+        assertThat(CaseSetReminder.isValidFormatDate(when8)).as("not Valid  reminder date").isEqualTo(false);
 
     }
 }

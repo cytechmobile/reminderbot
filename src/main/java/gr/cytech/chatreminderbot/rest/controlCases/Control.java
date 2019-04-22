@@ -5,11 +5,13 @@ import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@RequestScoped
 public class Control {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
 
@@ -37,7 +39,7 @@ public class Control {
     CaseSetConfigurations caseSetConfigurations;
 
     @Inject
-    public Dao dao;
+    protected Dao dao;
 
     private Request request;
     private List<String> splitMsg;
@@ -191,7 +193,7 @@ public class Control {
     }
 
     private String caseSetReminder() {
-        return caseSetReminder.buildReminder(request);
+        return caseSetReminder.buildAndPersistReminder(request);
     }
 
     private String caseSetTimezone() {

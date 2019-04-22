@@ -5,10 +5,12 @@ import gr.cytech.chatreminderbot.rest.message.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@RequestScoped
 public class CaseShowReminders {
     private static final Logger logger = LoggerFactory.getLogger(CaseShowReminders.class);
 

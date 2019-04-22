@@ -4,10 +4,12 @@ import gr.cytech.chatreminderbot.rest.db.Dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
+@RequestScoped
 public class CaseSetConfigurations {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
 

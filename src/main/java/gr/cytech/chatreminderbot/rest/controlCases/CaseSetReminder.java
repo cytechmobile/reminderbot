@@ -1,5 +1,6 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.beans.TimerSessionBean;
 import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
@@ -7,34 +8,44 @@ import org.ocpsoft.prettytime.nlp.parse.DateGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.transaction.Transactional;
+import javax.transaction.UserTransaction;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.TimeZone;
 import java.util.*;
 
+@RequestScoped
 public class CaseSetReminder {
     private static final Logger logger = LoggerFactory.getLogger(CaseSetReminder.class);
     private static final Collection<String> WORDS_TO_IGNORE = Set.of("in", "on", "at", "every");
+
     //Needs to set timer
     @Inject
-    public TimerSessionBean timerSessionBean;
+    TimerSessionBean timerSessionBean;
 
     @Inject
-    protected Dao dao;
+    Dao dao;
 
-    protected Client client;
+    @Inject
+    UserTransaction transaction;
 
-    @Transactional
-    public String buildReminder(Request request) {
+    Client client;
+
+    /*
+     * Build a reminder and persist if valid
+     * This method is @Transactional, so as to commit when done
+     * It must not be private, otherwise @Transactional silently fails
+     */
+    String buildAndPersistReminder(Request request) {
         Reminder reminder = new Reminder();
         reminder.setSpaceId(request.getMessage().getThread().getSpaceId());
         reminder.setThreadId(request.getMessage().getThread().getThreadId());
 
         if (request.getMessage().getText().length() >= 255) {
-            return "Part what can not be more than 255 chars.";
+            return "Part what can not be more than 255 chars";
         }
         List<String> splitMsg = new ArrayList<>(List.of(request.getMessage().getText().split("\\s+")));
 
@@ -54,7 +65,8 @@ public class CaseSetReminder {
         List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
 
         if (parse == null || parse.isEmpty()) {
-            return "i couldn't extract the time. \nCheck for misspelled word or use help command";
+            return "i couldn't extract the time.\n"
+                    + "Check for misspelled word or use help command";
         }
         String timeToNotify = parse.get(0).getText();
 
@@ -73,8 +85,23 @@ public class CaseSetReminder {
             return "This date has passed "
                     + reminder.getWhen() + ". Check your timezone or insert in the current reminder";
         }
+        try {
+            transaction.begin();
+            dao.persist(reminder);
+            transaction.commit();
+        } catch (Exception e) {
+            try {
+                transaction.rollback();
+                logger.warn("Database Error when tried to commit the transaction with Exception: ", e);
+                return "Database Error transaction rollback";
+            } catch (Exception e1) {
+                logger.warn("Database Error when tried to rollback the transaction with Exception: ", e);
+                return "Oops something went wrong when tried to save the reminder";
+            }
 
-        saveAndSetReminder(reminder);
+        }
+
+        timerSessionBean.setTimerForReminder(reminder);
 
         return "Reminder with text:\n <b>" + reminder.getWhat() + "</b>.\n"
                 + "Saved successfully and will notify you in: \n<b>"
@@ -99,7 +126,7 @@ public class CaseSetReminder {
      *   get it from global settings
      * */
 
-    public String updateUpToString(String upTo, Reminder reminder, List<String> splitMsg, Request request) {
+    protected String updateUpToString(String upTo, Reminder reminder, List<String> splitMsg, Request request) {
         //add reminder display name and remove remind and who part of the upTo string to
         //display only the given text
         if (splitMsg.get(0).equals("remind")) {
@@ -138,8 +165,8 @@ public class CaseSetReminder {
         return upTo;
     }
 
-    public Reminder setInfosForRemind(Request request, Reminder reminder, List<String> splitMsg,
-                                      List<DateGroup> parse, String text, ZoneId zoneId) {
+    protected Reminder setInfosForRemind(Request request, Reminder reminder, List<String> splitMsg,
+                                         List<DateGroup> parse, String text, ZoneId zoneId) {
 
         DateGroup dateGroup = parse.get(0);
         int pos = dateGroup.getPosition();
@@ -186,29 +213,25 @@ public class CaseSetReminder {
         logger.info("set what: {}", reminder.getWhat());
 
         return reminder;
-
     }
 
-    public void saveAndSetReminder(Reminder reminder) {
-        dao.persist(reminder);
-        //if there is no next reminder, sets this as next
-        if (timerSessionBean.getNextReminderDate() == null) {
-            logger.info("set NEW reminder to : {}", reminder.getWhen());
-            timerSessionBean.setNextReminder(reminder, reminder.getWhen());
-        } else {
-            //ELSE  if the new reminder is before the nextReminder,
-            // changes as next reminder this
-
-            if (reminder.getWhen().isBefore(timerSessionBean.getNextReminderDate())) {
-                logger.info("CHANGE next reminder to: {}", reminder.getWhen());
-                timerSessionBean.setNextReminder(reminder, reminder.getWhen());
-            }
+    /*
+     * @param given displayName
+     * @param spaceID
+     * @return user/id if not found given displayName
+     * */
+    protected String findIdUserName(String displayName, String spaceId) {
+        if (client == null) {
+            client = Client.newClient(dao);
         }
+        Map<String, String> users = client.getListOfMembersInRoom(spaceId);
+        //if displayName not found then just save the name as it is
+        return users.getOrDefault(displayName, displayName);
     }
 
     //Returns date from string, based on dd/MM/yyyy HH:mm format,
     //Is called after we ensure this is the current format
-    public ZonedDateTime dateForm(String when, String timezone) {
+    public static ZonedDateTime dateForm(String when, String timezone) {
         String format = "dd/MM/yyyy HH:mm";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
 
@@ -216,7 +239,7 @@ public class CaseSetReminder {
     }
 
     //Check if given date in string is in valid format
-    public boolean isValidFormatDate(String when) {
+    public static boolean isValidFormatDate(String when) {
         String format = "dd/MM/yyyy HH:mm";
         LocalDateTime ldt;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
@@ -241,19 +264,4 @@ public class CaseSetReminder {
         }
         return false;
     }
-
-    /*
-     * @param given displayName
-     * @param spaceID
-     * @return user/id if not found given displayName
-     * */
-    public String findIdUserName(String displayName, String spaceId) {
-        if (client == null) {
-            client = Client.newClient(dao);
-        }
-        Map<String, String> users = client.getListOfMembersInRoom(spaceId);
-        //if displayName not found then just save the name as it is
-        return users.getOrDefault(displayName, displayName);
-    }
-
 }
