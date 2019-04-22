@@ -86,16 +86,19 @@ public class CaseSetReminder {
                     + reminder.getWhen() + ". Check your timezone or insert in the current reminder";
         }
         try {
-            if (transaction != null) {
-                transaction.begin();
-                dao.persist(reminder);
-                transaction.commit();
-            } else {
-                dao.persist(reminder);
-
-            }
+            transaction.begin();
+            dao.persist(reminder);
+            transaction.commit();
         } catch (Exception e) {
-            return "got exception " + e;
+            try {
+                transaction.rollback();
+                logger.warn("Database Error when tried to commit the transaction with Exception: ", e);
+                return "Database Error transaction rollback";
+            } catch (Exception e1) {
+                logger.warn("Database Error when tried to rollback the transaction with Exception: ", e);
+                return "Oops something went wrong when tried to save the reminder";
+            }
+
         }
 
         timerSessionBean.setTimerForReminder(reminder);

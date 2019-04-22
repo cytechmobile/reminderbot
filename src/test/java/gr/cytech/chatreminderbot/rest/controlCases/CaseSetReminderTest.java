@@ -12,6 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
 import org.ocpsoft.prettytime.nlp.parse.DateGroup;
 
+import javax.transaction.UserTransaction;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,6 +46,7 @@ public class CaseSetReminderTest {
         Dao dao = mock(Dao.class);
         caseSetReminder = new CaseSetReminder();
         caseSetReminder.dao = dao;
+        caseSetReminder.transaction = mock(UserTransaction.class);
         caseSetReminder.timerSessionBean = timerSessionBean;
         caseSetReminder.client = client;
         ThreadM thread = new ThreadM();
