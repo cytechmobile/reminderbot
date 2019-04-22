@@ -192,6 +192,7 @@
             <property name="ignoreFinal" value="false"/>
             <property name="allowedAbbreviationLength" value="1"/>
         </module>
+        <module name="OverloadMethodsDeclarationOrder"/>
         <module name="MethodParamPad"/>
         <module name="NoWhitespaceBefore">
             <property name="tokens"

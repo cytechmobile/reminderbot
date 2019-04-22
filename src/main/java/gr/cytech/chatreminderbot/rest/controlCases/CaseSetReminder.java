@@ -98,7 +98,7 @@ public class CaseSetReminder {
             return "got exception " + e;
         }
 
-        timerSessionBean.setTimer(reminder);
+        timerSessionBean.setTimerForReminder(reminder);
 
         return "Reminder with text:\n <b>" + reminder.getWhat() + "</b>.\n"
                 + "Saved successfully and will notify you in: \n<b>"

@@ -49,7 +49,7 @@ public class TimerSessionBean {
         }
     }
 
-    public void setTimer(Reminder reminder) {
+    public void setTimerForReminder(Reminder reminder) {
         timerService.submit(this::programmaticTimeout);
     }
 

@@ -75,7 +75,7 @@ public class CaseSetReminderTest {
         caseSetReminder.buildAndPersistReminder(request);
         //Verifies that setNextReminder is called 1 times because Input reminderDate is AFTER the current
         verify(caseSetReminder.timerSessionBean, times(1))
-                .setTimer(any(Reminder.class));
+                .setTimerForReminder(any(Reminder.class));
     }
 
     @Test
