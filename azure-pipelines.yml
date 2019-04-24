@@ -10,7 +10,6 @@ pool:
   vmImage: 'Ubuntu-16.04'
 
 steps:
-  - script: docker run -d -p 5432:5432 -e POSTGRES_USER=wa -e POSTGRES_PASSWORD=wa -e POSTGRES_DB=wa postgres:alpine
   - task: Maven@3
     inputs:
       mavenPomFile: 'pom.xml'
@@ -23,4 +22,3 @@ steps:
       publishJUnitResults: true
       testResultsFiles: '**/surefire-reports/TEST-*.xml'
       goals: 'verify -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true --batch-mode --show-version'
-
