@@ -117,6 +117,54 @@
         <finalName>chatreminderbot</finalName>
         <plugins>
             <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.28.0</version>
+                <executions>
+                    <execution>
+                        <id>prepare-it-database</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>postgres:alpine</name>
+                                    <alias>wa</alias>
+                                    <run>
+                                        <env>
+                                            <POSTGRES_USER>wa</POSTGRES_USER>
+                                            <OSTGRES_PASSWORD>wa</OSTGRES_PASSWORD>
+                                            <POSTGRES_DB>wa</POSTGRES_DB>
+                                        </env>
+                                        <ports>
+                                            <port>5432:5432</port>
+                                        </ports>
+                                        <wait>
+                                            <tcp>
+                                                <ports>
+                                                    <port>5432</port>
+                                                </ports>
+                                            </tcp>
+                                            <log>(?s)database system is ready to accept connections.*database system is ready to accept connections</log>
+                                            <time>20000</time>
+                                        </wait>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>remove-it-database</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.0.0</version>
@@ -161,13 +209,24 @@
                 <version>${surefire-plugin.version}</version>
                 <configuration>
                     <includes>
-                        <include>**/*IT.java</include>
                         <include>**/*Test.java</include>
                     </includes>
                     <systemProperties>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                     </systemProperties>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
