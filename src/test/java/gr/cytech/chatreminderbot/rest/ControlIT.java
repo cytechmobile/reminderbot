@@ -127,7 +127,7 @@ class ControlIT {
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
-
+        assertThat(properties.getProperty("version")).isNotEqualTo("${project.version}");
         assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
