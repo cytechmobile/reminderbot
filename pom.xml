@@ -53,7 +53,7 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-flyway</artifactId>
-            <version>0.13.0</version>
+            <version>0.13.3</version>
         </dependency>
 
         <dependency>
