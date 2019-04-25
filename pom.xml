@@ -125,7 +125,27 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.28.0</version>
+                <version>0.30.0</version>
+                <configuration>
+                    <showLogs>true</showLogs>
+                    <images>
+                        <image>
+                            <name>postgres:alpine</name>
+                            <alias>wa</alias>
+                            <run>
+                                <env>
+                                    <POSTGRES_USER>wa</POSTGRES_USER>
+                                    <POSTGRES_PASSWORD>wa</POSTGRES_PASSWORD>
+                                    <POSTGRES_DB>wa</POSTGRES_DB>
+                                </env>
+                                <wait>
+                                    <log>(?s)database system is ready to accept connections.*database system is ready to accept connections</log>
+                                    <time>20000</time>
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
                 <executions>
                     <execution>
                         <id>prepare-it-database</id>
@@ -133,33 +153,6 @@
                         <goals>
                             <goal>start</goal>
                         </goals>
-                        <configuration>
-                            <images>
-                                <image>
-                                    <name>postgres:alpine</name>
-                                    <alias>wa</alias>
-                                    <run>
-                                        <env>
-                                            <POSTGRES_USER>wa</POSTGRES_USER>
-                                            <OSTGRES_PASSWORD>wa</OSTGRES_PASSWORD>
-                                            <POSTGRES_DB>wa</POSTGRES_DB>
-                                        </env>
-                                        <ports>
-                                            <port>5432:5432</port>
-                                        </ports>
-                                        <wait>
-                                            <tcp>
-                                                <ports>
-                                                    <port>5432</port>
-                                                </ports>
-                                            </tcp>
-                                            <log>(?s)database system is ready to accept connections.*database system is ready to accept connections</log>
-                                            <time>20000</time>
-                                        </wait>
-                                    </run>
-                                </image>
-                            </images>
-                        </configuration>
                     </execution>
                     <execution>
                         <id>remove-it-database</id>
@@ -233,6 +226,12 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <environmentVariables>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <DB_HOST>${docker.container.wa.ip}</DB_HOST>
+                    </environmentVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>
