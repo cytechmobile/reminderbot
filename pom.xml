@@ -144,9 +144,36 @@
                                 </wait>
                             </run>
                         </image>
+                        <image>
+                            <name>cytechmobile/reminderbot</name>
+                            <build>
+                                <cleanup>remove</cleanup>
+                                <from>openjdk:11</from>
+                                <tags>
+                                    <tag>latest</tag>
+                                    <tag>${project.version}</tag>
+                                </tags>
+                                <ports>
+                                    <port>8080</port>
+                                    <port>8081</port>
+                                </ports>
+                                <cmd>
+                                    <shell>
+                                        java $JAVA_OPTS -jar chatreminderbot.jar
+                                    </shell>
+                                </cmd>
+                            </build>
+                        </image>
                     </images>
                 </configuration>
                 <executions>
+                    <execution>
+                        <id>build</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
                     <execution>
                         <id>prepare-it-database</id>
                         <phase>pre-integration-test</phase>
@@ -207,9 +234,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
                 <configuration>
-                    <includes>
-                        <include>**/*Test.java</include>
-                    </includes>
                     <systemProperties>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                     </systemProperties>
