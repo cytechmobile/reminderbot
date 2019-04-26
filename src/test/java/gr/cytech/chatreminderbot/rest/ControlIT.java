@@ -5,7 +5,6 @@ import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import gr.cytech.chatreminderbot.rest.message.Sender;
 import gr.cytech.chatreminderbot.rest.message.ThreadM;
-import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -21,11 +20,11 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@QuarkusTest
-class ControlIT {
+public class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
     private static Client client;
+    private static final String ClientUrl = System.getenv("APP_HOST") + ":8080";
 
     @BeforeAll
     public static void beforeAll() throws Exception {
@@ -56,7 +55,7 @@ class ControlIT {
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
                 + "12/12/2019 12:00" + "</b>";
 
-        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
+        Response resp = client.target("http://" + ClientUrl + "/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -71,7 +70,7 @@ class ControlIT {
 
         String responseDefault = "I didnt understand you, type help for instructions \n";
 
-        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
+        Response resp = client.target("http://" + ClientUrl + "/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -86,7 +85,7 @@ class ControlIT {
 
         String expectedResponse = "You successfully set the global timezone at:Europe/Athens";
 
-        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
+        Response resp = client.target("http://" + ClientUrl + "/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -104,7 +103,7 @@ class ControlIT {
                 + req.getMessage().getSender().getName()
                 + "> successfully set your timezone at:Europe/Athens";
 
-        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
+        Response resp = client.target("http://" + ClientUrl + "/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -123,7 +122,7 @@ class ControlIT {
 
         String expectedResponse = "Hi my version right now is: " + properties.getProperty("version");
 
-        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
+        Response resp = client.target("http://" + ClientUrl + "/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();
@@ -141,7 +140,7 @@ class ControlIT {
                 + "---- Default timezone is ---- \n"
                 + "Timezone = Europe/Athens";
 
-        Response respForReq2 = client.target("http://localhost:8081/bot/services/handleReq")
+        Response respForReq2 = client.target("http://" + ClientUrl + "/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req2));
         respForReq2.bufferEntity();
@@ -154,7 +153,7 @@ class ControlIT {
         Request req = getSampleRequest();
         req.getMessage().setText("timezones");
 
-        Response resp = client.target("http://localhost:8081/bot/services/handleReq")
+        Response resp = client.target("http://" + ClientUrl + "/bot/services/handleReq")
                 .request()
                 .post(Entity.json(req));
         resp.bufferEntity();

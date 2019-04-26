@@ -40,6 +40,7 @@ public class TimerSessionBean {
         timerService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder()
                 .setDaemon(false).setNameFormat("reminder-timer-%d").build());
         timerService.submit(this::programmaticTimeout);
+        logger.info("Reminder Timer started");
     }
 
     void shutdown(@Observes ShutdownEvent e) {

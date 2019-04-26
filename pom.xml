@@ -123,70 +123,6 @@
         </resources>
         <plugins>
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.30.0</version>
-                <configuration>
-                    <showLogs>true</showLogs>
-                    <images>
-                        <image>
-                            <name>postgres:alpine</name>
-                            <alias>wa</alias>
-                            <run>
-                                <env>
-                                    <POSTGRES_USER>wa</POSTGRES_USER>
-                                    <POSTGRES_PASSWORD>wa</POSTGRES_PASSWORD>
-                                    <POSTGRES_DB>wa</POSTGRES_DB>
-                                </env>
-                                <wait>
-                                    <log>(?s)database system is ready to accept connections.*database system is ready to accept connections</log>
-                                    <time>20000</time>
-                                </wait>
-                            </run>
-                        </image>
-                        <image>
-                            <name>cytechmobile/reminderbot</name>
-                            <alias>reminderBot</alias>
-                            <build>
-                                <cleanup>remove</cleanup>
-                                <from>openjdk:11</from>
-                                <tags>
-                                    <tag>latest</tag>
-                                    <tag>${project.version}</tag>
-                                </tags>
-                                <ports>
-                                    <port>8080</port>
-                                    <port>8081</port>
-                                </ports>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>build</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>prepare-it-database</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>start</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>remove-it-database</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>stop</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.0.0</version>
@@ -250,8 +186,114 @@
                     <environmentVariables>
                         <!--suppress UnresolvedMavenProperty -->
                         <DB_HOST>${docker.container.wa.ip}</DB_HOST>
+                        <APP_HOST>${docker.container.reminderbot.ip}</APP_HOST>
                     </environmentVariables>
                 </configuration>
+
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.30.0</version>
+                <configuration>
+                    <showLogs>true</showLogs>
+                    <images>
+                        <image>
+                            <name>postgres:alpine</name>
+                            <alias>wa</alias>
+                            <run>
+                                <env>
+                                    <POSTGRES_USER>wa</POSTGRES_USER>
+                                    <POSTGRES_PASSWORD>wa</POSTGRES_PASSWORD>
+                                    <POSTGRES_DB>wa</POSTGRES_DB>
+                                </env>
+                                <wait>
+                                    <log>(?s)database system is ready to accept connections.*database system is ready to accept connections</log>
+                                    <time>20000</time>
+                                </wait>
+                            </run>
+                        </image>
+                        <image>
+                            <name>cytechmobile/reminderbot</name>
+                            <alias>reminderbot</alias>
+                            <build>
+                                <cleanup>try</cleanup>
+                                <assembly>
+                                    <targetDir>/app</targetDir>
+                                    <inline>
+                                        <id>${project.artifactId}</id>
+                                        <files>
+                                            <file>
+                                                <source>
+                                                    ${project.build.directory}/${project.build.finalName}-runner.jar
+                                                </source>
+                                                <outputDirectory>./</outputDirectory>
+                                            </file>
+                                        </files>
+                                        <fileSets>
+                                            <fileSet>
+                                                <directory>${project.build.directory}/lib</directory>
+                                                <outputDirectory>./lib/</outputDirectory>
+                                            </fileSet>
+                                        </fileSets>
+                                    </inline>
+                                </assembly>
+                                <cmd>
+                                    <exec>
+                                        <arg>java</arg>
+                                        <arg>-jar</arg>
+                                        <arg>/app/${project.build.finalName}-runner.jar</arg>
+                                    </exec>
+                                </cmd>
+                                <from>openjdk:11-jre</from>
+                                <tags>
+                                    <tag>latest</tag>
+                                    <tag>${project.version}</tag>
+                                </tags>
+                                <ports>
+                                    <port>8080</port>
+                                </ports>
+                            </build>
+                            <run>
+                                <dependsOn>
+                                    <container>wa</container>
+                                </dependsOn>
+                                <env>
+                                    <DB_HOST>+${docker.container.wa.ip}</DB_HOST>
+                                </env>
+                                <wait>
+                                    <log>Reminder Timer started</log>
+                                    <time>10000</time>
+                                    <!--<shutdown>500</shutdown>-->
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+
+                    <execution>
+                        <id>prepare-it-database</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>remove-it-database</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
