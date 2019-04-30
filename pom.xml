@@ -269,12 +269,6 @@
                             </run>
                         </image>
                     </images>
-                    <authConfig>
-                        <!--suppress UnresolvedMavenProperty -->
-                        <username>${env.DOCKER_HUB_USER}</username>
-                        <!--suppress UnresolvedMavenProperty -->
-                        <password>${env.DOCKER_HUB_PASS}</password>
-                    </authConfig>
                 </configuration>
                 <executions>
                     <execution>
