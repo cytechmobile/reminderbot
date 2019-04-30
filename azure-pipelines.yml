@@ -43,4 +43,49 @@ jobs:
           jdkArchitectureOption: 'x64'
           publishJUnitResults: true
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
-          goals: 'mvn -Ddocker.username=$DOCKER_HUB_USER -Ddocker.password=$DOCKER_HUB_PASS docker:push'
+          goals: '# Maven
+# Build your Java project and run tests with Apache Maven.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+trigger:
+  - master
+
+
+jobs:
+
+
+  - job: runTests
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+      - task: Maven@3
+        inputs:
+          mavenPomFile: 'pom.xml'
+          # according to: https://github.com/MicrosoftDocs/vsts-docs/issues/3845,
+          # maven options should go to goals instead, as mavenOptions is for jvm options
+          mavenOptions: '-Xmx3072m'
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '1.11'
+          jdkArchitectureOption: 'x64'
+          publishJUnitResults: true
+          testResultsFiles: '**/surefire-reports/TEST-*.xml'
+          goals: 'verify -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true --batch-mode --show-version'
+  - job: ifBranchIsMaster
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    dependsOn: runTests
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+    steps:
+      - task: Maven@3
+        inputs:
+          mavenPomFile: 'pom.xml'
+          # according to: https://github.com/MicrosoftDocs/vsts-docs/issues/3845,
+          # maven options should go to goals instead, as mavenOptions is for jvm options
+          mavenOptions: '-Xmx3072m'
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '1.11'
+          jdkArchitectureOption: 'x64'
+          publishJUnitResults: true
+          testResultsFiles: '**/surefire-reports/TEST-*.xml'
+          goals: 'verify -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true --batch-mode --show-version -Ddocker.username=$(DOCKER_HUB_USER) -Ddocker.password=$(DOCKER_HUB_PASS) docker:push'
