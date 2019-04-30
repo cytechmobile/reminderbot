@@ -189,12 +189,7 @@
                         <APP_HOST>${docker.container.reminderbot.ip}</APP_HOST>
                     </environmentVariables>
                 </configuration>
-
             </plugin>
-                <plugin>
-                    <groupId>io.fabric8</groupId>
-                    <artifactId>fabric8-maven-plugin</artifactId>
-                </plugin>
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>

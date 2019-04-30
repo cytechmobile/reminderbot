@@ -30,7 +30,7 @@ jobs:
     pool:
       vmImage: 'Ubuntu-16.04'
     dependsOn: runTests
-    condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
+    condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/feature/buildDockerfileBasedOnMasterTests'))
     steps:
       - task: Maven@3
         inputs:
