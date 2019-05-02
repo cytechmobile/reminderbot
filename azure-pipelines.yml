@@ -11,6 +11,7 @@ jobs:
 
 
   - job: runTests
+    condition: ne(variables['Build.SourceBranch'], 'refs/heads/master')
     pool:
       vmImage: 'Ubuntu-16.04'
     steps:
@@ -27,10 +28,9 @@ jobs:
           testResultsFiles: '**/surefire-reports/TEST-*.xml'
           goals: 'verify -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true --batch-mode --show-version'
   - job: ifBranchIsMaster
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
     pool:
       vmImage: 'Ubuntu-16.04'
-    dependsOn: runTests
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
     steps:
       - task: Maven@3
         inputs:
