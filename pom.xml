@@ -189,7 +189,6 @@
                         <APP_HOST>${docker.container.reminderbot.ip}</APP_HOST>
                     </environmentVariables>
                 </configuration>
-
             </plugin>
             <plugin>
                 <groupId>io.fabric8</groupId>
@@ -259,6 +258,7 @@
                                     <container>wa</container>
                                 </dependsOn>
                                 <env>
+                                    <!--suppress UnresolvedMavenProperty -->
                                     <DB_HOST>+${docker.container.wa.ip}</DB_HOST>
                                 </env>
                                 <wait>
