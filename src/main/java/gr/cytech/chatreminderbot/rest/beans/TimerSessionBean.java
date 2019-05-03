@@ -6,6 +6,8 @@ import gr.cytech.chatreminderbot.rest.controlCases.Reminder;
 import gr.cytech.chatreminderbot.rest.db.Dao;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
+import org.ocpsoft.prettytime.nlp.parse.DateGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +17,10 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,7 +34,7 @@ public class TimerSessionBean {
     FlywayMigration flywayMigration;
 
     @Inject
-    protected Dao dao;
+    public Dao dao;
 
     protected ScheduledExecutorService timerService;
     protected Client client;
@@ -88,6 +93,20 @@ public class TimerSessionBean {
                 //Removes the reminder
                 dao.remove(r);
                 logger.info("Deleted reminder at: {}", r.getWhen());
+                if (r.isRecuring()) {
+                    String timezone = dao.getUserTimezone(r.getSenderDisplayName());
+                    ZoneId zoneId = ZoneId.of(timezone);
+                    TimeZone setTimeZone = TimeZone.getTimeZone(timezone);
+
+                    PrettyTimeParser prettyTimeParser = new PrettyTimeParser(setTimeZone);
+                    List<DateGroup> parse = prettyTimeParser.parseSyntax(r.getFullText());
+
+                    Instant when = Instant.ofEpochMilli(parse.get(0).getDates().get(0).getTime());
+                    r.setWhen(when.atZone(zoneId));
+                    logger.info("Saving again recurring reminder");
+                    dao.persist(r);
+
+                }
             }
         } catch (Exception e) {
             logger.warn("exception caught during reminder check timeout", e);

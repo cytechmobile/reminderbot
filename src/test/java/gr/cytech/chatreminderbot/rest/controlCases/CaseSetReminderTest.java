@@ -48,6 +48,7 @@ public class CaseSetReminderTest {
         caseSetReminder.dao = dao;
         caseSetReminder.transaction = mock(UserTransaction.class);
         caseSetReminder.timerSessionBean = timerSessionBean;
+        caseSetReminder.timerSessionBean.dao = dao;
         caseSetReminder.client = client;
         ThreadM thread = new ThreadM();
 
@@ -154,6 +155,44 @@ public class CaseSetReminderTest {
 
         String reminderWhenFormated = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(reminder.getWhen());
 
+        assertThat(reminder.getSenderDisplayName()).as("Unexpected extracted reminder date")
+                .isEqualTo(who.substring(1));
+        assertThat(reminder.isRecuring()).isEqualTo(false);
+        assertThat(reminder.getWhat()).as("Unexpected extracted reminder date").isEqualTo(what);
+        assertThat(reminderWhenFormated).as("Unexpected extracted reminder date").isEqualTo(expectedDate);
+    }
+
+    @Test
+    void setInfosForRecurringReminder() throws Exception {
+        String what = " something to do";
+        String who = "@Ntina trol";
+        final String expectedDate = "12/12/2020 12:00";
+
+        Map<String,String> hashMap = new HashMap<>();
+        hashMap.put("Ntina trol", "Ntina trol");
+        when(caseSetReminder.client.getListOfMembersInRoom("SPACE_ID")).thenReturn(hashMap);
+
+        message.setText("remind " + who + " " + what + " every " + expectedDate);
+        request.setMessage(message);
+        caseSetReminder.buildAndPersistReminder(request);
+
+        List<String> splitMsg = List.of(request.getMessage().getText().split("\\s+"));
+
+        caseSetReminder.client = client;
+
+        String text = String.join(" ", splitMsg);
+
+        ZoneId zoneId = ZoneId.of("Europe/Athens");
+
+        PrettyTimeParser prettyTimeParser = new PrettyTimeParser(TimeZone.getTimeZone("Europe/Athens"));
+        List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
+
+        Reminder reminder = caseSetReminder.setInfosForRemind(request, this.reminder, splitMsg, parse, text, zoneId);
+
+        String reminderWhenFormated = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(reminder.getWhen());
+        assertThat(reminder.isForAll()).isEqualTo(false);
+        assertThat(reminder.isRecuring()).isEqualTo(true);
+        verify(caseSetReminder.timerSessionBean.dao, times(1)).persist(any(Reminder.class));
         assertThat(reminder.getSenderDisplayName()).as("Unexpected extracted reminder date")
                 .isEqualTo(who.substring(1));
         assertThat(reminder.getWhat()).as("Unexpected extracted reminder date").isEqualTo(what);

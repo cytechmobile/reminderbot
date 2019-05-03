@@ -42,6 +42,15 @@ public class Reminder {
     @Column(name = "thread_id", nullable = false)
     private String threadId;
 
+    @Column(name = "is_recurring")
+    private boolean isRecuring;
+
+    @Column(name = "full_text")
+    private String fullText;
+
+    @Column(name = "is_for_all")
+    private boolean isForAll;
+
     public Reminder() {
     }
 
@@ -75,6 +84,30 @@ public class Reminder {
 
     public ZonedDateTime getWhen() {
         return when;
+    }
+
+    public boolean isRecuring() {
+        return isRecuring;
+    }
+
+    public String getFullText() {
+        return fullText;
+    }
+
+    public boolean isForAll() {
+        return isForAll;
+    }
+
+    public void setForAll(boolean forAll) {
+        isForAll = forAll;
+    }
+
+    public void setFullText(String fullText) {
+        this.fullText = fullText;
+    }
+
+    public void setRecuring(boolean recuring) {
+        isRecuring = recuring;
     }
 
     public void setReminderId(int reminderId) {

@@ -24,7 +24,8 @@ public class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
     private static Client client;
-    private static final String ClientUrl = System.getenv("APP_HOST") + ":8080";
+    private static final String ClientUrl = System.getenv()
+            .getOrDefault("APP_HOST", "localhost") + ":8080";
 
     @BeforeAll
     public static void beforeAll() throws Exception {
