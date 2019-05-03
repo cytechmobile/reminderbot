@@ -51,9 +51,16 @@ public class Client {
         GenericUrl url = new GenericUrl(uri);
 
         //Construct string in json format
-        String message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> \" "
-                + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
-                + "/threads/" + reminder.getThreadId() + "\" }}";
+        String message;
+        if (reminder.isForAll()) {
+            message = "{ \"text\":\"" + "<users/all> \" "
+                    + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
+                    + "/threads/" + reminder.getThreadId() + "\" }}";
+        } else {
+            message = "{ \"text\":\"" + "<" + reminder.getSenderDisplayName() + "> \" "
+                    + ",  \"thread\": { \"name\": \"spaces/" + reminder.getSpaceId()
+                    + "/threads/" + reminder.getThreadId() + "\" }}";
+        }
 
         String buttonUrl = dao.getConfigurationValue("buttonUrl");
 

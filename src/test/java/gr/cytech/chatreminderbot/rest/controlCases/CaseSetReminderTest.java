@@ -13,6 +13,7 @@ import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
 import org.ocpsoft.prettytime.nlp.parse.DateGroup;
 
 import javax.transaction.UserTransaction;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,18 +29,10 @@ import static org.mockito.Mockito.*;
 public class CaseSetReminderTest {
     public CaseSetReminder caseSetReminder;
 
-    private Request request;
-    private Message message;
     private Client client;
-    private Reminder reminder;
 
     @BeforeEach
     final void beforeEach() {
-        request = new Request();
-        message = new Message();
-
-        String spaceId = "SPACE_ID";
-        String threadId = "THREAD_ID";
 
         TimerSessionBean timerSessionBean = mock(TimerSessionBean.class);
         client = mock(Client.class);
@@ -48,17 +41,10 @@ public class CaseSetReminderTest {
         caseSetReminder.dao = dao;
         caseSetReminder.transaction = mock(UserTransaction.class);
         caseSetReminder.timerSessionBean = timerSessionBean;
+        caseSetReminder.timerSessionBean.dao = dao;
         caseSetReminder.client = client;
-        ThreadM thread = new ThreadM();
 
-        thread.setName("spaces/" + spaceId + "/thread/" + threadId + "");
-        Sender sender = new Sender();
-        sender.setName("MyName");
-        message.setSender(sender);
-        message.setThread(thread);
-
-        reminder = new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens"))
-                .plusMinutes(10), "DisplayName", spaceId, threadId);
+        Reminder reminder = getSampleReminder();
 
         reminder.setReminderId(1);
 
@@ -69,9 +55,10 @@ public class CaseSetReminderTest {
 
     @Test
     void setNextReminderTest() throws Exception {
+        Request request = getSampleRequest();
         String expectedDate = "12/12/2019 12:00 athens";
-        message.setText("remind me ' set next reminder Test' at " + expectedDate);
-        request.setMessage(message);
+        request.getMessage().setText("remind me ' set next reminder Test' at " + expectedDate);
+        request.setMessage(request.getMessage());
         // Already set in mock a nextReminder that is to be in 10 minutes from now()
         //So this should not be set
         caseSetReminder.buildAndPersistReminder(request);
@@ -91,9 +78,10 @@ public class CaseSetReminderTest {
 
     @Test
     void persistReminder() throws Exception {
+        Request request = getSampleRequest();
         String expectedDate = "12/12/2019 12:00";
-        message.setText("remind me 'persist Reminder Test' at " + expectedDate);
-        request.setMessage(message);
+        request.getMessage().setText("remind me 'persist Reminder Test' at " + expectedDate);
+        request.setMessage(request.getMessage());
         caseSetReminder.buildAndPersistReminder(request);
 
         ArgumentCaptor<Reminder> argumentCaptor = ArgumentCaptor.forClass(Reminder.class);
@@ -116,9 +104,10 @@ public class CaseSetReminderTest {
 
     @Test
     void reminderException() throws Exception {
+        Request request = getSampleRequest();
         String expectedDate = "1'";
-        message.setText("remind me 'persist Reminder Test' at " + expectedDate);
-        request.setMessage(message);
+        request.getMessage().setText("remind me 'persist Reminder Test' at " + expectedDate);
+        request.setMessage(request.getMessage());
         String buildReminder = caseSetReminder.buildAndPersistReminder(request);
 
         assertThat(buildReminder)
@@ -135,8 +124,9 @@ public class CaseSetReminderTest {
         hashMap.put("Ntina trol", "Ntina trol");
         when(caseSetReminder.client.getListOfMembersInRoom("SPACE_ID")).thenReturn(hashMap);
 
-        message.setText("remind " + who + " " + what + " at " + expectedDate + " athens");
-        request.setMessage(message);
+        Request request = getSampleRequest();
+        request.getMessage().setText("remind " + who + " " + what + " at " + expectedDate + " athens");
+        request.setMessage(request.getMessage());
         caseSetReminder.buildAndPersistReminder(request);
 
         List<String> splitMsg = List.of(request.getMessage().getText().split("\\s+"));
@@ -150,14 +140,122 @@ public class CaseSetReminderTest {
         PrettyTimeParser prettyTimeParser = new PrettyTimeParser(TimeZone.getTimeZone("Europe/Athens"));
         List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
 
-        Reminder reminder = caseSetReminder.setInfosForRemind(request, this.reminder, splitMsg, parse, text, zoneId);
+        Reminder reminderCreated = getSampleReminder();
+
+        Reminder reminder = caseSetReminder.setInfosForRemind(request, reminderCreated, splitMsg, parse, text, zoneId);
 
         String reminderWhenFormated = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(reminder.getWhen());
 
         assertThat(reminder.getSenderDisplayName()).as("Unexpected extracted reminder date")
                 .isEqualTo(who.substring(1));
+        assertThat(reminder.isRecuring()).isEqualTo(false);
         assertThat(reminder.getWhat()).as("Unexpected extracted reminder date").isEqualTo(what);
         assertThat(reminderWhenFormated).as("Unexpected extracted reminder date").isEqualTo(expectedDate);
+    }
+
+    @Test
+    void setInfosForRecurringReminder() throws Exception {
+        String what = " something to do";
+        String who = "@Ntina trol";
+        final String expectedDate = "12/12/2020 12:00";
+
+        Map<String,String> hashMap = new HashMap<>();
+        hashMap.put("Ntina trol", "Ntina trol");
+        when(caseSetReminder.client.getListOfMembersInRoom("SPACE_ID")).thenReturn(hashMap);
+
+        Request request = getSampleRequest();
+        request.getMessage().setText("remind " + who + " " + what + " every " + expectedDate);
+        request.setMessage(request.getMessage());
+        caseSetReminder.buildAndPersistReminder(request);
+
+        List<String> splitMsg = List.of(request.getMessage().getText().split("\\s+"));
+
+        caseSetReminder.client = client;
+
+        String text = String.join(" ", splitMsg);
+
+        ZoneId zoneId = ZoneId.of("Europe/Athens");
+
+        PrettyTimeParser prettyTimeParser = new PrettyTimeParser(TimeZone.getTimeZone("Europe/Athens"));
+        List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
+        Reminder reminderCreated = getSampleReminder();
+
+        Reminder reminder = caseSetReminder.setInfosForRemind(request, reminderCreated, splitMsg, parse, text, zoneId);
+
+        String reminderWhenFormated = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(reminder.getWhen());
+        assertThat(reminder.isForAll()).isEqualTo(false);
+        assertThat(reminder.isRecuring()).isEqualTo(true);
+        verify(caseSetReminder.timerSessionBean.dao, times(1)).persist(any(Reminder.class));
+        assertThat(reminder.getSenderDisplayName()).as("Unexpected extracted reminder date")
+                .isEqualTo(who.substring(1));
+        assertThat(reminder.getWhat()).as("Unexpected extracted reminder date").isEqualTo(what);
+        assertThat(reminderWhenFormated).as("Unexpected extracted reminder date").isEqualTo(expectedDate);
+    }
+
+    @Test
+    void recurringReminderEveryOneHour() {
+        String what = "something to do";
+        Request request = getSampleRequest();
+        request.getMessage().setText("remind me " + what + " every 1 hour");
+        request.setMessage(request.getMessage());
+        caseSetReminder.buildAndPersistReminder(request);
+
+        List<String> splitMsg = List.of(request.getMessage().getText().split("\\s+"));
+        String text = String.join(" ", splitMsg);
+
+        ZoneId zoneId = ZoneId.of("Europe/Athens");
+
+        PrettyTimeParser prettyTimeParser = new PrettyTimeParser(TimeZone.getTimeZone("Europe/Athens"));
+        List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
+        Reminder reminderCreated = getSampleReminder();
+
+        Reminder reminder = caseSetReminder.setInfosForRemind(request, reminderCreated, splitMsg, parse, text, zoneId);
+
+        String reminderWhenFormated = DateTimeFormatter.ofPattern("HH:mm").format(reminder.getWhen());
+        Instant when = Instant.ofEpochMilli(parse.get(0).getDates().get(0).getTime());
+        String prettyTimeParserTimeCalculation = DateTimeFormatter.ofPattern("HH:mm")
+                .format(when.atZone(ZoneId.of("Europe/Athens")));
+        assertThat(reminder.isForAll()).isEqualTo(false);
+        assertThat(reminder.isRecuring()).isEqualTo(true);
+        verify(caseSetReminder.timerSessionBean.dao, times(1)).persist(any(Reminder.class));
+        assertThat(reminder.getSenderDisplayName()).as("Unexpected extracted reminder date")
+                .isEqualTo("MyName");
+        assertThat(reminder.getWhat()).as("Unexpected extracted reminder date").isEqualTo(what);
+        assertThat(reminderWhenFormated).as("Unexpected extracted reminder date")
+                .isEqualTo(prettyTimeParserTimeCalculation);
+    }
+
+    @Test
+    void recurringReminderEveryMonday() {
+        String what = "something to do";
+        Request request = getSampleRequest();
+        request.getMessage().setText("remind me " + what + " every monday at 10:00");
+        request.setMessage(request.getMessage());
+        caseSetReminder.buildAndPersistReminder(request);
+
+        List<String> splitMsg = List.of(request.getMessage().getText().split("\\s+"));
+        String text = String.join(" ", splitMsg);
+
+        ZoneId zoneId = ZoneId.of("Europe/Athens");
+
+        PrettyTimeParser prettyTimeParser = new PrettyTimeParser(TimeZone.getTimeZone("Europe/Athens"));
+        List<DateGroup> parse = prettyTimeParser.parseSyntax(text);
+        Reminder reminderCreated = getSampleReminder();
+
+        Reminder reminder = caseSetReminder.setInfosForRemind(request, reminderCreated, splitMsg, parse, text, zoneId);
+
+        String reminderWhenFormated = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(reminder.getWhen());
+        Instant when = Instant.ofEpochMilli(parse.get(0).getDates().get(0).getTime());
+        String prettyTimeParserTimeCalculation = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+                .format(when.atZone(ZoneId.of("Europe/Athens")));
+        assertThat(reminder.isForAll()).isEqualTo(false);
+        assertThat(reminder.isRecuring()).isEqualTo(true);
+        verify(caseSetReminder.timerSessionBean.dao, times(1)).persist(any(Reminder.class));
+        assertThat(reminder.getSenderDisplayName()).as("Unexpected extracted reminder date")
+                .isEqualTo("MyName");
+        assertThat(reminder.getWhat()).as("Unexpected extracted reminder date").isEqualTo(what);
+        assertThat(reminderWhenFormated).as("Unexpected extracted reminder date")
+                .isEqualTo(prettyTimeParserTimeCalculation);
     }
 
     @Test
@@ -198,4 +296,30 @@ public class CaseSetReminderTest {
         assertThat(CaseSetReminder.isValidFormatDate(when8)).as("not Valid  reminder date").isEqualTo(false);
 
     }
+
+    static Request getSampleRequest() {
+        Message mes = new Message();
+
+        Sender sender = new Sender();
+        sender.setName("MyName");
+        mes.setSender(sender);
+
+        ThreadM threadM = new ThreadM();
+        threadM.setName("space/SPACE_ID/thread/THREAD_ID");
+        mes.setThread(threadM);
+
+        Request req = new Request();
+        req.setMessage(mes);
+
+        return req;
+    }
+
+    static Reminder getSampleReminder() {
+        String spaceId = "SPACE_ID";
+        String threadId = "THREAD_ID";
+
+        return new Reminder("Do Something", ZonedDateTime.now(ZoneId.of("Europe/Athens"))
+                .plusMinutes(10), "DisplayName", spaceId, threadId);
+    }
+
 }

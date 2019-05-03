@@ -36,11 +36,10 @@ public class CaseSetReminder {
 
     /*
      * Build a reminder and persist if valid
-     * This method is @Transactional, so as to commit when done
-     * It must not be private, otherwise @Transactional silently fails
      */
     String buildAndPersistReminder(Request request) {
         Reminder reminder = new Reminder();
+        reminder.setFullText(request.getMessage().getText());
         reminder.setSpaceId(request.getMessage().getThread().getSpaceId());
         reminder.setThreadId(request.getMessage().getThread().getThreadId());
 
@@ -84,6 +83,10 @@ public class CaseSetReminder {
         if (reminder.getWhen().isBefore(ZonedDateTime.now())) {
             return "This date has passed "
                     + reminder.getWhen() + ". Check your timezone or insert in the current reminder";
+        }
+        if (reminder.getWhen().isBefore(ZonedDateTime.now().plusSeconds(58)) && reminder.isRecuring()) {
+            logger.info("cant set reminder under 1 minute due to spam messages");
+            return "Sorry you cant set reminder under 1 minute";
         }
         try {
             transaction.begin();
@@ -135,7 +138,8 @@ public class CaseSetReminder {
                 //  ---- takes the ID of the sender ---
                 reminder.setSenderDisplayName(request.getMessage().getSender().getName());
             } else if (splitMsg.get(1).equals("@all")) {
-                reminder.setSenderDisplayName("users/all");
+                reminder.setSenderDisplayName(request.getMessage().getSender().getName());
+                reminder.setForAll(true);
             } else {
                 String displayName = "";
                 if (splitMsg.get(1).startsWith("#")) {
@@ -210,6 +214,12 @@ public class CaseSetReminder {
         }
         //what: Something to do
         reminder.setWhat(upTo);
+
+        if (parse.get(0).isRecurring()/* && reminder.getSenderDisplayName() != "users/all"*/) {
+            reminder.setRecuring(true);
+        } else {
+            reminder.setRecuring(false);
+        }
         logger.info("set what: {}", reminder.getWhat());
 
         return reminder;
