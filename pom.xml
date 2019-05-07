@@ -6,21 +6,21 @@
     <groupId>gr.cytech</groupId>
     <artifactId>chatreminderbot</artifactId>
     <name>Chat Reminder Bot</name>
-    <version>1.13.0</version>
+    <version>1.14.0</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
 
-        <quarkus.version>0.12.0</quarkus.version>
+        <quarkus.version>0.14.0</quarkus.version>
         <prettytime.version>4.0.2.Final</prettytime.version>
-        <google.api.client.version>1.27.0</google.api.client.version>
+        <google.api.client.version>1.28.0</google.api.client.version>
         <guava.version>27.1-jre</guava.version>
 
-        <junit.version>5.3.2</junit.version>
-        <assertj.version>3.11.1</assertj.version>
-        <mockito.version>2.24.0</mockito.version>
+        <junit.version>5.4.2</junit.version>
+        <assertj.version>3.12.0</assertj.version>
+        <mockito.version>2.27.0</mockito.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -53,7 +53,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-flyway</artifactId>
-            <version>0.13.3</version>
         </dependency>
 
         <dependency>
@@ -130,7 +129,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.17</version>
+                        <version>8.20</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -186,6 +185,7 @@
                     <environmentVariables>
                         <!--suppress UnresolvedMavenProperty -->
                         <DB_HOST>${docker.container.wa.ip}</DB_HOST>
+                        <!--suppress UnresolvedMavenProperty -->
                         <APP_HOST>${docker.container.reminderbot.ip}</APP_HOST>
                     </environmentVariables>
                 </configuration>
