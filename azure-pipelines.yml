@@ -57,7 +57,7 @@ jobs:
         displayName: ‘Create GitHub Release’
         inputs:
           gitHubConnection: $(GITHUB_ACCOUNT)
-          repositoryName: $(GITHUB_REPO) # repository name should be with that format username/repoName
+          repositoryName: cytechmobile/reminderbot
           action: create
           tag: $(version)
           tagSource: 'manual'
