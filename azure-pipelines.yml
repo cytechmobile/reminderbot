@@ -49,15 +49,15 @@ jobs:
     dependsOn: ifBranchIsMaster
     condition: succeeded()
     steps:
-      - task: PowerShell@2
+      - task: Bash@3
         inputs:
           targetType: 'filePath'
-          filePath: 'VersionFromPom.ps1'
+          filePath: 'VersionFromPom.sh'
       - task: GitHubRelease@0
         displayName: ‘Create GitHub Release’
         inputs:
-          gitHubConnection: HoodElliot
-          repositoryName: HoodElliot/reminderbot
+          gitHubConnection: $(GITHUB_ACCOUNT)
+          repositoryName: $(GITHUB_REPO) # repository name should be with that format username/repoName
           action: create
           tag: $(version)
           tagSource: 'manual'
