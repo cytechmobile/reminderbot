@@ -26,6 +26,7 @@ public class Client {
     public String cardCreation(String spaceId, String threadId, String what,
                                String senderName, Reminder reminder) {
         Map<String,String> parameters = new LinkedHashMap<>();
+        parameters.put("name", senderName);
         parameters.put("text", what);
         parameters.put("space", spaceId);
         parameters.put("thread", threadId);

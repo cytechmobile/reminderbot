@@ -50,7 +50,7 @@ public class ControlIT {
 
         //In order to use calculateRemainingTime need to define: timezone, when
 
-        String successMsg = "Reminder with text:\n <b>" + what
+        String successMsg = "Reminder with text:\n<b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
                 + "12/12/2019 12:00" + "</b>";
 
@@ -80,7 +80,7 @@ public class ControlIT {
 
         //In order to use calculateRemainingTime need to define: timezone, when
 
-        String successMsg = "Reminder with text:\n <b>" + what
+        String successMsg = "Reminder with text:\n<b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
                 + "12/12/2019 12:00" + "</b>";
 
@@ -115,9 +115,9 @@ public class ControlIT {
         response.bufferEntity();
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         String requestResponseWhenDeletingReminder = response.readEntity(String.class);
-        String successDeleteMessage = "Reminder with ID: " + matches.get(0) + " successfully deleted!";
+        String successDeleteMessage = "Reminder with text:\n<b>" + what + "</b>\nsuccessfully canceled!";
         assertThat(requestResponseWhenDeletingReminder)
-                .isEqualTo(expectedResponseMethod(successDeleteMessage,"UPDATE_MESSAGE"));
+                .isEqualTo(expectedResponseMethod(successDeleteMessage, "UPDATE_MESSAGE"));
 
     }
 
@@ -140,7 +140,7 @@ public class ControlIT {
 
         //In order to use calculateRemainingTime need to define: timezone, when
 
-        String successMsg = "Reminder with text:\n <b>" + what
+        String successMsg = "Reminder with text:\n<b>" + what
                 + "</b>.\nSaved successfully and will notify you in: \n<b>"
                 + "tomorrow" + "</b>";
 
@@ -150,13 +150,7 @@ public class ControlIT {
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         String requestResponse = resp.readEntity(String.class);
-        String regex = "\"value\":\"(\\d+)\"";
-        List<String> matches = new ArrayList<>();
-        Matcher m = Pattern.compile(regex).matcher(requestResponse);
-        while (m.find()) {
-            matches.add(m.group(1));
-        }
-        assertThat(requestResponse).isEqualTo(expectedResponseMethodForReminder(successMsg, matches.get(0)));
+        assertThat(requestResponse).isEqualTo(expectedResponseMethodForActions(successMsg));
     }
 
     @Test
@@ -171,7 +165,7 @@ public class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isNotEqualTo(expectedResponseMethod(responseDefault,"NEW_MESSAGE"));
+        assertThat(resp.readEntity(String.class)).isNotEqualTo(expectedResponseMethod(responseDefault, "NEW_MESSAGE"));
     }
 
     @Test
@@ -186,7 +180,7 @@ public class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse,"NEW_MESSAGE"));
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse, "NEW_MESSAGE"));
 
     }
 
@@ -204,7 +198,7 @@ public class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse,"NEW_MESSAGE"));
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse, "NEW_MESSAGE"));
     }
 
     @Test
@@ -223,7 +217,7 @@ public class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         assertThat(properties.getProperty("version")).isNotEqualTo("${project.version}");
-        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse,"NEW_MESSAGE"));
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse, "NEW_MESSAGE"));
     }
 
     @Test
@@ -266,9 +260,19 @@ public class ControlIT {
 
     }
 
+    String expectedResponseMethodForActions(String expectedMessage) {
+        return new CardResponseBuilder()
+                .thread("spaces/SPACE_ID/threads/THREAD_ID")
+                .textParagraph("" + expectedMessage + "")
+                .textParagraph("Reminder have been postponed!.")
+                .build("UPDATE_MESSAGE");
+
+    }
+
     String expectedResponseMethodForReminder(String expectedMessage, String number) {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("reminderId", number);
+        parameters.put("name", "MyName");
         return new CardResponseBuilder()
                 .thread("spaces/SPACE_ID/threads/THREAD_ID")
                 .textParagraph(expectedMessage)

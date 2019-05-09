@@ -2,10 +2,7 @@ package gr.cytech.chatreminderbot.rest.controlCases;
 
 import gr.cytech.chatreminderbot.rest.beans.TimerSessionBean;
 import gr.cytech.chatreminderbot.rest.db.Dao;
-import gr.cytech.chatreminderbot.rest.message.Message;
-import gr.cytech.chatreminderbot.rest.message.Request;
-import gr.cytech.chatreminderbot.rest.message.Sender;
-import gr.cytech.chatreminderbot.rest.message.ThreadM;
+import gr.cytech.chatreminderbot.rest.message.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -309,6 +306,9 @@ public class CaseSetReminderTest {
         mes.setThread(threadM);
 
         Request req = new Request();
+        User user = new User();
+        user.setName("MyName");
+        req.setUser(user);
         req.setMessage(mes);
 
         return req;

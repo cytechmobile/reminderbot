@@ -35,6 +35,10 @@ public class CaseSetReminder {
 
     Client client;
 
+    private static final String REMIND_AGAIN_IN_10_MINUTES = "remindAgainIn10";
+    private static final String REMIND_AGAIN_TOMORROW = "remindAgainTomorrow";
+    private static final String REMIND_AGAIN_NEXT_WEEK = "remindAgainNextWeek";
+
     /*
      * Build a reminder and persist if valid
      */
@@ -106,18 +110,45 @@ public class CaseSetReminder {
         }
 
         timerSessionBean.setTimerForReminder(reminder);
-        Map<String,String> parameters = new LinkedHashMap<>();
+        Map<String, String> parameters = new LinkedHashMap<>();
         parameters.put("reminderId", String.valueOf(reminder.getReminderId()));
+        parameters.put("name", reminder.getSenderDisplayName());
 
-        return new CardResponseBuilder()
-                .thread("spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId())
-                .textParagraph("Reminder with text:\n <b>" + reminder.getWhat() + "</b>.\n"
-                + "Saved successfully and will notify you in: \n<b>"
-                + timeToNotify + "</b>")
-                .interactiveTextButton("Cancel Reminder", "CancelReminder", parameters)
-                .build("NEW_MESSAGE");
+        if (request.getAction() != null) {
+            if (request.getAction().getParameters().get(0).get("key").equals("name")
+                    && !request.getAction().getParameters().get(0).get("value")
+                    .equals(reminder.getSenderDisplayName())) {
+                return "You <b>can't</b> postpone others reminders.";
+            }
+            return buildReminderResponse(reminder, timeToNotify, parameters,
+                    "UPDATE_MESSAGE", request.getAction().getActionMethodName(), request.getUser().getName());
+        } else {
+            return buildReminderResponse(reminder, timeToNotify, parameters,
+                    "NEW_MESSAGE", "", request.getUser().getName());
+        }
+
     }
 
+    private String buildReminderResponse(Reminder reminder, String timeToNotify, Map<String,
+            String> parameters, String typeForMessage, String actionName, String userWhoClickedTheButton) {
+        if (actionName.equals(REMIND_AGAIN_IN_10_MINUTES) || actionName.equals(REMIND_AGAIN_NEXT_WEEK)
+                || actionName.equals(REMIND_AGAIN_TOMORROW)) {
+            return new CardResponseBuilder()
+                    .thread("spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId())
+                    .textParagraph("Reminder with text:\n<b>" + reminder.getWhat() + "</b>.\n"
+                            + "Saved successfully and will notify you in: \n<b>"
+                            + timeToNotify + "</b>")
+                    .textParagraph("Reminder have been postponed!.")
+                    .build(typeForMessage);
+        }
+        return new CardResponseBuilder()
+                .thread("spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId())
+                .textParagraph("Reminder with text:\n<b>" + reminder.getWhat() + "</b>.\n"
+                        + "Saved successfully and will notify you in: \n<b>"
+                        + timeToNotify + "</b>")
+                .interactiveTextButton("Cancel Reminder", "CancelReminder", parameters)
+                .build(typeForMessage);
+    }
     /*
      * uses the text message of the user from Request
      * message:(@reminder) remind me Something to do in 10 minutes

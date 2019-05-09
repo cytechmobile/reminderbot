@@ -50,17 +50,10 @@ public class BotResource {
             message = "Not even a clue what you just said";
         }
 
-        if (message.contains("Reminder with ID: ")) {
-            return new CardResponseBuilder()
-                    .thread("spaces/" + spaceId)
-                    .textParagraph(message)
-                    .build("UPDATE_MESSAGE");
-        }
-
-        if (message.contains("Reminder with text:")) {
+        //case message is already build in json
+        if (message.startsWith("{\"actionResponse\":{\"type\":")) {
             return message;
         }
-
         return responseBuild(spaceId, message);
     }
 

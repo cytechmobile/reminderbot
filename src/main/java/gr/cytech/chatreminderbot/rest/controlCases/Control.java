@@ -18,7 +18,7 @@ public class Control {
     public String botName = "";
 
     @Inject
-    CaseDeleteReminder caseDeleteReminder;
+    CaseCancelReminder caseCancelReminder;
 
     @Inject
     CaseShowReminders caseShowReminders;
@@ -223,9 +223,9 @@ public class Control {
     }
 
     private String caseDeleteReminder() {
-        caseDeleteReminder.setRequest(request);
-        caseDeleteReminder.setSplitMsg(splitMsg);
-        return caseDeleteReminder.deleteReminder();
+        caseCancelReminder.setRequest(request);
+        caseCancelReminder.setSplitMsg(splitMsg);
+        return caseCancelReminder.cancelReminder();
     }
 
     //-- End of Cases
