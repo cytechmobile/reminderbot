@@ -1,5 +1,6 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.beans.TimerSessionBean;
 import gr.cytech.chatreminderbot.rest.db.Dao;
 import gr.cytech.chatreminderbot.rest.message.Request;
@@ -105,10 +106,16 @@ public class CaseSetReminder {
         }
 
         timerSessionBean.setTimerForReminder(reminder);
+        Map<String,String> parameters = new LinkedHashMap<>();
+        parameters.put("reminderId", String.valueOf(reminder.getReminderId()));
 
-        return "Reminder with text:\n <b>" + reminder.getWhat() + "</b>.\n"
+        return new CardResponseBuilder()
+                .thread("spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId())
+                .textParagraph("Reminder with text:\n <b>" + reminder.getWhat() + "</b>.\n"
                 + "Saved successfully and will notify you in: \n<b>"
-                + timeToNotify + "</b>";
+                + timeToNotify + "</b>")
+                .interactiveTextButton("Cancel Reminder", "CancelReminder", parameters)
+                .build("NEW_MESSAGE");
     }
 
     /*

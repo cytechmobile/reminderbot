@@ -24,17 +24,27 @@ public class Client {
     protected Dao dao;
 
     public String cardCreation(String spaceId, String threadId, String what,
-                               String senderName, String url) {
-
-        return new CardResponseBuilder()
-                .thread("spaces/" + spaceId + "/threads/" + threadId)
-                .textParagraph("<b>" + what + "</b>")
-                .textButton("remind me again in 10 minutes", url
-                        + "/bot/services/button?name=" + senderName
-                        + "&text=" + what
-                        + "&space=" + spaceId
-                        + "&thread=" + threadId)
-                .build();
+                               String senderName, Reminder reminder) {
+        Map<String,String> parameters = new LinkedHashMap<>();
+        parameters.put("text", what);
+        parameters.put("space", spaceId);
+        parameters.put("thread", threadId);
+        parameters.put("reminderId", String.valueOf(reminder.getReminderId()));
+        if (reminder.isRecuring()) {
+            return new CardResponseBuilder()
+                    .thread("spaces/" + spaceId + "/threads/" + threadId)
+                    .textParagraph("<b>" + what + "</b>")
+                    .interactiveTextButton("Cancel Recurring Reminder", "CancelReminder", parameters)
+                    .build();
+        } else {
+            return new CardResponseBuilder()
+                    .thread("spaces/" + spaceId + "/threads/" + threadId)
+                    .textParagraph("<b>" + what + "</b>")
+                    .interactiveTextButton("remind me again in 10 minutes", "remindAgainIn10", parameters)
+                    .interactiveTextButton("remind me again Tomorrow", "remindAgainTomorrow", parameters)
+                    .interactiveTextButton("remind me again next week", "remindAgainNextWeek", parameters)
+                    .build();
+        }
     }
 
     public Client() {
@@ -62,10 +72,8 @@ public class Client {
                     + "/threads/" + reminder.getThreadId() + "\" }}";
         }
 
-        String buttonUrl = dao.getConfigurationValue("buttonUrl");
-
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
-                reminder.getWhat(), reminder.getSenderDisplayName(), buttonUrl);
+                reminder.getWhat(), reminder.getSenderDisplayName(), reminder);
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {

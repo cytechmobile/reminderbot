@@ -15,7 +15,7 @@ import java.util.List;
 public class Control {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
 
-    private String botName = "";
+    public String botName = "";
 
     @Inject
     CaseDeleteReminder caseDeleteReminder;

@@ -46,11 +46,12 @@ public class CaseDeleteReminder {
             return "Wrong id format, must be only numbers";
         }
         // -- Checks reminder id AND userid
+        logger.info("hello user: {}", request.getMessage().getSender().getName());
         int remId = Integer.parseInt(reminderId);
         List<Reminder> reminders = dao.findReminders(request.getMessage().getSender().getName(),
                 remId);
         if (reminders.isEmpty()) {
-            return "Couldn't find reminder with id: " + reminderId;
+            return "Couldn't find reminder with id: " + reminderId + " or maybe you don't own this reminder";
         }
         //in order to delete must use find first.
         dao.deleteReminder(remId);

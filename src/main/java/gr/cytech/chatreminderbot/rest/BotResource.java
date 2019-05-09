@@ -2,17 +2,15 @@ package gr.cytech.chatreminderbot.rest;
 
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.controlCases.Control;
-import gr.cytech.chatreminderbot.rest.message.Message;
 import gr.cytech.chatreminderbot.rest.message.Request;
-import gr.cytech.chatreminderbot.rest.message.Sender;
-import gr.cytech.chatreminderbot.rest.message.ThreadM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 @Path("/services")
@@ -21,6 +19,12 @@ public class BotResource {
 
     @Inject
     Control control;
+
+    //Constant variables
+    private static final String REMIND_AGAIN_IN_10_MINUTES = "remindAgainIn10";
+    private static final String REMIND_AGAIN_TOMORROW = "remindAgainTomorrow";
+    private static final String REMIND_AGAIN_NEXT_WEEK = "remindAgainNextWeek";
+    private static final String CANCEL_REMINDER = "CancelReminder";
 
     /*
      * Handles requests from google chat which are assign to this path
@@ -33,6 +37,9 @@ public class BotResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String handleReq(Request req) {
+        if (req.getAction() != null) {
+            manipulateRequestBasedOnParameters(req);
+        }
         control.setRequest(req);
         String spaceId = req.getMessage().getThread().getSpaceId();
         String message;
@@ -42,50 +49,52 @@ public class BotResource {
             logger.warn("Error from message:{}", req.getMessage().getText(), e);
             message = "Not even a clue what you just said";
         }
+
+        if (message.contains("Reminder with ID: ")) {
+            return new CardResponseBuilder()
+                    .thread("spaces/" + spaceId)
+                    .textParagraph(message)
+                    .build("UPDATE_MESSAGE");
+        }
+
+        if (message.contains("Reminder with text:")) {
+            return message;
+        }
+
         return responseBuild(spaceId, message);
     }
 
-    @GET
-    @Path("/button")
-    public String onButtonClick(@Context HttpServletRequest request) {
-        Sender sender = new Sender();
-        ThreadM threadM = new ThreadM();
+    private void manipulateRequestBasedOnParameters(Request req) {
+        String text = "";
+        int reminderId = 0;
+        for (int i = 0; i < req.getAction().getParameters().size(); i++) {
+            String tempValue = req.getAction().getParameters().get(i).get("value");
+            String tempKey = req.getAction().getParameters().get(i).get("key");
+            if ("text".equals(tempKey)) {
+                text = tempValue;
+            } else if ("reminderId".equals(tempKey)) {
+                reminderId = Integer.valueOf(tempValue);
+            }
+        }
 
-        sender.setName(request.getParameter("name"));
-        threadM.setName("space/" + request.getParameter("space") + "/thread/" + request.getParameter("thread"));
+        req.getMessage().getSender().setName(req.getUser().getName());
 
-        //create reminder and get the when
-        //creating the full text for reminder
-        String text = "remind me "
-                + request.getParameter("text")
-                + " in 10 minutes";
-
-        //create the Request using the updated message
-        Message message = new Message();
-
-        message.setSender(sender);
-        message.setThread(threadM);
-        message.setText(text);
-
-        Request req = new Request();
-        req.setMessage(message);
-        //open tab to get the requirements then immediately close it and handle the request
-        handleReq(req);
-        return "<html>"
-                + "<head></head>"
-                + "<body>"
-                + "<script>"
-                + "window.close();"
-                + "</script>"
-                + "</body>"
-                + "</html>";
+        if (REMIND_AGAIN_IN_10_MINUTES.equals(req.getAction().getActionMethodName())) {
+            req.getMessage().setText("remind me " + text + " in 10 minutes");
+        } else if (REMIND_AGAIN_TOMORROW.equals(req.getAction().getActionMethodName())) {
+            req.getMessage().setText("remind me " + text + " tomorrow");
+        } else if (REMIND_AGAIN_NEXT_WEEK.equals(req.getAction().getActionMethodName())) {
+            req.getMessage().setText("remind me " + text + " in next week");
+        } else if (CANCEL_REMINDER.equals(req.getAction().getActionMethodName())) {
+            req.getMessage().setText("delete " + reminderId);
+        }
     }
 
     private String responseBuild(String spaceId, String message) {
         return new CardResponseBuilder()
                 .thread("spaces/" + spaceId)
                 .textParagraph(message)
-                .build();
+                .build("NEW_MESSAGE");
 
     }
 
