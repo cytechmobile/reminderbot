@@ -93,6 +93,16 @@ public class CaseSetReminder {
             logger.info("cant set reminder under 1 minute due to spam messages");
             return "Sorry you cant set reminder under 1 minute";
         }
+
+        if (request.getAction() != null) {
+            if (request.getAction().getParameters().get(0).get("key").equals("name")
+                    && !request.getAction().getParameters().get(0).get("value")
+                    .equals(reminder.getSenderDisplayName())) {
+                logger.info("Button Click by other user so cant postpone the reminder");
+                return "You <b>can't</b> postpone another user's reminders.";
+            }
+        }
+
         try {
             transaction.begin();
             dao.persist(reminder);
@@ -115,17 +125,13 @@ public class CaseSetReminder {
         parameters.put("name", reminder.getSenderDisplayName());
 
         if (request.getAction() != null) {
-            if (request.getAction().getParameters().get(0).get("key").equals("name")
-                    && !request.getAction().getParameters().get(0).get("value")
-                    .equals(reminder.getSenderDisplayName())) {
-                return "You <b>can't</b> postpone another user's reminders.";
-            }
+            logger.info("Button Clicked Update the card message");
             return buildReminderResponse(reminder, timeToNotify, parameters,
                     "UPDATE_MESSAGE", request.getAction().getActionMethodName());
-        } else {
-            return buildReminderResponse(reminder, timeToNotify, parameters,
-                    "NEW_MESSAGE", "");
         }
+        logger.info("returned default new message for reminder");
+        return buildReminderResponse(reminder, timeToNotify, parameters,
+                "NEW_MESSAGE", "");
 
     }
 

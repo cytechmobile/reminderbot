@@ -272,7 +272,7 @@ public class ControlIT {
         response.bufferEntity();
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         requestResponse = response.readEntity(String.class);
-        successMsg = "You <b>can't</b> postpone others reminders.";
+        successMsg = "You <b>can't</b> postpone another user's reminders.";
         assertThat(requestResponse).isEqualTo(expectedResponseMethod(successMsg, "NEW_MESSAGE"));
 
     }
