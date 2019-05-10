@@ -18,6 +18,8 @@ import java.time.format.DateTimeParseException;
 import java.util.TimeZone;
 import java.util.*;
 
+import static gr.cytech.chatreminderbot.rest.message.Action.*;
+
 @RequestScoped
 public class CaseSetReminder {
     private static final Logger logger = LoggerFactory.getLogger(CaseSetReminder.class);
@@ -34,10 +36,6 @@ public class CaseSetReminder {
     UserTransaction transaction;
 
     Client client;
-
-    private static final String REMIND_AGAIN_IN_10_MINUTES = "remindAgainIn10";
-    private static final String REMIND_AGAIN_TOMORROW = "remindAgainTomorrow";
-    private static final String REMIND_AGAIN_NEXT_WEEK = "remindAgainNextWeek";
 
     /*
      * Build a reminder and persist if valid
@@ -126,34 +124,37 @@ public class CaseSetReminder {
 
         if (request.getAction() != null) {
             logger.info("Button Clicked Update the card message");
-            return buildReminderResponse(reminder, timeToNotify, parameters,
-                    "UPDATE_MESSAGE", request.getAction().getActionMethodName());
+            return buildReminderResponse(reminder, timeToNotify, parameters, request.getAction().getActionMethodName());
         }
         logger.info("returned default new message for reminder");
-        return buildReminderResponse(reminder, timeToNotify, parameters,
-                "NEW_MESSAGE", "");
+        return buildReminderResponse(reminder, timeToNotify, parameters, "");
 
     }
 
     private String buildReminderResponse(Reminder reminder, String timeToNotify, Map<String,
-            String> parameters, String typeForMessage, String actionName) {
-        if (actionName.equals(REMIND_AGAIN_IN_10_MINUTES) || actionName.equals(REMIND_AGAIN_NEXT_WEEK)
+            String> parameters, String actionName) {
+
+        String reminderAnswer = "Reminder with text:\n<b>" + reminder.getWhat() + "</b>.\n"
+                + "Saved successfully and will notify you in: \n<b>"
+                + timeToNotify + "</b>";
+
+        String threadResponse = "spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId();
+
+        if (actionName.equals(REMIND_AGAIN_IN_10_MINUTES)
+                || actionName.equals(REMIND_AGAIN_NEXT_WEEK)
                 || actionName.equals(REMIND_AGAIN_TOMORROW)) {
-            return new CardResponseBuilder()
-                    .thread("spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId())
-                    .textParagraph("Reminder with text:\n<b>" + reminder.getWhat() + "</b>.\n"
-                            + "Saved successfully and will notify you in: \n<b>"
-                            + timeToNotify + "</b>")
+
+            return new CardResponseBuilder("UPDATE_MESSAGE")
+                    .thread(threadResponse)
+                    .textParagraph(reminderAnswer)
                     .textParagraph("Reminder have been postponed!.")
-                    .build(typeForMessage);
+                    .build();
         }
         return new CardResponseBuilder()
-                .thread("spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId())
-                .textParagraph("Reminder with text:\n<b>" + reminder.getWhat() + "</b>.\n"
-                        + "Saved successfully and will notify you in: \n<b>"
-                        + timeToNotify + "</b>")
+                .thread(threadResponse)
+                .textParagraph(reminderAnswer)
                 .interactiveTextButton("Cancel Reminder", "CancelReminder", parameters)
-                .build(typeForMessage);
+                .build();
     }
     /*
      * uses the text message of the user from Request

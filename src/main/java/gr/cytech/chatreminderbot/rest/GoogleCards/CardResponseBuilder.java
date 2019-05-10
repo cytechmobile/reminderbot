@@ -267,7 +267,6 @@ public class CardResponseBuilder {
 
         JsonObject cardsNode =
                 responseNode
-                        .add("actionResponse", Json.createObjectBuilder().add("type", "UPDATE_MESSAGE"))
                         .add("cards", this.cardsArray
                                 .add(Json.createObjectBuilder()
                                         .add("sections", Json.createArrayBuilder()

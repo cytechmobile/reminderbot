@@ -11,6 +11,8 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
+import static gr.cytech.chatreminderbot.rest.message.Action.CANCEL_REMINDER;
+
 @RequestScoped
 public class CaseCancelReminder {
     private static final Logger logger = LoggerFactory.getLogger(CaseCancelReminder.class);
@@ -57,7 +59,7 @@ public class CaseCancelReminder {
         dao.deleteReminder(remId);
         logger.info("Canceled reminder with ID: {}", remId);
         if (request.getAction() != null) {
-            if (request.getAction().getActionMethodName().equals("CancelReminder")) {
+            if (request.getAction().getActionMethodName().equals(CANCEL_REMINDER)) {
                 return createCardResponse(reminders.get(0), "UPDATE_MESSAGE");
             }
         }
@@ -65,12 +67,12 @@ public class CaseCancelReminder {
     }
 
     private String createCardResponse(Reminder reminder, String typeForMessage) {
-        return new CardResponseBuilder()
+        return new CardResponseBuilder(typeForMessage)
                 .thread("spaces/" + request.getMessage().getThread().getSpaceId())
                 .textParagraph("Reminder with text:\n<b>"
                         + reminder.getWhat()
                         + "</b>\nsuccessfully canceled!")
-                .build(typeForMessage);
+                .build();
     }
 
 }

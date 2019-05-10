@@ -16,6 +16,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.*;
 
+import static gr.cytech.chatreminderbot.rest.message.Action.REMIND_AGAIN_IN_10_MINUTES;
+import static gr.cytech.chatreminderbot.rest.message.Action.REMIND_AGAIN_TOMORROW;
+
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
@@ -25,7 +28,7 @@ public class Client {
 
     public String cardCreation(String spaceId, String threadId, String what,
                                String senderName, Reminder reminder) {
-        Map<String,String> parameters = new LinkedHashMap<>();
+        Map<String, String> parameters = new LinkedHashMap<>();
         parameters.put("name", senderName);
         parameters.put("text", what);
         parameters.put("space", spaceId);
@@ -41,9 +44,9 @@ public class Client {
             return new CardResponseBuilder()
                     .thread("spaces/" + spaceId + "/threads/" + threadId)
                     .textParagraph("<b>" + what + "</b>")
-                    .interactiveTextButton("remind me again in 10 minutes", "remindAgainIn10", parameters)
-                    .interactiveTextButton("remind me again Tomorrow", "remindAgainTomorrow", parameters)
-                    .interactiveTextButton("remind me again next week", "remindAgainNextWeek", parameters)
+                    .interactiveTextButton("remind me again in 10 minutes", REMIND_AGAIN_IN_10_MINUTES, parameters)
+                    .interactiveTextButton("remind me again Tomorrow", REMIND_AGAIN_TOMORROW, parameters)
+                    .interactiveTextButton("remind me again next week", REMIND_AGAIN_TOMORROW, parameters)
                     .build();
         }
     }

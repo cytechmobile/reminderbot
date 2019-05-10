@@ -12,6 +12,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.Map;
+
+import static gr.cytech.chatreminderbot.rest.message.Action.*;
+import static gr.cytech.chatreminderbot.rest.message.Request.ALREADY_BUILD_MESSAGE;
 
 @Path("/services")
 public class BotResource {
@@ -20,11 +24,6 @@ public class BotResource {
     @Inject
     Control control;
 
-    //Constant variables
-    private static final String REMIND_AGAIN_IN_10_MINUTES = "remindAgainIn10";
-    private static final String REMIND_AGAIN_TOMORROW = "remindAgainTomorrow";
-    private static final String REMIND_AGAIN_NEXT_WEEK = "remindAgainNextWeek";
-    private static final String CANCEL_REMINDER = "CancelReminder";
 
     /*
      * Handles requests from google chat which are assign to this path
@@ -51,7 +50,7 @@ public class BotResource {
         }
 
         //case message is already build in json
-        if (message.startsWith("{\"actionResponse\":{\"type\":")) {
+        if (message.startsWith(ALREADY_BUILD_MESSAGE_WITH_ACTION) || message.startsWith(ALREADY_BUILD_MESSAGE)) {
             return message;
         }
         return responseBuild(spaceId, message);
@@ -60,14 +59,16 @@ public class BotResource {
     private void manipulateRequestBasedOnParameters(Request req) {
         String text = "";
         int reminderId = 0;
-        for (int i = 0; i < req.getAction().getParameters().size(); i++) {
-            String tempValue = req.getAction().getParameters().get(i).get("value");
-            String tempKey = req.getAction().getParameters().get(i).get("key");
+        for (Map<String, String> s : req.getAction().getParameters()) {
+            String tempValue = s.get("value");
+            String tempKey = s.get("key");
+
             if ("text".equals(tempKey)) {
                 text = tempValue;
             } else if ("reminderId".equals(tempKey)) {
                 reminderId = Integer.valueOf(tempValue);
             }
+
         }
 
         req.getMessage().getSender().setName(req.getUser().getName());
@@ -87,7 +88,7 @@ public class BotResource {
         return new CardResponseBuilder()
                 .thread("spaces/" + spaceId)
                 .textParagraph(message)
-                .build("NEW_MESSAGE");
+                .build();
 
     }
 

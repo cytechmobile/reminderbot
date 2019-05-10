@@ -117,7 +117,7 @@ public class ControlIT {
         String requestResponseWhenDeletingReminder = response.readEntity(String.class);
         String successDeleteMessage = "Reminder with text:\n<b>" + what + "</b>\nsuccessfully canceled!";
         assertThat(requestResponseWhenDeletingReminder)
-                .isEqualTo(expectedResponseMethod(successDeleteMessage, "UPDATE_MESSAGE"));
+                .isEqualTo(expectedResponseMethodWithAction(successDeleteMessage));
 
     }
 
@@ -207,7 +207,7 @@ public class ControlIT {
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         requestResponse = response.readEntity(String.class);
         successMsg = "Couldn't find the reminder or maybe you don't own this reminder";
-        assertThat(requestResponse).isEqualTo(expectedResponseMethod(successMsg, "NEW_MESSAGE"));
+        assertThat(requestResponse).isEqualTo(expectedResponseMethod(successMsg));
 
     }
 
@@ -247,9 +247,9 @@ public class ControlIT {
                 "key", "text",
                 "value", what
         );
-        Map<String,String> mapForReminderId = Map.of(
-                "key","reminderId",
-                "value",matches.get(0)
+        Map<String, String> mapForReminderId = Map.of(
+                "key", "reminderId",
+                "value", matches.get(0)
         );
 
         List<Map<String, String>> parameters = List.of(mapForUser, mapForReminderId, mapForText);
@@ -263,7 +263,7 @@ public class ControlIT {
         Request request = getSampleRequest();
         request.setUser(user);
         request.setAction(action);
-        request.getMessage().getSender().setName("mpampis");
+        request.getMessage().getSender().setName("MyName");
         Response response = client.target("http://" + ClientUrl + "/bot/services/handleReq")
                 .request()
                 .post(Entity.json(request));
@@ -271,7 +271,7 @@ public class ControlIT {
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         requestResponse = response.readEntity(String.class);
         successMsg = "You <b>can't</b> postpone another user's reminders.";
-        assertThat(requestResponse).isEqualTo(expectedResponseMethod(successMsg, "NEW_MESSAGE"));
+        assertThat(requestResponse).isEqualTo(expectedResponseMethod(successMsg));
 
     }
 
@@ -287,7 +287,7 @@ public class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isNotEqualTo(expectedResponseMethod(responseDefault, "NEW_MESSAGE"));
+        assertThat(resp.readEntity(String.class)).isNotEqualTo(expectedResponseMethod(responseDefault));
     }
 
     @Test
@@ -302,7 +302,7 @@ public class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         //Verify that i didn't get the default wrong message
-        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse, "NEW_MESSAGE"));
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
 
     }
 
@@ -320,7 +320,7 @@ public class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
 
-        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse, "NEW_MESSAGE"));
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
     @Test
@@ -339,7 +339,7 @@ public class ControlIT {
                 .post(Entity.json(req));
         resp.bufferEntity();
         assertThat(properties.getProperty("version")).isNotEqualTo("${project.version}");
-        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse, "NEW_MESSAGE"));
+        assertThat(resp.readEntity(String.class)).isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
     @Test
@@ -371,23 +371,30 @@ public class ControlIT {
         resp.bufferEntity();
 
         assertThat(resp.readEntity(String.class)).as("Unexpected response when getting user time zone")
-                .isEqualTo(expectedResponseMethod(expectedResponse, "NEW_MESSAGE"));
+                .isEqualTo(expectedResponseMethod(expectedResponse));
     }
 
-    String expectedResponseMethod(String expectedMessage, String typeOfMessage) {
+    String expectedResponseMethod(String expectedMessage) {
         return new CardResponseBuilder()
                 .thread("spaces/SPACE_ID")
                 .textParagraph("" + expectedMessage + "")
-                .build(typeOfMessage);
+                .build();
 
     }
 
+    String expectedResponseMethodWithAction(String expectedMessage) {
+        return new CardResponseBuilder("UPDATE_MESSAGE")
+                .thread("spaces/SPACE_ID")
+                .textParagraph("" + expectedMessage + "")
+                .build();
+    }
+
     String expectedResponseMethodForActions(String expectedMessage) {
-        return new CardResponseBuilder()
+        return new CardResponseBuilder("UPDATE_MESSAGE")
                 .thread("spaces/SPACE_ID/threads/THREAD_ID")
                 .textParagraph("" + expectedMessage + "")
                 .textParagraph("Reminder have been postponed!.")
-                .build("UPDATE_MESSAGE");
+                .build();
 
     }
 
@@ -399,7 +406,7 @@ public class ControlIT {
                 .thread("spaces/SPACE_ID/threads/THREAD_ID")
                 .textParagraph(expectedMessage)
                 .interactiveTextButton("Cancel Reminder", "CancelReminder", parameters)
-                .build("NEW_MESSAGE");
+                .build();
     }
 
     public static Request getSampleRequest() {

@@ -2,6 +2,8 @@ package gr.cytech.chatreminderbot.rest.message;
 
 public class Request {
 
+    public static final String ALREADY_BUILD_MESSAGE = "{\"cards\":[{\"sections\":[{\"widgets\":[{\"textParagraph\":{";
+
     private Message message;
     private Action action;
     private User user;
