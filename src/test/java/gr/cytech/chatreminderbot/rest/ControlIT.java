@@ -40,7 +40,7 @@ public class ControlIT {
     }
 
     @Test
-    void handleRequest() throws Exception {
+    void buildReminder() throws Exception {
         Request req = getSampleRequest();
 
         String expectedWhen = "12/12/2019 12:00";
@@ -71,7 +71,7 @@ public class ControlIT {
     }
 
     @Test
-    void setAndCancelReminder() throws Exception {
+    void buildReminderAndCancel() throws Exception {
         Request req = getSampleRequest();
         String expectedWhen = "12/12/2019 12:00";
         String what = "something to do";
@@ -122,7 +122,7 @@ public class ControlIT {
     }
 
     @Test
-    void setReminderWithAction() {
+    void buildReminderWithAction() {
         Request req = getSampleRequest();
         Action action = new Action();
         String what = "something to do";
@@ -151,6 +151,130 @@ public class ControlIT {
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         String requestResponse = resp.readEntity(String.class);
         assertThat(requestResponse).isEqualTo(expectedResponseMethodForActions(successMsg));
+    }
+
+    @Test
+    void buildReminderAndPreventOtherUserFromCancel() {
+        Request req = getSampleRequest();
+
+        String expectedWhen = "12/12/2019 12:00";
+        String what = "something to do";
+
+        req.getMessage().setText("remind me " + what + " at " + expectedWhen);
+
+        //In order to use calculateRemainingTime need to define: timezone, when
+
+        String successMsg = "Reminder with text:\n<b>" + what
+                + "</b>.\nSaved successfully and will notify you in: \n<b>"
+                + "12/12/2019 12:00" + "</b>";
+
+        Response resp = client.target("http://" + ClientUrl + "/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+        assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        String requestResponse = resp.readEntity(String.class);
+        String regex = "\"value\":\"(\\d+)\"";
+        List<String> matches = new ArrayList<>();
+        Matcher m = Pattern.compile(regex).matcher(requestResponse);
+        while (m.find()) {
+            matches.add(m.group(1));
+        }
+        assertThat(requestResponse).isEqualTo(expectedResponseMethodForReminder(successMsg, matches.get(0)));
+
+        Map<String, String> mapForText = Map.of(
+                "key", "text",
+                "value", what
+        );
+        Map<String,String> mapForReminderId = Map.of(
+                "key","reminderId",
+                "value",matches.get(0)
+        );
+        List<Map<String, String>> parameters = List.of(mapForReminderId, mapForText);
+
+        Action action = new Action();
+        action.setActionMethodName("CancelReminder");
+        action.setParameters(parameters);
+        User user = new User();
+        user.setName("DifferentName");
+        user.setDisplayName("DifferentName");
+        Request request = getSampleRequest();
+        request.setUser(user);
+        request.setAction(action);
+        Response response = client.target("http://" + ClientUrl + "/bot/services/handleReq")
+                .request()
+                .post(Entity.json(request));
+        response.bufferEntity();
+        assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        requestResponse = response.readEntity(String.class);
+        successMsg = "Couldn't find the reminder or maybe you don't own this reminder";
+        assertThat(requestResponse).isEqualTo(expectedResponseMethod(successMsg, "NEW_MESSAGE"));
+
+    }
+
+    @Test
+    void buildReminderAndPreventOtherUserFromPostpone() {
+        Request req = getSampleRequest();
+
+        String expectedWhen = "12/12/2019 12:00";
+        String what = "something to do";
+
+        req.getMessage().setText("remind me " + what + " at " + expectedWhen);
+
+        //In order to use calculateRemainingTime need to define: timezone, when
+
+        String successMsg = "Reminder with text:\n<b>" + what
+                + "</b>.\nSaved successfully and will notify you in: \n<b>"
+                + "12/12/2019 12:00" + "</b>";
+
+        Response resp = client.target("http://" + ClientUrl + "/bot/services/handleReq")
+                .request()
+                .post(Entity.json(req));
+        resp.bufferEntity();
+        assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        String requestResponse = resp.readEntity(String.class);
+        String regex = "\"value\":\"(\\d+)\"";
+        List<String> matches = new ArrayList<>();
+        Matcher m = Pattern.compile(regex).matcher(requestResponse);
+        while (m.find()) {
+            matches.add(m.group(1));
+        }
+        assertThat(requestResponse).isEqualTo(expectedResponseMethodForReminder(successMsg, matches.get(0)));
+
+        Map<String, String> mapForUser = Map.of(
+                "key", "name",
+                "value", req.getMessage().getSender().getName()
+        );
+        Map<String, String> mapForText = Map.of(
+                "key", "text",
+                "value", what
+        );
+        Map<String,String> mapForReminderId = Map.of(
+                "key","reminderId",
+                "value",matches.get(0)
+        );
+
+        List<Map<String, String>> parameters = List.of(mapForUser, mapForReminderId, mapForText);
+
+        Action action = new Action();
+        action.setActionMethodName("remindAgainTomorrow");
+        action.setParameters(parameters);
+        User user = new User();
+        user.setName("DifferentName");
+        user.setDisplayName("DifferentName");
+        Request request = getSampleRequest();
+        request.setUser(user);
+        request.setAction(action);
+        request.getMessage().getSender().setName("mpampis");
+        Response response = client.target("http://" + ClientUrl + "/bot/services/handleReq")
+                .request()
+                .post(Entity.json(request));
+        response.bufferEntity();
+        assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+        requestResponse = response.readEntity(String.class);
+        successMsg = "You <b>can't</b> postpone others reminders.";
+        assertThat(requestResponse).isEqualTo(expectedResponseMethod(successMsg, "NEW_MESSAGE"));
+
     }
 
     @Test

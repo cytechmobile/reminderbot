@@ -118,19 +118,19 @@ public class CaseSetReminder {
             if (request.getAction().getParameters().get(0).get("key").equals("name")
                     && !request.getAction().getParameters().get(0).get("value")
                     .equals(reminder.getSenderDisplayName())) {
-                return "You <b>can't</b> postpone others reminders.";
+                return "You <b>can't</b> postpone another user's reminders.";
             }
             return buildReminderResponse(reminder, timeToNotify, parameters,
-                    "UPDATE_MESSAGE", request.getAction().getActionMethodName(), request.getUser().getName());
+                    "UPDATE_MESSAGE", request.getAction().getActionMethodName());
         } else {
             return buildReminderResponse(reminder, timeToNotify, parameters,
-                    "NEW_MESSAGE", "", request.getUser().getName());
+                    "NEW_MESSAGE", "");
         }
 
     }
 
     private String buildReminderResponse(Reminder reminder, String timeToNotify, Map<String,
-            String> parameters, String typeForMessage, String actionName, String userWhoClickedTheButton) {
+            String> parameters, String typeForMessage, String actionName) {
         if (actionName.equals(REMIND_AGAIN_IN_10_MINUTES) || actionName.equals(REMIND_AGAIN_NEXT_WEEK)
                 || actionName.equals(REMIND_AGAIN_TOMORROW)) {
             return new CardResponseBuilder()
