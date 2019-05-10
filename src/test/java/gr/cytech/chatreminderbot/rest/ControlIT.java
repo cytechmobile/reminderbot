@@ -22,6 +22,8 @@ public class ControlIT {
     private static final Logger logger = LoggerFactory.getLogger(ControlIT.class);
 
     private static Client client;
+    private static final String REGEX_TO_REMINDER_ID = "\"value\":\"(\\d+)\"";
+
     private static final String ClientUrl = System.getenv()
             .getOrDefault("APP_HOST", "localhost") + ":8080";
 
@@ -60,9 +62,8 @@ public class ControlIT {
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         String requestResponse = resp.readEntity(String.class);
-        String regex = "\"value\":\"(\\d+)\"";
         List<String> matches = new ArrayList<>();
-        Matcher m = Pattern.compile(regex).matcher(requestResponse);
+        Matcher m = Pattern.compile(REGEX_TO_REMINDER_ID).matcher(requestResponse);
         while (m.find()) {
             matches.add(m.group(1));
         }
@@ -90,9 +91,8 @@ public class ControlIT {
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         String requestResponse = resp.readEntity(String.class);
-        String regex = "\"value\":\"(\\d+)\"";
         List<String> matches = new ArrayList<>();
-        Matcher m = Pattern.compile(regex).matcher(requestResponse);
+        Matcher m = Pattern.compile(REGEX_TO_REMINDER_ID).matcher(requestResponse);
         while (m.find()) {
             matches.add(m.group(1));
         }
@@ -174,9 +174,8 @@ public class ControlIT {
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         String requestResponse = resp.readEntity(String.class);
-        String regex = "\"value\":\"(\\d+)\"";
         List<String> matches = new ArrayList<>();
-        Matcher m = Pattern.compile(regex).matcher(requestResponse);
+        Matcher m = Pattern.compile(REGEX_TO_REMINDER_ID).matcher(requestResponse);
         while (m.find()) {
             matches.add(m.group(1));
         }
@@ -233,9 +232,8 @@ public class ControlIT {
         resp.bufferEntity();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         String requestResponse = resp.readEntity(String.class);
-        String regex = "\"value\":\"(\\d+)\"";
         List<String> matches = new ArrayList<>();
-        Matcher m = Pattern.compile(regex).matcher(requestResponse);
+        Matcher m = Pattern.compile(REGEX_TO_REMINDER_ID).matcher(requestResponse);
         while (m.find()) {
             matches.add(m.group(1));
         }
