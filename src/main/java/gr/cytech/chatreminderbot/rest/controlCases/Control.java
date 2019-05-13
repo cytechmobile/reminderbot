@@ -223,9 +223,7 @@ public class Control {
     }
 
     private String caseDeleteReminder() {
-        caseCancelReminder.setRequest(request);
-        caseCancelReminder.setSplitMsg(splitMsg);
-        return caseCancelReminder.cancelReminder();
+        return caseCancelReminder.cancelReminder(request, splitMsg);
     }
 
     //-- End of Cases

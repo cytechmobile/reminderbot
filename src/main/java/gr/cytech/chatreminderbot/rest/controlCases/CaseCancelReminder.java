@@ -17,30 +17,14 @@ import static gr.cytech.chatreminderbot.rest.message.Action.CANCEL_REMINDER;
 public class CaseCancelReminder {
     private static final Logger logger = LoggerFactory.getLogger(CaseCancelReminder.class);
 
-    private Request request;
-
     @Inject
     Dao dao;
-
-    private List<String> splitMsg;
 
     public CaseCancelReminder() {
     }
 
-    public Request getRequest() {
-        return request;
-    }
-
-    public void setRequest(Request request) {
-        this.request = request;
-    }
-
-    public void setSplitMsg(List<String> splitMsg) {
-        this.splitMsg = splitMsg;
-    }
-
     @Transactional
-    String cancelReminder() {
+    String cancelReminder(Request request, List<String> splitMsg) {
         String reminderId;
         if (splitMsg.get(1).matches("[0-9]+")) {
             reminderId = splitMsg.get(1);
@@ -58,17 +42,18 @@ public class CaseCancelReminder {
         //in order to delete must use find first.
         dao.deleteReminder(remId);
         logger.info("Canceled reminder with ID: {}", remId);
+        String spaceId = request.getMessage().getThread().getSpaceId();
         if (request.getAction() != null) {
             if (request.getAction().getActionMethodName().equals(CANCEL_REMINDER)) {
-                return createCardResponse(reminders.get(0), "UPDATE_MESSAGE");
+                return createCardResponse(reminders.get(0), "UPDATE_MESSAGE", spaceId);
             }
         }
-        return createCardResponse(reminders.get(0), "NEW_MESSAGE");
+        return createCardResponse(reminders.get(0), "NEW_MESSAGE", spaceId);
     }
 
-    private String createCardResponse(Reminder reminder, String typeForMessage) {
+    private String createCardResponse(Reminder reminder, String typeForMessage, String spaceId) {
         return new CardResponseBuilder(typeForMessage)
-                .thread("spaces/" + request.getMessage().getThread().getSpaceId())
+                .thread("spaces/" + spaceId)
                 .textParagraph("Reminder with text:\n<b>"
                         + reminder.getWhat()
                         + "</b>\nsuccessfully canceled!")
