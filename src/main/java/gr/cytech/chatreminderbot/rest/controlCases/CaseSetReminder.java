@@ -3,6 +3,7 @@ package gr.cytech.chatreminderbot.rest.controlCases;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.beans.TimerSessionBean;
 import gr.cytech.chatreminderbot.rest.db.Dao;
+import gr.cytech.chatreminderbot.rest.message.Action;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
 import org.ocpsoft.prettytime.nlp.parse.DateGroup;
@@ -118,16 +119,16 @@ public class CaseSetReminder {
         }
 
         timerSessionBean.setTimerForReminder(reminder);
-        Map<String, String> parameters = new LinkedHashMap<>();
-        parameters.put("reminderId", String.valueOf(reminder.getReminderId()));
-        parameters.put("name", reminder.getSenderDisplayName());
+        Action parameters = new Action();
+        parameters.setBuildParametersForButton(reminder.getSenderDisplayName(), reminder.getReminderId(), "");
 
         if (request.getAction() != null) {
             logger.info("Button Clicked Update the card message");
-            return buildReminderResponse(reminder, timeToNotify, parameters, request.getAction().getActionMethodName());
+            return buildReminderResponse(reminder, timeToNotify, parameters.getBuildParametersForButton(),
+                    request.getAction().getActionMethodName());
         }
         logger.info("returned default new message for reminder");
-        return buildReminderResponse(reminder, timeToNotify, parameters, "");
+        return buildReminderResponse(reminder, timeToNotify, parameters.getBuildParametersForButton(), "");
 
     }
 

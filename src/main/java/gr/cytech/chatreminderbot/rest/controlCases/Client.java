@@ -5,6 +5,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.*;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.db.Dao;
+import gr.cytech.chatreminderbot.rest.message.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,25 +29,25 @@ public class Client {
 
     public String cardCreation(String spaceId, String threadId, String what,
                                String senderName, Reminder reminder) {
-        Map<String, String> parameters = new LinkedHashMap<>();
-        parameters.put("name", senderName);
-        parameters.put("text", what);
-        parameters.put("space", spaceId);
-        parameters.put("thread", threadId);
-        parameters.put("reminderId", String.valueOf(reminder.getReminderId()));
+        Action parameters = new Action();
+        parameters.setBuildParametersForButton(senderName, reminder.getReminderId(), what);
         if (reminder.isRecuring()) {
             return new CardResponseBuilder()
                     .thread("spaces/" + spaceId + "/threads/" + threadId)
                     .textParagraph("<b>" + what + "</b>")
-                    .interactiveTextButton("Cancel Recurring Reminder", "CancelReminder", parameters)
+                    .interactiveTextButton("Cancel Recurring Reminder", "CancelReminder",
+                            parameters.getBuildParametersForButton())
                     .build();
         } else {
             return new CardResponseBuilder()
                     .thread("spaces/" + spaceId + "/threads/" + threadId)
                     .textParagraph("<b>" + what + "</b>")
-                    .interactiveTextButton("remind me again in 10 minutes", REMIND_AGAIN_IN_10_MINUTES, parameters)
-                    .interactiveTextButton("remind me again Tomorrow", REMIND_AGAIN_TOMORROW, parameters)
-                    .interactiveTextButton("remind me again next week", REMIND_AGAIN_TOMORROW, parameters)
+                    .interactiveTextButton("remind me again in 10 minutes", REMIND_AGAIN_IN_10_MINUTES,
+                            parameters.getBuildParametersForButton())
+                    .interactiveTextButton("remind me again Tomorrow", REMIND_AGAIN_TOMORROW,
+                            parameters.getBuildParametersForButton())
+                    .interactiveTextButton("remind me again next week", REMIND_AGAIN_TOMORROW,
+                            parameters.getBuildParametersForButton())
                     .build();
         }
     }

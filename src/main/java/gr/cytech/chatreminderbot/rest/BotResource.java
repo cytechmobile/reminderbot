@@ -12,7 +12,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.Map;
 
 import static gr.cytech.chatreminderbot.rest.message.Action.*;
 import static gr.cytech.chatreminderbot.rest.message.Request.ALREADY_BUILD_MESSAGE;
@@ -23,7 +22,6 @@ public class BotResource {
 
     @Inject
     Control control;
-
 
     /*
      * Handles requests from google chat which are assign to this path
@@ -57,19 +55,8 @@ public class BotResource {
     }
 
     private void manipulateRequestBasedOnParameters(Request req) {
-        String text = "";
-        int reminderId = 0;
-        for (Map<String, String> s : req.getAction().getParameters()) {
-            String tempValue = s.get("value");
-            String tempKey = s.get("key");
-
-            if ("text".equals(tempKey)) {
-                text = tempValue;
-            } else if ("reminderId".equals(tempKey)) {
-                reminderId = Integer.valueOf(tempValue);
-            }
-
-        }
+        String text = req.getAction().getParameters().get(2).get("value");
+        int reminderId = Integer.valueOf(req.getAction().getParameters().get(1).get("value"));
 
         req.getMessage().getSender().setName(req.getUser().getName());
 

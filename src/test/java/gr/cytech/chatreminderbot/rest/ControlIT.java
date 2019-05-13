@@ -100,11 +100,8 @@ public class ControlIT {
 
         Action action = new Action();
         action.setActionMethodName("CancelReminder");
-        Map<String, String> mapForReminderId = Map.of(
-                "key", "reminderId",
-                "value", matches.get(0)
-        );
-        List<Map<String, String>> parameters = List.of(mapForReminderId);
+        List<Map<String, String>> parameters =
+                setParameters("", "", Integer.valueOf(matches.get(0)));
 
         action.setParameters(parameters);
         Request request = getSampleRequest();
@@ -126,11 +123,7 @@ public class ControlIT {
         Request req = getSampleRequest();
         Action action = new Action();
         String what = "something to do";
-        Map<String, String> mapForText = Map.of(
-                "key", "text",
-                "value", what
-        );
-        List<Map<String, String>> parameters = List.of(mapForText);
+        List<Map<String, String>> parameters = setParameters(req.getMessage().getSender().getName(), what, 0);
 
         action.setActionMethodName("remindAgainTomorrow");
 
@@ -181,15 +174,7 @@ public class ControlIT {
         }
         assertThat(requestResponse).isEqualTo(expectedResponseMethodForReminder(successMsg, matches.get(0)));
 
-        Map<String, String> mapForText = Map.of(
-                "key", "text",
-                "value", what
-        );
-        Map<String,String> mapForReminderId = Map.of(
-                "key","reminderId",
-                "value",matches.get(0)
-        );
-        List<Map<String, String>> parameters = List.of(mapForReminderId, mapForText);
+        List<Map<String, String>> parameters = setParameters("", what, Integer.valueOf(matches.get(0)));
 
         Action action = new Action();
         action.setActionMethodName("CancelReminder");
@@ -239,20 +224,8 @@ public class ControlIT {
         }
         assertThat(requestResponse).isEqualTo(expectedResponseMethodForReminder(successMsg, matches.get(0)));
 
-        Map<String, String> mapForUser = Map.of(
-                "key", "name",
-                "value", req.getMessage().getSender().getName()
-        );
-        Map<String, String> mapForText = Map.of(
-                "key", "text",
-                "value", what
-        );
-        Map<String, String> mapForReminderId = Map.of(
-                "key", "reminderId",
-                "value", matches.get(0)
-        );
-
-        List<Map<String, String>> parameters = List.of(mapForUser, mapForReminderId, mapForText);
+        List<Map<String, String>> parameters =
+                setParameters(req.getMessage().getSender().getName(), what, Integer.valueOf(matches.get(0)));
 
         Action action = new Action();
         action.setActionMethodName("remindAgainTomorrow");
@@ -399,9 +372,10 @@ public class ControlIT {
     }
 
     String expectedResponseMethodForReminder(String expectedMessage, String number) {
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("reminderId", number);
+        Map<String, String> parameters = new LinkedHashMap<>();
         parameters.put("name", "MyName");
+        parameters.put("reminderId", number);
+        parameters.put("text", "");
         return new CardResponseBuilder()
                 .thread("spaces/SPACE_ID/threads/THREAD_ID")
                 .textParagraph(expectedMessage)
@@ -428,6 +402,22 @@ public class ControlIT {
         req.setMessage(mes);
 
         return req;
+    }
+
+    public static List<Map<String, String>> setParameters(String name, String text, int matches) {
+        Map<String, String> mapForReminderId = Map.of(
+                "key", "reminderId",
+                "value", String.valueOf(matches)
+        );
+        Map<String, String> mapForText = Map.of(
+                "key", "text",
+                "value", text
+        );
+        Map<String, String> mapForName = Map.of(
+                "key", "name",
+                "value", name
+        );
+        return List.of(mapForName, mapForReminderId, mapForText);
     }
 
 }
