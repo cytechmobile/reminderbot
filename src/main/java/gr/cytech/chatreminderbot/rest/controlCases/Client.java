@@ -31,24 +31,21 @@ public class Client {
                                String senderName, Reminder reminder) {
         Action parameters = new Action();
         parameters.setBuildParametersForButton(senderName, reminder.getReminderId(), what);
+
+        String thread = "spaces/" + spaceId + "/threads/" + threadId;
+        String textParagraph = "<b>" + what + "</b>";
+
+        Map<String, String> buildParametersForButton = parameters.getBuildParametersForButton();
+
         if (reminder.isRecuring()) {
             return new CardResponseBuilder()
-                    .thread("spaces/" + spaceId + "/threads/" + threadId)
-                    .textParagraph("<b>" + what + "</b>")
-                    .interactiveTextButton("Cancel Recurring Reminder", "CancelReminder",
-                            parameters.getBuildParametersForButton())
-                    .build();
+                    .cardWithOneInteractiveButton(thread, textParagraph, "Cancel Recurring Reminder",
+                            Action.CANCEL_REMINDER, buildParametersForButton);
         } else {
-            return new CardResponseBuilder()
-                    .thread("spaces/" + spaceId + "/threads/" + threadId)
-                    .textParagraph("<b>" + what + "</b>")
-                    .interactiveTextButton("remind me again in 10 minutes", REMIND_AGAIN_IN_10_MINUTES,
-                            parameters.getBuildParametersForButton())
-                    .interactiveTextButton("remind me again Tomorrow", REMIND_AGAIN_TOMORROW,
-                            parameters.getBuildParametersForButton())
-                    .interactiveTextButton("remind me again next week", REMIND_AGAIN_TOMORROW,
-                            parameters.getBuildParametersForButton())
-                    .build();
+            return new CardResponseBuilder().cardWithThreeInteractiveButton(thread, textParagraph,
+                    "remind me again in 10 minutes", REMIND_AGAIN_IN_10_MINUTES, buildParametersForButton,
+                    "remind me again Tomorrow", REMIND_AGAIN_TOMORROW,
+                    "remind me again next week", REMIND_AGAIN_TOMORROW);
         }
     }
 

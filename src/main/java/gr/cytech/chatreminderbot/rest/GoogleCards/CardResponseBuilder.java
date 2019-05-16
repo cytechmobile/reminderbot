@@ -294,4 +294,67 @@ public class CardResponseBuilder {
 
         actionNode.add("parameters", parametersArray);
     }
+
+    public String cardWithOneInteractiveButton(String thread, String textParagraph, String buttonText,
+                                               String actionName, Map<String, String> parameters) {
+        return new CardResponseBuilder()
+                .thread(thread)
+                .textParagraph(textParagraph)
+                .interactiveTextButton(buttonText, actionName,
+                        parameters)
+                .build();
+    }
+
+    public String cardWithOneInteractiveButton(String thread, String textParagraph, String buttonText,
+                                               String actionName, Map<String, String> parameters,
+                                               String updateMessage) {
+        return new CardResponseBuilder(updateMessage)
+                .thread(thread)
+                .textParagraph(textParagraph)
+                .interactiveTextButton(buttonText, actionName,
+                        parameters)
+                .build();
+    }
+
+    public String cardWithOnlyText(String thread, String text) {
+        return new CardResponseBuilder()
+                .thread(thread)
+                .textParagraph(text)
+                .build();
+    }
+
+    public String cardWithOnlyText(String thread, String text, String updateMessage) {
+        return new CardResponseBuilder(updateMessage)
+                .thread(thread)
+                .textParagraph(text)
+                .build();
+    }
+
+    public String cardWithThreeInteractiveButton(String thread, String textParagraph, String textButton,
+                                                 String actionName, Map<String, String> parameters,
+                                                 String secondTextButton, String secondActionName,
+                                                 String thirdTextButton, String thirdActionName) {
+        return new CardResponseBuilder()
+                .thread(thread)
+                .textParagraph(textParagraph)
+                .interactiveTextButton(textButton, actionName, parameters)
+                .interactiveTextButton(secondTextButton, secondActionName, parameters)
+                .interactiveTextButton(thirdTextButton, thirdActionName, parameters)
+                .build();
+    }
+
+    public String cardWithThreeInteractiveButton(String thread, String textParagraph, String textButton,
+                                                 String actionName, Map<String, String> parameters,
+                                                 String secondTextButton, String secondActionName,
+                                                 String thirdTextButton, String thirdActionName,
+                                                 String updateMessage) {
+        return new CardResponseBuilder(updateMessage)
+                .thread(thread)
+                .textParagraph(textParagraph)
+                .interactiveTextButton(textButton, actionName, parameters)
+                .interactiveTextButton(secondTextButton, secondActionName, parameters)
+                .interactiveTextButton(thirdTextButton, thirdActionName, parameters)
+                .build();
+    }
+
 }

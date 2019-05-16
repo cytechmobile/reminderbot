@@ -16,6 +16,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static gr.cytech.chatreminderbot.rest.message.Action.CANCEL_REMINDER;
+import static gr.cytech.chatreminderbot.rest.message.Action.REMIND_AGAIN_TOMORROW;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ControlIT {
@@ -99,7 +101,7 @@ public class ControlIT {
         assertThat(requestResponse).isEqualTo(expectedResponseMethodForReminder(successMsg, matches.get(0)));
 
         Action action = new Action();
-        action.setActionMethodName("CancelReminder");
+        action.setActionMethodName(CANCEL_REMINDER);
         List<Map<String, String>> parameters =
                 setParameters("", "", Integer.valueOf(matches.get(0)));
 
@@ -125,7 +127,7 @@ public class ControlIT {
         String what = "something to do";
         List<Map<String, String>> parameters = setParameters(req.getMessage().getSender().getName(), what, 0);
 
-        action.setActionMethodName("remindAgainTomorrow");
+        action.setActionMethodName(REMIND_AGAIN_TOMORROW);
 
         action.setParameters(parameters);
         req.getMessage().setText(what);
@@ -177,7 +179,7 @@ public class ControlIT {
         List<Map<String, String>> parameters = setParameters("", what, Integer.valueOf(matches.get(0)));
 
         Action action = new Action();
-        action.setActionMethodName("CancelReminder");
+        action.setActionMethodName(CANCEL_REMINDER);
         action.setParameters(parameters);
         User user = new User();
         user.setName("DifferentName");
@@ -228,7 +230,7 @@ public class ControlIT {
                 setParameters(req.getMessage().getSender().getName(), what, Integer.valueOf(matches.get(0)));
 
         Action action = new Action();
-        action.setActionMethodName("remindAgainTomorrow");
+        action.setActionMethodName(REMIND_AGAIN_TOMORROW);
         action.setParameters(parameters);
         User user = new User();
         user.setName("DifferentName");
@@ -349,25 +351,20 @@ public class ControlIT {
 
     String expectedResponseMethod(String expectedMessage) {
         return new CardResponseBuilder()
-                .thread("spaces/SPACE_ID")
-                .textParagraph("" + expectedMessage + "")
-                .build();
+                .cardWithOnlyText("spaces/SPACE_ID", expectedMessage);
 
     }
 
     String expectedResponseMethodWithAction(String expectedMessage) {
-        return new CardResponseBuilder("UPDATE_MESSAGE")
-                .thread("spaces/SPACE_ID")
-                .textParagraph("" + expectedMessage + "")
-                .build();
+        return new CardResponseBuilder()
+                .cardWithOnlyText("spaces/SPACE_ID", expectedMessage, CardResponseBuilder.UPDATE_MESSAGE);
     }
 
     String expectedResponseMethodForActions(String expectedMessage) {
-        return new CardResponseBuilder("UPDATE_MESSAGE")
-                .thread("spaces/SPACE_ID/threads/THREAD_ID")
-                .textParagraph("" + expectedMessage + "")
-                .textParagraph("Reminder have been postponed!.")
-                .build();
+        return new CardResponseBuilder()
+                .cardWithOnlyText("spaces/SPACE_ID/threads/THREAD_ID",
+                        expectedMessage + "\nReminder have been postponed!.",
+                        CardResponseBuilder.UPDATE_MESSAGE);
 
     }
 
@@ -377,10 +374,8 @@ public class ControlIT {
         parameters.put("reminderId", number);
         parameters.put("text", "");
         return new CardResponseBuilder()
-                .thread("spaces/SPACE_ID/threads/THREAD_ID")
-                .textParagraph(expectedMessage)
-                .interactiveTextButton("Cancel Reminder", "CancelReminder", parameters)
-                .build();
+                .cardWithOneInteractiveButton("spaces/SPACE_ID/threads/THREAD_ID", expectedMessage,
+                        "Cancel Reminder", CANCEL_REMINDER, parameters);
     }
 
     public static Request getSampleRequest() {

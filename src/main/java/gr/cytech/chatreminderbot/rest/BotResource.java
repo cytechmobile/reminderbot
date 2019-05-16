@@ -51,7 +51,8 @@ public class BotResource {
         if (message.startsWith(ALREADY_BUILD_MESSAGE_WITH_ACTION) || message.startsWith(ALREADY_BUILD_MESSAGE)) {
             return message;
         }
-        return responseBuild(spaceId, message);
+        return new CardResponseBuilder()
+                .cardWithOnlyText("spaces/" + spaceId, message);
     }
 
     private void manipulateRequestBasedOnParameters(Request req) {
@@ -59,24 +60,17 @@ public class BotResource {
         int reminderId = Integer.valueOf(req.getAction().getParameters().get(1).get("value"));
 
         req.getMessage().getSender().setName(req.getUser().getName());
+        String remindMe = "remind me " + text + " ";
 
         if (REMIND_AGAIN_IN_10_MINUTES.equals(req.getAction().getActionMethodName())) {
-            req.getMessage().setText("remind me " + text + " in 10 minutes");
+            req.getMessage().setText(remindMe + "in 10 minutes");
         } else if (REMIND_AGAIN_TOMORROW.equals(req.getAction().getActionMethodName())) {
-            req.getMessage().setText("remind me " + text + " tomorrow");
+            req.getMessage().setText(remindMe + " tomorrow");
         } else if (REMIND_AGAIN_NEXT_WEEK.equals(req.getAction().getActionMethodName())) {
-            req.getMessage().setText("remind me " + text + " in next week");
+            req.getMessage().setText(remindMe + " in next week");
         } else if (CANCEL_REMINDER.equals(req.getAction().getActionMethodName())) {
             req.getMessage().setText("delete " + reminderId);
         }
-    }
-
-    private String responseBuild(String spaceId, String message) {
-        return new CardResponseBuilder()
-                .thread("spaces/" + spaceId)
-                .textParagraph(message)
-                .build();
-
     }
 
 }

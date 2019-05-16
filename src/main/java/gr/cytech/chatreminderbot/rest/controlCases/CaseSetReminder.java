@@ -145,17 +145,13 @@ public class CaseSetReminder {
                 || actionName.equals(REMIND_AGAIN_NEXT_WEEK)
                 || actionName.equals(REMIND_AGAIN_TOMORROW)) {
 
-            return new CardResponseBuilder("UPDATE_MESSAGE")
-                    .thread(threadResponse)
-                    .textParagraph(reminderAnswer)
-                    .textParagraph("Reminder have been postponed!.")
-                    .build();
+            return new CardResponseBuilder()
+                    .cardWithOnlyText(threadResponse, reminderAnswer + "\nReminder have been postponed!.",
+                            CardResponseBuilder.UPDATE_MESSAGE);
+
         }
-        return new CardResponseBuilder()
-                .thread(threadResponse)
-                .textParagraph(reminderAnswer)
-                .interactiveTextButton("Cancel Reminder", "CancelReminder", parameters)
-                .build();
+        return new CardResponseBuilder().cardWithOneInteractiveButton(threadResponse, reminderAnswer,
+                "Cancel Reminder", CANCEL_REMINDER, parameters);
     }
     /*
      * uses the text message of the user from Request

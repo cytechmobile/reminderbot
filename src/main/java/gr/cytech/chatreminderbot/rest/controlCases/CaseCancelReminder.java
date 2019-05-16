@@ -11,6 +11,8 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.util.List;
 
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.NEW_MESSAGE;
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.UPDATE_MESSAGE;
 import static gr.cytech.chatreminderbot.rest.message.Action.CANCEL_REMINDER;
 
 @RequestScoped
@@ -45,19 +47,18 @@ public class CaseCancelReminder {
         String spaceId = request.getMessage().getThread().getSpaceId();
         if (request.getAction() != null) {
             if (request.getAction().getActionMethodName().equals(CANCEL_REMINDER)) {
-                return createCardResponse(reminders.get(0), "UPDATE_MESSAGE", spaceId);
+                return createCardResponse(reminders.get(0), UPDATE_MESSAGE, spaceId);
             }
         }
-        return createCardResponse(reminders.get(0), "NEW_MESSAGE", spaceId);
+        return createCardResponse(reminders.get(0), NEW_MESSAGE, spaceId);
     }
 
     private String createCardResponse(Reminder reminder, String typeForMessage, String spaceId) {
-        return new CardResponseBuilder(typeForMessage)
-                .thread("spaces/" + spaceId)
-                .textParagraph("Reminder with text:\n<b>"
-                        + reminder.getWhat()
-                        + "</b>\nsuccessfully canceled!")
-                .build();
+        String textParagraph = "Reminder with text:\n<b>"
+                + reminder.getWhat()
+                + "</b>\nsuccessfully canceled!";
+        return new CardResponseBuilder()
+                .cardWithOnlyText("spaces/" + spaceId, textParagraph, typeForMessage);
     }
 
 }
