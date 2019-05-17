@@ -16,6 +16,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.NEW_MESSAGE;
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.UPDATE_MESSAGE;
 import static gr.cytech.chatreminderbot.rest.message.Action.CANCEL_REMINDER;
 import static gr.cytech.chatreminderbot.rest.message.Action.REMIND_AGAIN_TOMORROW;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -351,20 +353,20 @@ public class ControlIT {
 
     String expectedResponseMethod(String expectedMessage) {
         return new CardResponseBuilder()
-                .cardWithOnlyText("spaces/SPACE_ID", expectedMessage);
+                .cardWithOnlyText("spaces/SPACE_ID", expectedMessage, NEW_MESSAGE);
 
     }
 
     String expectedResponseMethodWithAction(String expectedMessage) {
         return new CardResponseBuilder()
-                .cardWithOnlyText("spaces/SPACE_ID", expectedMessage, CardResponseBuilder.UPDATE_MESSAGE);
+                .cardWithOnlyText("spaces/SPACE_ID", expectedMessage, UPDATE_MESSAGE);
     }
 
     String expectedResponseMethodForActions(String expectedMessage) {
         return new CardResponseBuilder()
                 .cardWithOnlyText("spaces/SPACE_ID/threads/THREAD_ID",
                         expectedMessage + "\nReminder have been postponed!.",
-                        CardResponseBuilder.UPDATE_MESSAGE);
+                        UPDATE_MESSAGE);
 
     }
 
@@ -375,7 +377,7 @@ public class ControlIT {
         parameters.put("text", "");
         return new CardResponseBuilder()
                 .cardWithOneInteractiveButton("spaces/SPACE_ID/threads/THREAD_ID", expectedMessage,
-                        "Cancel Reminder", CANCEL_REMINDER, parameters);
+                        "Cancel Reminder", CANCEL_REMINDER, parameters, NEW_MESSAGE);
     }
 
     public static Request getSampleRequest() {

@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * Creates a card response to a Hangouts Chat message, in JSON format.
- *
+ * <p>
  * See the documentation for more details:
  * https://developers.google.com/hangouts/chat/reference/message-formats/cards
  */
@@ -47,7 +47,7 @@ public class CardResponseBuilder {
     /**
      * Adds a header to the card response.
      *
-     * @param title the header title
+     * @param title    the header title
      * @param subtitle the header subtitle
      * @param imageUrl the header image
      * @return this CardResponseBuilder
@@ -78,14 +78,14 @@ public class CardResponseBuilder {
 
     /**
      * Adds a KeyValue widget to the card response.
-     *
+     * <p>
      * For a list of icons that can be used, see:
      * https://developers.google.com/hangouts/chat/reference/message-formats/cards#builtinicons
      *
-     * @param key the key or top label
-     * @param value the value or content
+     * @param key         the key or top label
+     * @param value       the value or content
      * @param bottomLabel the content below the key/value pair
-     * @param iconName a specific icon
+     * @param iconName    a specific icon
      * @return this CardResponseBuilder
      */
     public CardResponseBuilder keyValue(String key, String value,
@@ -102,7 +102,7 @@ public class CardResponseBuilder {
     /**
      * Adds an Image widget to the card response.
      *
-     * @param imageUrl the URL of the image to display
+     * @param imageUrl    the URL of the image to display
      * @param redirectUrl the URL to open when the image is clicked.
      * @return this CardResponseBuilder
      */
@@ -118,10 +118,10 @@ public class CardResponseBuilder {
 
     /**
      * Adds a Text Button widget to the card response.
-     *
+     * <p>
      * When clicked, the button opens a link in the user's browser.
      *
-     * @param text the text on the button
+     * @param text        the text on the button
      * @param redirectUrl the link to open
      * @return this CardResponseBuilder
      */
@@ -139,10 +139,10 @@ public class CardResponseBuilder {
 
     /**
      * Adds an Image Button widget to the card response.
-     *
+     * <p>
      * When clicked, the button opens a link in the user's browser.
      *
-     * @param iconName the icon to display
+     * @param iconName    the icon to display
      * @param redirectUrl the link to open
      * @return this CardResponseBuilder
      */
@@ -160,13 +160,13 @@ public class CardResponseBuilder {
 
     /**
      * Adds an interactive Text Button widget to the card response.
-     *
+     * <p>
      * When clicked, the button sends a new request to the bot, passing along the custom actionName
      * and parameter values. The actionName and parameter values are defined by the developer when the
      * widget is first declared (as shown below).
      *
-     * @param text the text to display
-     * @param actionName the custom action name
+     * @param text                   the text to display
+     * @param actionName             the custom action name
      * @param customActionParameters the custom key value pairs
      * @return this CardResponseBuilder
      */
@@ -198,13 +198,13 @@ public class CardResponseBuilder {
 
     /**
      * Adds an interactive Image Button widget to the card response.
-     *
+     * <p>
      * When clicked, the button sends a new request to the bot, passing along the custom actionName
      * and parameter values. The actionName and parameter values are defined by the developer when the
      * widget is first declared (as shown below).
      *
-     * @param iconName the pre-defined icon to display.
-     * @param actionName the custom action name
+     * @param iconName               the pre-defined icon to display.
+     * @param actionName             the custom action name
      * @param customActionParameters the custom key value pairs
      * @return this CardResponseBuilder
      */
@@ -248,11 +248,11 @@ public class CardResponseBuilder {
                 responseNode
                         .add("actionResponse", Json.createObjectBuilder().add("type", typeForMessage))
                         .add("cards", this.cardsArray
-                        .add(Json.createObjectBuilder()
-                                .add("sections", Json.createArrayBuilder()
-                                        .add(Json.createObjectBuilder()
-                                                .add("widgets", this.widgetsArray)))))
-                        .add("thread",this.thread)
+                                .add(Json.createObjectBuilder()
+                                        .add("sections", Json.createArrayBuilder()
+                                                .add(Json.createObjectBuilder()
+                                                        .add("widgets", this.widgetsArray)))))
+                        .add("thread", this.thread)
                         .build();
         return cardsNode.toString();
     }
@@ -272,7 +272,7 @@ public class CardResponseBuilder {
                                         .add("sections", Json.createArrayBuilder()
                                                 .add(Json.createObjectBuilder()
                                                         .add("widgets", this.widgetsArray)))))
-                        .add("thread",this.thread)
+                        .add("thread", this.thread)
                         .build();
         return cardsNode.toString();
     }
@@ -296,19 +296,10 @@ public class CardResponseBuilder {
     }
 
     public String cardWithOneInteractiveButton(String thread, String textParagraph, String buttonText,
-                                               String actionName, Map<String, String> parameters) {
-        return new CardResponseBuilder()
-                .thread(thread)
-                .textParagraph(textParagraph)
-                .interactiveTextButton(buttonText, actionName,
-                        parameters)
-                .build();
-    }
-
-    public String cardWithOneInteractiveButton(String thread, String textParagraph, String buttonText,
                                                String actionName, Map<String, String> parameters,
-                                               String updateMessage) {
-        return new CardResponseBuilder(updateMessage)
+                                               String updateType) {
+        //building a card with a text paragraph and one button
+        return new CardResponseBuilder(updateType)
                 .thread(thread)
                 .textParagraph(textParagraph)
                 .interactiveTextButton(buttonText, actionName,
@@ -316,30 +307,11 @@ public class CardResponseBuilder {
                 .build();
     }
 
-    public String cardWithOnlyText(String thread, String text) {
-        return new CardResponseBuilder()
+    public String cardWithOnlyText(String thread, String text, String updateType) {
+        //building a simple card with only a text paragraph
+        return new CardResponseBuilder(updateType)
                 .thread(thread)
                 .textParagraph(text)
-                .build();
-    }
-
-    public String cardWithOnlyText(String thread, String text, String updateMessage) {
-        return new CardResponseBuilder(updateMessage)
-                .thread(thread)
-                .textParagraph(text)
-                .build();
-    }
-
-    public String cardWithThreeInteractiveButton(String thread, String textParagraph, String textButton,
-                                                 String actionName, Map<String, String> parameters,
-                                                 String secondTextButton, String secondActionName,
-                                                 String thirdTextButton, String thirdActionName) {
-        return new CardResponseBuilder()
-                .thread(thread)
-                .textParagraph(textParagraph)
-                .interactiveTextButton(textButton, actionName, parameters)
-                .interactiveTextButton(secondTextButton, secondActionName, parameters)
-                .interactiveTextButton(thirdTextButton, thirdActionName, parameters)
                 .build();
     }
 
@@ -348,6 +320,7 @@ public class CardResponseBuilder {
                                                  String secondTextButton, String secondActionName,
                                                  String thirdTextButton, String thirdActionName,
                                                  String updateMessage) {
+        //building a card with a text paragraph and three button
         return new CardResponseBuilder(updateMessage)
                 .thread(thread)
                 .textParagraph(textParagraph)

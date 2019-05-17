@@ -48,7 +48,7 @@ public class Control {
 
     private static final String KEYWORD_HELP = "help";
 
-    private static final String KEYWORD_REMIND = "remind";
+    public static final String KEYWORD_REMIND = "remind";
 
     //Current format;
     //set my timezone to athens

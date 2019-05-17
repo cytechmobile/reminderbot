@@ -13,8 +13,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.NEW_MESSAGE;
+import static gr.cytech.chatreminderbot.rest.controlCases.Control.KEYWORD_REMIND;
 import static gr.cytech.chatreminderbot.rest.message.Action.*;
-import static gr.cytech.chatreminderbot.rest.message.Request.ALREADY_BUILD_MESSAGE;
 
 @Path("/services")
 public class BotResource {
@@ -48,11 +49,11 @@ public class BotResource {
         }
 
         //case message is already build in json
-        if (message.startsWith(ALREADY_BUILD_MESSAGE_WITH_ACTION) || message.startsWith(ALREADY_BUILD_MESSAGE)) {
+        if (message.startsWith(ALREADY_BUILD_MESSAGE_WITH_ACTION)) {
             return message;
         }
         return new CardResponseBuilder()
-                .cardWithOnlyText("spaces/" + spaceId, message);
+                .cardWithOnlyText("spaces/" + spaceId, message, NEW_MESSAGE);
     }
 
     private void manipulateRequestBasedOnParameters(Request req) {
@@ -60,14 +61,15 @@ public class BotResource {
         int reminderId = Integer.valueOf(req.getAction().getParameters().get(1).get("value"));
 
         req.getMessage().getSender().setName(req.getUser().getName());
-        String remindMe = "remind me " + text + " ";
+
+        String remindMe = KEYWORD_REMIND + " me " + text + " ";
 
         if (REMIND_AGAIN_IN_10_MINUTES.equals(req.getAction().getActionMethodName())) {
             req.getMessage().setText(remindMe + "in 10 minutes");
         } else if (REMIND_AGAIN_TOMORROW.equals(req.getAction().getActionMethodName())) {
-            req.getMessage().setText(remindMe + " tomorrow");
+            req.getMessage().setText(remindMe + "tomorrow");
         } else if (REMIND_AGAIN_NEXT_WEEK.equals(req.getAction().getActionMethodName())) {
-            req.getMessage().setText(remindMe + " in next week");
+            req.getMessage().setText(remindMe + "in next week");
         } else if (CANCEL_REMINDER.equals(req.getAction().getActionMethodName())) {
             req.getMessage().setText("delete " + reminderId);
         }

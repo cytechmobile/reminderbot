@@ -19,6 +19,8 @@ import java.time.format.DateTimeParseException;
 import java.util.TimeZone;
 import java.util.*;
 
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.NEW_MESSAGE;
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.UPDATE_MESSAGE;
 import static gr.cytech.chatreminderbot.rest.message.Action.*;
 
 @RequestScoped
@@ -147,11 +149,11 @@ public class CaseSetReminder {
 
             return new CardResponseBuilder()
                     .cardWithOnlyText(threadResponse, reminderAnswer + "\nReminder have been postponed!.",
-                            CardResponseBuilder.UPDATE_MESSAGE);
+                            UPDATE_MESSAGE);
 
         }
         return new CardResponseBuilder().cardWithOneInteractiveButton(threadResponse, reminderAnswer,
-                "Cancel Reminder", CANCEL_REMINDER, parameters);
+                "Cancel Reminder", CANCEL_REMINDER, parameters, NEW_MESSAGE);
     }
     /*
      * uses the text message of the user from Request

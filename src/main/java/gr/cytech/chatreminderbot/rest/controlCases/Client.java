@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.*;
 
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.NEW_MESSAGE;
 import static gr.cytech.chatreminderbot.rest.message.Action.REMIND_AGAIN_IN_10_MINUTES;
 import static gr.cytech.chatreminderbot.rest.message.Action.REMIND_AGAIN_TOMORROW;
 
@@ -40,12 +41,12 @@ public class Client {
         if (reminder.isRecuring()) {
             return new CardResponseBuilder()
                     .cardWithOneInteractiveButton(thread, textParagraph, "Cancel Recurring Reminder",
-                            Action.CANCEL_REMINDER, buildParametersForButton);
+                            Action.CANCEL_REMINDER, buildParametersForButton, NEW_MESSAGE);
         } else {
             return new CardResponseBuilder().cardWithThreeInteractiveButton(thread, textParagraph,
                     "remind me again in 10 minutes", REMIND_AGAIN_IN_10_MINUTES, buildParametersForButton,
                     "remind me again Tomorrow", REMIND_AGAIN_TOMORROW,
-                    "remind me again next week", REMIND_AGAIN_TOMORROW);
+                    "remind me again next week", REMIND_AGAIN_TOMORROW, NEW_MESSAGE);
         }
     }
 
