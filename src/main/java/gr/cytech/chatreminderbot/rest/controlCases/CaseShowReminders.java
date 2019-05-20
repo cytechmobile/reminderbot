@@ -48,7 +48,7 @@ public class CaseShowReminders {
         for (int i = 0; i < reminders.size(); i++) {
             remindersShow += i + 1 + ") ID:" + reminders.get(i).getReminderId() + " what:' "
                     + reminders.get(i).getWhat() + " ' When: "
-                    + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+                    + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
                             .format(reminders.get(i).getWhen()
                                     .withZoneSameLocal(reminders.get(i).getWhen().getZone())) + " "
                     + reminders.get(i).getWhen().getZone() + "\n";
