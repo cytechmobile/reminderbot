@@ -1,7 +1,9 @@
 package gr.cytech.chatreminderbot.rest.controlCases;
 
+import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.beans.TimerSessionBean;
 import gr.cytech.chatreminderbot.rest.db.Dao;
+import gr.cytech.chatreminderbot.rest.message.Action;
 import gr.cytech.chatreminderbot.rest.message.Request;
 import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
 import org.ocpsoft.prettytime.nlp.parse.DateGroup;
@@ -16,6 +18,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.TimeZone;
 import java.util.*;
+
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.NEW_MESSAGE;
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.UPDATE_MESSAGE;
+import static gr.cytech.chatreminderbot.rest.message.Action.*;
 
 @RequestScoped
 public class CaseSetReminder {
@@ -88,6 +94,16 @@ public class CaseSetReminder {
             logger.info("cant set reminder under 1 minute due to spam messages");
             return "Sorry you cant set reminder under 1 minute";
         }
+
+        if (request.getAction() != null) {
+            if (request.getAction().getParameters().get(0).get("key").equals("name")
+                    && !request.getAction().getParameters().get(0).get("value")
+                    .equals(reminder.getSenderDisplayName())) {
+                logger.info("Button Click by other user so cant postpone the reminder");
+                return "You <b>can't</b> postpone another user's reminders.";
+            }
+        }
+
         try {
             transaction.begin();
             dao.persist(reminder);
@@ -105,12 +121,40 @@ public class CaseSetReminder {
         }
 
         timerSessionBean.setTimerForReminder(reminder);
+        Action parameters = new Action();
+        parameters.setBuildParametersForButton(reminder.getSenderDisplayName(), reminder.getReminderId(), "");
 
-        return "Reminder with text:\n <b>" + reminder.getWhat() + "</b>.\n"
-                + "Saved successfully and will notify you in: \n<b>"
-                + timeToNotify + "</b>";
+        if (request.getAction() != null) {
+            logger.info("Button Clicked Update the card message");
+            return buildReminderResponse(reminder, timeToNotify, parameters.getBuildParametersForButton(),
+                    request.getAction().getActionMethodName());
+        }
+        logger.info("returned default new message for reminder");
+        return buildReminderResponse(reminder, timeToNotify, parameters.getBuildParametersForButton(), "");
+
     }
 
+    private String buildReminderResponse(Reminder reminder, String timeToNotify, Map<String,
+            String> parameters, String actionName) {
+
+        String reminderAnswer = "Reminder with text:\n<b>" + reminder.getWhat() + "</b>.\n"
+                + "Saved successfully and will notify you in: \n<b>"
+                + timeToNotify + "</b>";
+
+        String threadResponse = "spaces/" + reminder.getSpaceId() + "/threads/" + reminder.getThreadId();
+
+        if (actionName.equals(REMIND_AGAIN_IN_10_MINUTES)
+                || actionName.equals(REMIND_AGAIN_NEXT_WEEK)
+                || actionName.equals(REMIND_AGAIN_TOMORROW)) {
+
+            return new CardResponseBuilder()
+                    .cardWithOnlyText(threadResponse, reminderAnswer + "\nReminder have been postponed!.",
+                            UPDATE_MESSAGE);
+
+        }
+        return new CardResponseBuilder().cardWithOneInteractiveButton(threadResponse, reminderAnswer,
+                "Cancel Reminder", CANCEL_REMINDER, parameters, NEW_MESSAGE);
+    }
     /*
      * uses the text message of the user from Request
      * message:(@reminder) remind me Something to do in 10 minutes

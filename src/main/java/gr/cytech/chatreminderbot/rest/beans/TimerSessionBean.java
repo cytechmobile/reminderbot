@@ -87,7 +87,7 @@ public class TimerSessionBean {
                     client.sendAsyncResponse(r);
                     logger.info("Sent reminder {}", r);
                 } catch (Exception e) {
-                    logger.error("error sending reminder. consider changing the buttonUrl and the googlePrivateKey", e);
+                    logger.error("error sending reminder. consider changing the googlePrivateKey", e);
                 }
 
                 //Removes the reminder

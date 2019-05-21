@@ -5,6 +5,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.*;
 import gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder;
 import gr.cytech.chatreminderbot.rest.db.Dao;
+import gr.cytech.chatreminderbot.rest.message.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.*;
 
+import static gr.cytech.chatreminderbot.rest.GoogleCards.CardResponseBuilder.NEW_MESSAGE;
+import static gr.cytech.chatreminderbot.rest.message.Action.REMIND_AGAIN_IN_10_MINUTES;
+import static gr.cytech.chatreminderbot.rest.message.Action.REMIND_AGAIN_TOMORROW;
+
 public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private static final List<String> SCOPE = Collections.singletonList("https://www.googleapis.com/auth/chat.bot");
@@ -24,17 +29,25 @@ public class Client {
     protected Dao dao;
 
     public String cardCreation(String spaceId, String threadId, String what,
-                               String senderName, String url) {
+                               String senderName, Reminder reminder) {
+        Action parameters = new Action();
+        parameters.setBuildParametersForButton(senderName, reminder.getReminderId(), what);
 
-        return new CardResponseBuilder()
-                .thread("spaces/" + spaceId + "/threads/" + threadId)
-                .textParagraph("<b>" + what + "</b>")
-                .textButton("remind me again in 10 minutes", url
-                        + "/bot/services/button?name=" + senderName
-                        + "&text=" + what
-                        + "&space=" + spaceId
-                        + "&thread=" + threadId)
-                .build();
+        String thread = "spaces/" + spaceId + "/threads/" + threadId;
+        String textParagraph = "<b>" + what + "</b>";
+
+        Map<String, String> buildParametersForButton = parameters.getBuildParametersForButton();
+
+        if (reminder.isRecuring()) {
+            return new CardResponseBuilder()
+                    .cardWithOneInteractiveButton(thread, textParagraph, "Cancel Recurring Reminder",
+                            Action.CANCEL_REMINDER, buildParametersForButton, NEW_MESSAGE);
+        } else {
+            return new CardResponseBuilder().cardWithThreeInteractiveButton(thread, textParagraph,
+                    "remind me again in 10 minutes", REMIND_AGAIN_IN_10_MINUTES, buildParametersForButton,
+                    "remind me again Tomorrow", REMIND_AGAIN_TOMORROW,
+                    "remind me again next week", REMIND_AGAIN_TOMORROW, NEW_MESSAGE);
+        }
     }
 
     public Client() {
@@ -62,10 +75,8 @@ public class Client {
                     + "/threads/" + reminder.getThreadId() + "\" }}";
         }
 
-        String buttonUrl = dao.getConfigurationValue("buttonUrl");
-
         String cardResponse = cardCreation(reminder.getSpaceId(), reminder.getThreadId(),
-                reminder.getWhat(), reminder.getSenderDisplayName(), buttonUrl);
+                reminder.getWhat(), reminder.getSenderDisplayName(), reminder);
 
         //Check if message is to be sent to a room ex:reminder #TestRoom
         if (reminder.getSenderDisplayName().startsWith("#")) {

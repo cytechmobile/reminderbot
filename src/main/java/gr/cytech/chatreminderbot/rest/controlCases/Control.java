@@ -15,10 +15,10 @@ import java.util.List;
 public class Control {
     private static final Logger logger = LoggerFactory.getLogger(Control.class);
 
-    private String botName = "";
+    public String botName = "";
 
     @Inject
-    CaseDeleteReminder caseDeleteReminder;
+    CaseCancelReminder caseCancelReminder;
 
     @Inject
     CaseShowReminders caseShowReminders;
@@ -48,7 +48,7 @@ public class Control {
 
     private static final String KEYWORD_HELP = "help";
 
-    private static final String KEYWORD_REMIND = "remind";
+    public static final String KEYWORD_REMIND = "remind";
 
     //Current format;
     //set my timezone to athens
@@ -223,9 +223,7 @@ public class Control {
     }
 
     private String caseDeleteReminder() {
-        caseDeleteReminder.setRequest(request);
-        caseDeleteReminder.setSplitMsg(splitMsg);
-        return caseDeleteReminder.deleteReminder();
+        return caseCancelReminder.cancelReminder(request, splitMsg);
     }
 
     //-- End of Cases

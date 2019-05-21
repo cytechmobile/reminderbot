@@ -12,7 +12,7 @@ import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 public class ClientTest {
     private static final Logger logger = LoggerFactory.getLogger(ClientTest.class);
@@ -26,8 +26,6 @@ public class ClientTest {
         client.dao = mock(Dao.class);
 
         query = mock(TypedQuery.class);
-        when(client.dao.getConfigurationValue("buttonUrl")).thenReturn("localhost");
-
     }
 
     @Test
@@ -43,13 +41,11 @@ public class ClientTest {
                 .build();
 
         String message = client.cardCreation(reminder.getSpaceId(), reminder.getThreadId(), reminder.getWhat(),
-                reminder.getSenderDisplayName(), "localhost");
+                reminder.getSenderDisplayName(), reminder);
 
         client.requestFactory = transport.createRequestFactory();
 
         String result = client.sendAsyncResponse(reminder);
-
-        verify(client.dao, times(1)).getConfigurationValue("buttonUrl");
 
         assertThat(result).as("unexpected result returned").isEqualTo("ok");
 

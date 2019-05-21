@@ -39,7 +39,7 @@ public class CaseShowRemindersTest {
         reminders.add(reminder);
         logger.info("{}", caseShowReminders.reminderListToString(reminders));
         String expected = "1) ID:1 what:' Do Something ' When: "
-                + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(nowPlusTen)
+                + DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").format(nowPlusTen)
                 + " Europe/Athens\n";
         assertThat(caseShowReminders.reminderListToString(reminders)).isEqualTo(expected);
     }
